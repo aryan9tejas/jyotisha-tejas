@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jyotisha Tejas</string>
+    <string name="title_activity_main">Jyotisha Tejas</string>
+    <string name="package_name">app.jyotishatejas</string>
+    <string name="custom_url_scheme">app.jyotishatejas</string>
+</resources>

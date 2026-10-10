@@ -1,0 +1,17 @@
+{
+  "name": "jyotisha-tejas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jyotisha Tejas: offline Vedic astrology app",
+  "scripts": {
+    "bundle": "esbuild engine-src.mjs --bundle --format=esm --outfile=www/engine/worker.js --log-level=warning && python3 build.py",
+    "sync": "npm run bundle && cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "esbuild": "^0.28.2"
+  }
+}

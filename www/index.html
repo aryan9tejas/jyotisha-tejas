@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7a3e1d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jyotisha Tejas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Jyotisha Tejas</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Jyotisha Tejas</h1><span id="engine" class="pill" style="display:inline-block">Loading engine...</span>
+  <div class="hbar">
+    <select id="profileSel"><option value="">Saved profiles...</option></select>
+    <button id="btnSaveProfile" class="sec">Save profile</button>
+    <button id="btnDelProfile" class="sec">Delete</button>
+    <button id="btnNew" class="sec">New</button>
+  </div>
+</header>
+
+<section id="birth" class="card">
+  <div class="grid">
+    <label>Name<input id="name" placeholder="Name"></label>
+    <label>Date of birth<input id="date" type="date" value="1990-05-15"></label>
+    <label>Time (local)<input id="time" type="time" step="1" value="10:30:00"></label>
+    <label class="place">Place (search)<input id="place" autocomplete="off" placeholder="Type a city, e.g. Mumbai"><div id="placeList" class="dd"></div></label>
+    <label>Latitude (+N)<input id="lat" type="number" step="0.0001"></label>
+    <label>Longitude (+E)<input id="lon" type="number" step="0.0001"></label>
+    <label>Time zone<input id="tz" placeholder="e.g. Asia/Kolkata"></label>
+    <label>Gender<select id="gender"><option value="">-</option><option>Male</option><option>Female</option></select></label>
+  </div>
+  <details class="settings">
+    <summary>Settings</summary>
+    <div class="grid">
+      <label>Ayanamsa<select id="cfg_ayanamsa"><option value="lahiri" selected>Lahiri (default)</option><option value="krishnamurti">Krishnamurti (KP)</option><option value="raman">Raman</option></select></label>
+      <label>Rahu/Ketu<select id="cfg_node"><option value="true" selected>True node</option><option value="mean">Mean node</option></select></label>
+      <label>Sunrise<select id="cfg_sunrise"><option value="tip" selected>Upper limb, with refraction</option><option value="center">Disc centre, no refraction</option></select></label>
+      <label>Gulika at<select id="cfg_gulika_pos"><option value="start" selected>Start of Saturn portion</option><option value="middle">Middle</option><option value="end">End</option></select></label>
+      <label>Mandi at<select id="cfg_mandi_pos"><option value="start">Start of Saturn portion</option><option value="middle" selected>Middle</option><option value="end">End</option></select></label>
+      <label>Other upagrahas at<select id="cfg_upa_pos"><option value="start" selected>Start of planet portion</option><option value="middle">Middle</option><option value="end">End</option></select></label>
+      <label>Dasa year (days)<select id="cfg_year_days"><option value="365.2425" selected>365.2425</option><option value="365.25">365.25</option><option value="360">360</option></select></label>
+    </div>
+  </details>
+  <div class="actions">
+    <button id="btnCalc">Calculate</button>
+    <button id="btnSaveView" class="sec">Save current view</button>
+    <span class="seg">Chart style:
+      <label><input type="radio" name="style" value="south" checked> South Indian</label>
+      <label><input type="radio" name="style" value="north"> North Indian</label>
+    </span>
+    <span id="status" class="status"></span>
+  </div>
+</section>
+
+<nav id="tabs"></nav>
+<main id="panels"></main>
+<footer>Runs fully on this device: no internet needed after the first load. Swiss Ephemeris (Moshier), sidereal zodiac. For personal use. Verify against Jagannatha Hora before relying on any value.</footer>
+<script src="store.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+</script>
+</body>
+</html>

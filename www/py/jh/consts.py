@@ -1,0 +1,33 @@
+SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+SIGN_ABBR = ['Ar','Ta','Ge','Cn','Le','Vi','Li','Sc','Sg','Cp','Aq','Pi']
+PLANETS = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn','Rahu','Ketu']
+SEVEN = PLANETS[:7]
+PL_ABBR = {'Sun':'Su','Moon':'Mo','Mars':'Ma','Mercury':'Me','Jupiter':'Ju','Venus':'Ve','Saturn':'Sa','Rahu':'Ra','Ketu':'Ke','Lagna':'La','Gulika':'Gu','Mandi':'Md'}
+WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+VARA_LORDS = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn']
+SIGN_LORD = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter']
+NAKSHATRAS = ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati']
+VIM_ORDER = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury']
+VIM_YEARS = {'Ketu':7,'Venus':20,'Sun':6,'Moon':10,'Mars':7,'Rahu':18,'Jupiter':16,'Saturn':19,'Mercury':17}
+NAK_LORD = [VIM_ORDER[i % 9] for i in range(27)]
+NAK_SPAN = 360.0/27
+TITHI_NAMES = ['Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dwadashi','Trayodashi','Chaturdashi']
+YOGA_NAMES = ['Vishkambha','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shula','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyana','Parigha','Shiva','Siddha','Sadhya','Shubha','Shukla','Brahma','Indra','Vaidhriti']
+KARANA_REPEAT = ['Bava','Balava','Kaulava','Taitila','Gara','Vanija','Vishti']
+EXALT_SIGN = {'Sun':0,'Moon':1,'Mars':9,'Mercury':5,'Jupiter':3,'Venus':11,'Saturn':6}
+EXALT_POINT = {'Sun':10,'Moon':33,'Mars':298,'Mercury':165,'Jupiter':95,'Venus':357,'Saturn':200}
+DEBIL_POINT = {p:(v+180)%360 for p,v in EXALT_POINT.items()}
+OWN_SIGNS = {'Sun':[4],'Moon':[3],'Mars':[0,7],'Mercury':[2,5],'Jupiter':[8,11],'Venus':[1,6],'Saturn':[9,10]}
+MOOLATRIKONA = {'Sun':(4,0,20),'Moon':(1,3,30),'Mars':(0,0,12),'Mercury':(5,15,20),'Jupiter':(8,0,10),'Venus':(6,0,15),'Saturn':(10,0,20)}
+NAT_FRIENDS = {'Sun':['Moon','Mars','Jupiter'],'Moon':['Sun','Mercury'],'Mars':['Sun','Moon','Jupiter'],'Mercury':['Sun','Venus'],'Jupiter':['Sun','Moon','Mars'],'Venus':['Mercury','Saturn'],'Saturn':['Mercury','Venus']}
+NAT_ENEMIES = {'Sun':['Venus','Saturn'],'Moon':[],'Mars':['Mercury'],'Mercury':['Moon'],'Jupiter':['Mercury','Venus'],'Venus':['Sun','Moon'],'Saturn':['Sun','Moon','Mars']}
+MOVABLE=[0,3,6,9]; FIXED=[1,4,7,10]; DUAL=[2,5,8,11]
+FIRE=[0,4,8]; EARTH=[1,5,9]; AIR=[2,6,10]; WATER=[3,7,11]
+COMBUST_ORB = {'Moon':12,'Mars':17,'Mercury':14,'Jupiter':11,'Venus':10,'Saturn':15}
+KARAKA_8 = ['Atmakaraka','Amatyakaraka','Bhratrikaraka','Matrikaraka','Pitrikaraka','Putrakaraka','Gnatikaraka','Darakaraka']
+KARAKA_7 = ['Atmakaraka','Amatyakaraka','Bhratrikaraka','Matrikaraka','Putrakaraka','Gnatikaraka','Darakaraka']
+ARUDHA_NAMES = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','UL']
+# Divisional charts offered (rasi first). 'shodasa' = 16 vargas of Parasara
+VARGAS = [1,2,3,4,5,6,7,8,9,10,11,12,16,20,24,27,30,40,45,60,81,108,144]
+SHODASA = [1,2,3,4,7,9,10,12,16,20,24,27,30,40,45,60]
+VARGA_NAMES = {1:'Rasi',2:'Hora',3:'Drekkana',4:'Chaturthamsa',5:'Panchamsa',6:'Shashthamsa',7:'Saptamsa',8:'Ashtamsa',9:'Navamsa',10:'Dasamsa',11:'Rudramsa(D11)',12:'Dwadasamsa',16:'Shodasamsa',20:'Vimsamsa',24:'Siddhamsa',27:'Bhamsa',30:'Trimsamsa',40:'Khavedamsa',45:'Akshavedamsa',60:'Shashtiamsa',81:'Nava-navamsa(D81)',108:'Ashtottaramsa(D108)',144:'Dwadasa-dwadasamsa(D144)'}
