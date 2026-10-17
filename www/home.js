@@ -201,8 +201,17 @@ const Home = (() => {
   }
   function cardHTML(key, title, blocks) {
     const open = !!H.open[key];
-    return `<section class="gcard c-${key}${blocks.length > 1 ? ' multi' : ''}"><div class="ch"><h2>${title}</h2><button class="xp" data-k="${key}" aria-expanded="${open}">${open ? 'Hide' : 'Previous / next'} <i>${open ? '▴' : '▾'}</i></button></div>`
+    return `<section class="gcard c-${key}${blocks.length > 1 ? ' multi' : ''}"><div class="ch"><h2>${title}</h2><button class="xp" data-k="${key}" aria-expanded="${open}"><span class="xt">${open ? 'Hide' : 'Previous / next'}</span> <i>${open ? '▴' : '▾'}</i></button></div>`
       + blocks.map(b => b.main).join('') + `<div class="adjwrap"${open ? '' : ' hidden'}>${blocks.map(b => b.adj).join('')}</div></section>`;
+  }
+
+  /* Moon phase picture from the Moon-minus-Sun angle E (0 new, 180 full): lit part on the right while waxing, left while waning */
+  function moonSVG(E) {
+    const wax = E < 180, e = wax ? E : 360 - E, R = 20;
+    const rx = Math.abs(Math.cos(e * Math.PI / 180)) * R, lit = Math.round((1 - Math.cos(e * Math.PI / 180)) / 2 * 100);
+    const sw = e < 90 ? 0 : 1;
+    const path = `M0 ${-R} A${R} ${R} 0 0 1 0 ${R} A${rx.toFixed(2)} ${R} 0 0 ${sw} 0 ${-R}Z`;
+    return `<div class="mph" title="${wax ? 'Waxing' : 'Waning'}, ${lit}% lit"><svg viewBox="-24 -24 48 48" width="46" height="46" aria-hidden="true"><circle r="${R}" fill="#1b2040" stroke="rgba(255,255,255,.35)" stroke-width="1"/><path d="${path}" fill="#f4ecd0" transform="scale(${wax ? 1 : -1} 1)"/></svg><small>${wax ? 'Waxing' : 'Waning'}<br>${lit}%</small></div>`;
   }
 
   function skyOf(d, jd) {
@@ -227,11 +236,12 @@ const Home = (() => {
     if (!d) return;
     const sunIdx = idxAt(d.sun_sign, jd);
     const sunSign = sunIdx >= 0 ? d.sun_sign[sunIdx].name : '';
-    const dayLen = (d.sunset.jd - d.sunrise.jd) * 24;
+    const sn = idxAt(d.sun_nak || [], jd);
+    const sunNak = sn >= 0 ? d.sun_nak[sn].name : '';
     const sunCard = `<section class="gcard c-sun"><div class="ch"><h2>Sun</h2></div><div class="kvs">`
       + `<div><span>Sunrise</span><b>${d.sunrise.s.slice(11)}</b></div><div><span>Sunset</span><b>${d.sunset.s.slice(11)}</b></div>`
-      + `<div><span>Sun sign</span><b>${esc(sunSign)}</b></div><div><span>Day length</span><b>${hm(dayLen)}</b></div>`
-      + `<div><span>Vara</span><b>${esc(d.weekday)}</b></div><div><span>Vara lord</span><b>${esc(d.vara_lord)}</b></div></div></section>`;
+      + `<div><span>Sun sign</span><b>${esc(sunSign)}</b></div><div><span>Nakshatra</span><b>${esc(sunNak)}</b></div>`
+      + `<div><span>Masa</span><b>(${esc(d.masa || '')})</b></div></div></section>`;
 
     const padaRows = d.pada;
     const moonBlocks = [
@@ -241,19 +251,37 @@ const Home = (() => {
         return `Pada ${p} &middot; lord ${esc(r.lord)}`;
       }),
     ];
+    const mo = d.moon || {rise: [], set: [], track: []};
+    const lst = l => l.length ? l.map(x => stamp(x.s, ref)).join(', ') : 'none';
+    let dirHTML = '';
+    if (mo.track.length) {
+      const k = Math.max(0, Math.min(mo.track.length - 1, Math.round((jd - mo.track[0][0]) * 96)));
+      const [, az, alt] = mo.track[k];
+      const P = ['North', 'North-northeast', 'Northeast', 'East-northeast', 'East', 'East-southeast', 'Southeast', 'South-southeast', 'South', 'South-southwest', 'Southwest', 'West-southwest', 'West', 'West-northwest', 'Northwest', 'North-northwest'];
+      const up = alt > 0;
+      dirHTML = `<div class="mdir${up ? '' : ' dn'}"><span class="arw" style="transform:rotate(${az}deg)">&#8593;</span><div><b>${P[Math.round(az / 22.5) % 16]}</b><small>${Math.round(az)}&deg; &middot; ${up ? Math.round(alt) + '&deg; above horizon' : 'below horizon'}</small></div></div>`;
+    }
+    const moonExtra = `<div class="kvs mex"><div><span>Moonrise</span><b>${lst(mo.rise)}</b></div><div><span>Moonset</span><b>${lst(mo.set)}</b></div></div>${dirHTML}`;
+    const moonCard = cardHTML('moon', 'Moon', moonBlocks).replace('<div class="adjwrap"', `<div class="mx">${moonExtra}</div><div class="adjwrap"`);
+
+    const ti = idxAt(d.tithi, jd);
+    let phase = '';
+    if (ti >= 0) {
+      const tr = d.tithi[ti], E = (tr.i + (pct(tr, jd) || 0) / 100) * 12;     // Moon minus Sun, degrees
+      phase = moonSVG(E);
+    }
+    const tithiCard = cardHTML('tithi', 'Tithi', [block('Tithi', d.tithi, jd, ref, r => r.name)]).replace('<div class="blk">', `<div class="tw">${phase}<div class="blk">`).replace('<div class="adjwrap"', '</div><div class="adjwrap"');
     const cards = [
-      sunCard,
-      cardHTML('moon', 'Moon', moonBlocks),
-      cardHTML('tithi', 'Tithi', [block('Tithi', d.tithi, jd, ref, r => r.name)]),
-      cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)]),
-      cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)]),
+      sunCard, tithiCard, moonCard,
     ];
-    const good = {'Abhijit': 1, 'Amrita Kala': 1};
+    const good = {'Abhijit': 1, 'Amrita Kala': 1, 'Vijaya Muhurta': 1, 'Brahma Muhurta': 1, 'Godhuli Muhurta': 1};
     const kal = [...d.kalas].sort((a, b) => a.a - b.a).map(k => {
       const st = (jd >= k.a && jd < k.b) ? 'now' : (jd < k.a ? 'next' : 'past');
       return `<div class="kala ${good[k.name] ? 'g' : 'b'} ${st}"><span class="dot"></span><span class="kn">${esc(k.name)}${k.nak ? ` <small>${esc(k.nak)}</small>` : ''}</span><span class="kt">${stamp(k.sa, ref)} <i class="ar">→</i> ${stamp(k.sb, ref)}</span>${st === 'now' ? '<span class="tag">now</span>' : ''}</div>`;
     }).join('');
-    cards.push(`<section class="gcard wide"><div class="ch"><h2>Kalas</h2><span class="hint">for ${esc(d.weekday)}'s day</span></div>${kal}</section>`);
+    const kalasCard = `<section class="gcard wide"><div class="ch"><h2>Kalas</h2><span class="hint">for ${esc(d.weekday)}'s day</span></div>${kal}</section>`;
+    cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
+    cards.push(kalasCard);
     $h('hmCards').innerHTML = cards.join('');
     document.querySelectorAll('#hmCards .xp').forEach(b => b.onclick = () => {
       H.open[b.dataset.k] = !H.open[b.dataset.k]; renderCards();
@@ -262,7 +290,6 @@ const Home = (() => {
 
   function renderHero() {
     const d = H.data, ref = H.when.slice(0, 10), dow = dowOf(ref);
-    $h('hmDate').textContent = `${DOWF[dow]}, ${+ref.slice(8, 10)} ${MON[+ref.slice(5, 7) - 1]} ${ref.slice(0, 4)}`;
     $h('hmClock').textContent = H.when.slice(11, 16);
     const early = DOWF[dow] !== d.weekday;
     $h('hmSub').innerHTML = `${esc(tzLabel(H.place.tz, ref))} &middot; Vara ${esc(d.weekday)}${early ? ' (before sunrise)' : ''}`;
@@ -270,7 +297,8 @@ const Home = (() => {
     $h('hmLive').hidden = !H.live;
     const hi = idxAt(d.horas, H.jd);
     const h = hi >= 0 ? d.horas[hi] : null;
-    $h('hmHoraCap').innerHTML = h ? `<b>${GLYPH[h.lord] || ''} ${esc(h.lord)}</b> hora &middot; ${h.sa.slice(11)} <i class="ar">→</i> ${h.sb.slice(11)}` : '';
+    const li = idxAt(d.lagna || [], H.jd), lg = li >= 0 ? d.lagna[li] : null;
+    $h('hmLagna').innerHTML = lg ? `<span>Lagna</span><b>${esc(lg.name)}</b><small>${stamp(lg.sa, ref)} <i class="ar">→</i> ${stamp(lg.sb, ref)}</small>` : '';
     const sky = skyOf(d, H.jd), v = $h('homeView');
     if (v.dataset.sky !== sky) v.dataset.sky = sky;
     const o = orbPos(d, H.jd), orb = $h('hmOrb');

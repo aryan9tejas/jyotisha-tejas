@@ -116,9 +116,10 @@ def day_bounds(jd, off, lat, lon, mode='tip'):
         sr = rise_set(local_mid, lat, lon, mode=mode)
     ss = rise_set(sr, lat, lon, rise=False, mode=mode)
     nsr = rise_set(sr + 0.5, lat, lon, mode=mode)
+    pss = rise_set(sr - 1.0, lat, lon, rise=False, mode=mode)   # sunset that began the night before this sunrise
     civil_mid = math.floor(sr + off / 24.0 + 0.5)  # JD at local noon-ish of the sunrise's civil date
     vara = (int(civil_mid) + 1) % 7  # JD 0 = Monday
-    return {'sr': sr, 'ss': ss, 'next_sr': nsr, 'vara': vara}
+    return {'sr': sr, 'ss': ss, 'next_sr': nsr, 'prev_ss': pss, 'vara': vara}
 
 
 # ---------------------------------------------------------------- positions

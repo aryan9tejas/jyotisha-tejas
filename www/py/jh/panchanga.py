@@ -139,6 +139,10 @@ def hora_at(jd, day):
     return None
 
 
+MASAS = ['Chaitra', 'Vaishakha', 'Jyeshtha', 'Ashadha', 'Shravana', 'Bhadrapada', 'Ashwina', 'Kartika', 'Margashirsha', 'Pausha', 'Magha', 'Phalguna']
+DUR_SLOTS = [[14], [9, 12], [4, 8], [8], [6, 12], [4, 9], [1, 2]]     # by weekday Sun..Sat (muhurta numbers 1-15)
+
+
 def kalams(day):
     sr, ss, vara = day['sr'], day['ss'], day['vara']
     dur = (ss - sr) / 8.0
@@ -149,6 +153,15 @@ def kalams(day):
     # Abhijit muhurta: 8th of 15 muhurtas of the day
     m = (ss - sr) / 15.0
     out['Abhijit'] = (sr + 7 * m, sr + 8 * m)
+    out['Vijaya Muhurta'] = (sr + 10 * m, sr + 11 * m)          # 11th of the 15 muhurtas of the day
+    nsr, pss = day.get('next_sr'), day.get('prev_ss')
+    if nsr:                                                        # Godhuli: half a night-muhurta from sunset
+        out['Godhuli Muhurta'] = (ss, ss + (nsr - ss) / 30.0)
+    if pss:                                                        # Brahma: 14th of the 15 muhurtas of the night before sunrise
+        nm = (sr - pss) / 15.0
+        out['Brahma Muhurta'] = (sr - 2 * nm, sr - nm)
+    for n, slot in enumerate(DUR_SLOTS[vara]):                     # Dur Muhurta: weekday-wise muhurta(s) of the day
+        out['Dur Muhurta' if n == 0 else f'Dur Muhurta ({n + 1})'] = (sr + (slot - 1) * m, sr + slot * m)
     return out
 
 
@@ -334,7 +347,20 @@ def home_snapshot(when, lat, lon, tz, cfg=None):
             'karana': rows(ft, 6, karana_name),
             'moon_sign': rows(moon, 30, lambda i: SIGNS[i]),
             'sun_sign': rows(sun, 30, lambda i: SIGNS[i]),
+            'sun_nak': rows(sun, NAK_SPAN, lambda i: NAKSHATRAS[i]),
         }
+        # Lunar month (amanta): named from the Sun's sign at the new moon that began it; no sankranti in it = adhika
+        def new_moon(t, direction):
+            e = norm(moon(t) - sun(t))
+            t += (-e if direction < 0 else 360 - e) / 12.19
+            for _ in range(6):
+                dv = ((norm(sid_lon(t, 'Moon', cfg) - sid_lon(t, 'Sun', cfg)) + 180) % 360) - 180
+                t -= dv / 12.19
+            return t
+        n0, n1 = new_moon(sr, -1), new_moon(sr, 1)
+        s0, s1 = int(norm(sid_lon(n0, 'Sun', cfg)) // 30), int(norm(sid_lon(n1, 'Sun', cfg)) // 30)
+        data['masa'] = ('Adhika ' if s0 == s1 else '') + MASAS[(s0 + 1) % 12]
+        data['masa_span'] = {'a': n0, 'b': n1, 'sa': F(n0), 'sb': F(n1)}
         kal = []
         for name, (a, b) in kalams(day).items():
             kal.append({'name': {'Rahu Kalam': 'Rahu Kala', 'Yama Gandam': 'Yama Ganda', 'Gulika Kalam': 'Gulika Kala'}.get(name, name),
@@ -342,6 +368,36 @@ def home_snapshot(when, lat, lon, tz, cfg=None):
         for n, (a, b, ni) in enumerate(amrita_from_rows(data['nakshatra'], sr, nsr)):
             kal.append({'name': 'Amrita Kala', 'a': a, 'b': b, 'sa': F(a), 'sb': F(b), 'nak': NAKSHATRAS[ni]})
         data['kalas'] = kal
+        # Lagna: the rising sign through the day (the ascendant moves forward about 1 degree per 4 minutes)
+        la, lo_ = lat, lon
+        data['lagna'] = [{'name': SIGNS[g['index']], 'i': g['index'], 'a': g['start'], 'b': g['end'],
+                          'sa': F(g['start']), 'sb': F(g['end'])}
+                         for g in segments_fast(lambda t: norm(core.asc_at(t, la, lo_)), 30, sr - 0.3, nsr + 0.3, step=0.03)]
+        # Moon rise and set in this Vedic day, plus its azimuth and altitude every 15 minutes
+        mrs = {}
+        for key, rise in (('rise', True), ('set', False)):
+            lst, t = [], sr - 0.02
+            for _ in range(3):
+                r = rise_set(t, lat, lon, body=swe.MOON, rise=rise, mode=cfg['sunrise'])
+                if r is None or r >= nsr:
+                    break
+                lst.append({'jd': r, 's': F(r)})
+                t = r + 0.02
+            mrs[key] = lst
+        armc0 = swe.houses_ex(sr, lat, lon, b'P', 0)[1][2]
+        track, t, step = [], sr, 1 / 96.0
+        import math
+        slat, clat = math.sin(math.radians(lat)), math.cos(math.radians(lat))
+        while t <= nsr + 1e-9:
+            ra, dec = swe.calc_ut(t, swe.MOON, swe.FLG_SWIEPH | swe.FLG_EQUATORIAL)[0][:2]
+            H = math.radians(armc0 + (t - sr) * 360.98564736629 - ra)
+            dr = math.radians(dec)
+            alt = math.degrees(math.asin(math.sin(dr) * slat + math.cos(dr) * clat * math.cos(H)))
+            az = math.degrees(math.atan2(-math.cos(dr) * math.sin(H), math.sin(dr) * clat - math.cos(dr) * slat * math.cos(H))) % 360
+            track.append([round(t, 5), round(az, 1), round(alt, 1)])
+            t += step
+        mrs['track'] = track
+        data['moon'] = mrs
         data['horas'] = [{'n': h['n'], 'lord': h['lord'], 'a': h['start'], 'b': h['end'], 'sa': F(h['start']), 'sb': F(h['end']),
                           'night': h['night']} for h in hora_table(day)]
         return data
