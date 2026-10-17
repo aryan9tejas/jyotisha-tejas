@@ -52,8 +52,8 @@ const Home = (() => {
       for (let i = w.last[0]; i <= w.last[1]; i++) if ((i < lo || i > hi) && items[i]) { items[i].style.transform = ''; items[i].style.opacity = ''; items[i].classList.remove('sel'); }
       for (let i = lo; i <= hi; i++) {
         const d = i - c, a = Math.abs(d), it = items[i];
-        it.style.transform = `rotateX(${(d * 24).toFixed(1)}deg) scale(${(1 - Math.min(a, 3) * 0.07).toFixed(3)})`;
-        it.style.opacity = (a < 1 ? 1 - a * 0.6 : Math.max(0, 0.4 - (a - 1) * 0.8)).toFixed(2);
+        it.style.transform = `rotateX(${(Math.max(-2, Math.min(2, d)) * 40).toFixed(1)}deg) scale(${(1 - Math.min(a, 2) * 0.1).toFixed(3)})`;
+        it.style.opacity = (a < 1 ? 1 - a * 0.38 : Math.max(0, 0.62 - (a - 1) * 0.9)).toFixed(2);
         const on = i === mid; if (it.classList.contains('sel') !== on) it.classList.toggle('sel', on);
       }
       w.last = [lo, hi];
@@ -197,7 +197,7 @@ const Home = (() => {
     const i = idxAt(rows, jd); if (i < 0) return {main: '', adj: ''};
     const c = rows[i];
     return {
-      main: `<div class="blk"><div class="bl">${label}</div><div class="bn">${esc(nmFn(c))}</div>${subFn ? `<div class="bs">${subFn(c)}</div>` : ''}<div class="br">${rangeTxt(c, ref)}</div>${bar(pct(c, jd))}</div>`,
+      main: `<div class="blk"><div class="bl">${label}</div><div class="bhead"><div class="bn">${esc(nmFn(c))}</div><div class="br">${rangeTxt(c, ref)}</div></div>${subFn ? `<div class="bs">${subFn(c)}</div>` : ''}${bar(pct(c, jd))}</div>`,
       adj: `<div class="adjg"><div class="adjh">${label}</div>${adjRows(rows, i, ref, nmFn)}</div>`,
     };
   }
@@ -247,9 +247,9 @@ const Home = (() => {
     if (segs[ci + 1]) h += row('Next', segs[ci + 1], cur.b);
     return `<div class="adjg">${h}</div>`;
   }
-  function secBtns(k, label) {
+  function secBtns(k) {
     const on = H.sec[k];
-    return `<button class="xp" data-s="${k}" aria-expanded="${on}">${on ? 'Hide' : 'Show'} <i>${on ? '▴' : '▾'}</i></button>`;
+    return `<button class="xp ic" data-s="${k}" aria-expanded="${on}" aria-label="${on ? 'Hide' : 'Show'}" title="${on ? 'Hide' : 'Show'}"><i>${on ? '▴' : '▾'}</i></button>`;
   }
 
   function skyOf(d, jd) {
@@ -326,7 +326,7 @@ const Home = (() => {
       const s = si >= 0 ? p.sign[si].name : '', n = ni >= 0 ? p.nak[ni].name : '', pd = pi >= 0 ? p.pada[pi].pada : '';
       return `<div class="pl"><div class="pn1"><span class="gl">${GLYPH[p.body] || ''}</span> <b>${p.body}</b>${p.retro ? ' <i class="rx" title="Retrograde">R</i>' : ''}</div><div class="ps1">${esc(s)}</div><div class="pk1">${esc(n)} <small>pada ${pd}</small></div>${pOpen ? `<div class="pa1">${ingHTML(p.body)}</div>` : ''}</div>`;
     };
-    const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns"><button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
+    const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${H.sec.planets ? `<button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>` : ''}${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
     cards.push(kalasCard, plCard);
     $h('hmCards').innerHTML = cards.join('');
@@ -345,9 +345,8 @@ const Home = (() => {
     $h('hmClock').textContent = H.when.slice(11, 16);
     const early = DOWF[dow] !== d.weekday;
     $h('hmSub').innerHTML = `${esc(tzLabel(H.place.tz, ref))} &middot; Vara ${esc(d.weekday)}${early ? ' (before sunrise)' : ''}`;
-    $h('hmNow').classList.toggle('on', H.live);
-    $h('hmMY').textContent = `${ref.slice(5, 7)}/${ref.slice(2, 4)}`;
-    $h('hmMY').classList.toggle('on', !H.live);
+    $h('hmMY').innerHTML = `${H.live ? 'Now' : `${ref.slice(5, 7)}/${ref.slice(2, 4)} <i>&#9662;</i>`}`;
+    $h('hmMY').classList.toggle('off', !H.live);
     $h('hmLive').hidden = !H.live;
     const hi = idxAt(d.horas, H.jd);
     const h = hi >= 0 ? d.horas[hi] : null;
@@ -458,7 +457,6 @@ const Home = (() => {
     wDate = makeWheel($h('wDate')); wHora = makeWheel($h('wHora'));
     wDate.onSettle = onDate; wHora.onSettle = onHora;
     $h('hmApp').onclick = () => { location.hash = '#app'; };
-    $h('hmNow').onclick = goNow;
     $h('hmMY').onclick = openPick; $h('pkGo').onclick = goPick;
     $h('pkNow').onclick = () => { $h('hmPick').hidden = true; goNow(); };
     $h('pkClose').onclick = () => { $h('hmPick').hidden = true; };

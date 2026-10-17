@@ -157,7 +157,9 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
   .cards .pair{display:contents}
   .cards .c-yoga{grid-column:1;grid-row:2}
   .cards .c-karana{grid-column:2;grid-row:2}
-  .cards .wide{grid-column:1 / -1;grid-row:3}
+  .cards .wide{grid-column:1 / -1}
+  .cards .c-kalas{grid-row:3}
+  .cards .c-planets{grid-row:4}
 }
 @media (max-width:760px){
   .cards{gap:10px}.pair{gap:10px}
@@ -207,13 +209,11 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 .hmbox select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid #cdbfa8;background:#fff;color:#222;flex:1;min-width:0}
 .hmbox .pk{margin:6px 0 4px}
 @media (max-width:760px){
-  .hm-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:4px 0 8px}
-  .hm-actions{display:contents}
-  .hm-brand{grid-area:1/1}
-  #hmApp{grid-area:1/2;justify-self:end}
-  #hmLoc{grid-area:2/1;justify-self:start}
-  .hm-seg{grid-area:2/2;justify-self:end}
-  .hm-seg .chip{padding:6px 11px}
+  .hm-top{display:flex;gap:8px;align-items:center;padding:4px 0 8px}
+  .hm-actions{flex:1;min-width:0;justify-content:flex-end;gap:6px}
+  #hmLoc{margin-right:auto;min-width:0;max-width:62%}
+  #hmLoc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:none}
+  #hmMY{padding:7px 12px}
   .hm-hero{gap:8px;margin-top:0}
   .wheels{gap:8px}
   .cards{gap:8px;margin-top:8px}
@@ -224,3 +224,24 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
   .pn1{grid-row:1 / span 2;min-width:98px}
   .ps1{font-size:15px}
 }
+
+/* ---- v4 */
+#hmMY{white-space:nowrap}
+#hmMY i{font-style:normal;font-size:11px;opacity:.8}
+#hmMY.off{background:#fff;color:#2b2150;border-color:#fff;font-weight:600}
+.wheel{height:calc(var(--ih)*2.4);padding:calc(var(--ih)*.7) 0;perspective:420px;
+  -webkit-mask-image:linear-gradient(rgba(0,0,0,.2),#000 30%,#000 70%,rgba(0,0,0,.2));mask-image:linear-gradient(rgba(0,0,0,.2),#000 30%,#000 70%,rgba(0,0,0,.2))}
+.wsel{top:calc(var(--ih)*.7)}
+.wi{transform-origin:center center}
+.bhead{display:block}
+.gcard.multi .bhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:12px}
+.gcard.multi .bhead .br{font-size:13.5px;margin-top:0;opacity:.9}
+.xp.ic{padding:2px 10px;min-width:30px}
+.hm-msg:empty{display:none}
+.cards{margin-top:18px}
+@media (max-width:760px){
+  .cards{margin-top:8px}
+  .lagna{flex:1;margin-left:0;padding-right:0;text-align:center}
+}
+
+@media (max-width:560px){.hm-brand{display:none}}
