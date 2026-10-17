@@ -5,7 +5,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const ABBR = {Sun:'Su',Moon:'Mo',Mars:'Ma',Mercury:'Me',Jupiter:'Ju',Venus:'Ve',Saturn:'Sa',Rahu:'Ra',Ketu:'Ke',Lagna:'La',Gulika:'Gu',Mandi:'Md',Muntha:'Mu',Kaala:'Ka',Mrityu:'Mr','Artha Praharaka':'AP','Yama Ghantaka':'YG',Dhuma:'Dh',Vyatipata:'Vy',Parivesha:'Pv',Indrachapa:'Ic',Upaketu:'Uk'};
 const UPAS = ['Gulika','Mandi','Kaala','Mrityu','Artha Praharaka','Yama Ghantaka','Dhuma','Vyatipata','Parivesha','Indrachapa','Upaketu'];
 const ARU = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','UL'];
-const COL = {planet:'#222', lagna:'#800000', aru:'#e0457b', upa:'#0a7a7a', natal:'#1a5fb4', muntha:'#b5651d', tlagna:'#b5651d'};
+const COL = {planet:'#222', lagna:'#800000', aru:'#e0457b', upa:'#0a7a7a', natal:'#1a5fb4', muntha:'var(--acc2)', tlagna:'var(--acc2)'};
 const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const SA = ['Ar','Ta','Ge','Cn','Le','Vi','Li','Sc','Sg','Cp','Aq','Pi'];
 const PL7 = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'];
@@ -144,9 +144,9 @@ function bySign(items) { const by = Array.from({length: 12}, () => []); items.fo
 function chartSVG({style, asc, items, title, legend}) {
   const by = bySign(items || []);
   let g = '<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">';
-  g += '<rect x="1" y="1" width="398" height="398" fill="#fffdf8" stroke="#7a3e1d" stroke-width="2"/>';
+  g += '<rect x="1" y="1" width="398" height="398" fill="#fffdf8" stroke="var(--acc)" stroke-width="2"/>';
   if (style === 'north') {
-    g += '<g stroke="#7a3e1d" stroke-width="1.5" fill="none"><line x1="0" y1="0" x2="400" y2="400"/><line x1="400" y1="0" x2="0" y2="400"/><polygon points="200,0 400,200 200,400 0,200"/></g>';
+    g += '<g stroke="var(--acc)" stroke-width="1.5" fill="none"><line x1="0" y1="0" x2="400" y2="400"/><line x1="400" y1="0" x2="0" y2="400"/><polygon points="200,0 400,200 200,400 0,200"/></g>';
     const T = {1: [200, 100], 2: [100, 34], 3: [34, 100], 4: [95, 200], 5: [34, 300], 6: [100, 370], 7: [200, 305], 8: [300, 370], 9: [366, 300], 10: [305, 200], 11: [366, 100], 12: [300, 34]};
     const N = {1: [200, 140], 2: [100, 76], 3: [28, 130], 4: [95, 238], 5: [28, 272], 6: [100, 330], 7: [200, 345], 8: [300, 330], 9: [372, 272], 10: [305, 238], 11: [372, 130], 12: [300, 76]};
     const per = {1: 1, 4: 1, 7: 1, 10: 1};
@@ -157,19 +157,19 @@ function chartSVG({style, asc, items, title, legend}) {
       g += textBlock(T[h][0], T[h][1] + up, by[s], per[h] || 1, 11, W[h] || 70);
       g += `<text x="${N[h][0]}" y="${N[h][1]}" text-anchor="middle" font-size="10" fill="#9a8a78">${s + 1}</text>`;
     }
-    g += `<text x="200" y="20" text-anchor="middle" font-size="10" fill="#b5651d">Lagna</text>`;
+    g += `<text x="200" y="20" text-anchor="middle" font-size="10" fill="var(--acc2)">Lagna</text>`;
   } else {
     const pos = SOUTH_POS;
-    g += '<g stroke="#7a3e1d" stroke-width="1.2" fill="none">';
+    g += '<g stroke="var(--acc)" stroke-width="1.2" fill="none">';
     for (const s in pos) { const [c, r] = pos[s]; g += `<rect x="${c * 100}" y="${r * 100}" width="100" height="100"/>`; }
     g += '</g>';
     for (const s in pos) {
       const [c, r] = pos[s]; const x = c * 100, y = r * 100;
       g += `<text x="${x + 5}" y="${y + 13}" font-size="10" fill="#9a8a78">${SA[s]}</text>`;
       g += textBlock(x + 50, y + 55, by[s], 1, 11, 94);
-      if (+s === asc) g += `<line x1="${x + 100}" y1="${y}" x2="${x + 100 - 18}" y2="${y + 18}" stroke="#b5651d" stroke-width="2"/><text x="${x + 62}" y="${y + 13}" text-anchor="middle" font-size="10" font-weight="700" fill="#b5651d">Asc</text>`;
+      if (+s === asc) g += `<line x1="${x + 100}" y1="${y}" x2="${x + 100 - 18}" y2="${y + 18}" stroke="var(--acc2)" stroke-width="2"/><text x="${x + 62}" y="${y + 13}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--acc2)">Asc</text>`;
     }
-    g += `<text x="200" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="#7a3e1d">${esc(title || '')}</text>`;
+    g += `<text x="200" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="var(--acc)">${esc(title || '')}</text>`;
   }
   return g + '</svg>';
 }
@@ -521,7 +521,7 @@ function loadTransit(p) {
     const svg = box.querySelector('svg'); const o = svg.querySelector('#dropHL'); if (o) o.remove();
     if (sign < 0) return;
     const pts = signPoly(styleNow(), box._asc, sign).map(q => q.join(',')).join(' ');
-    svg.insertAdjacentHTML('beforeend', `<polygon id="dropHL" points="${pts}" fill="rgba(181,101,29,.2)" stroke="#b5651d" stroke-width="3" pointer-events="none"/>`);
+    svg.insertAdjacentHTML('beforeend', `<polygon id="dropHL" points="${pts}" fill="var(--acc2)" fill-opacity=".2" stroke="var(--acc2)" stroke-width="3" pointer-events="none"/>`);
   };
   const onMove = e => {
     if (!dragging) return;

@@ -1,0 +1,12 @@
+{
+	"appId": "app.jyotishatejas",
+	"appName": "Jyotisha Tejas",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	},
+	"ios": {
+		"contentInset": "always"
+	},
+	"packageClassList": []
+}

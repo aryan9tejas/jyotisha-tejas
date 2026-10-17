@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#7a3e1d">
+<meta name="theme-color" content="#2b2150">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Jyotisha Tejas">
@@ -13,6 +13,8 @@
 <title>Jyotisha Tejas</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="themes.css">
+<script>try{var t=localStorage.getItem("jt_theme");if(t&&/^(indigo|marigold|brown|teal)$/.test(t)){document.documentElement.setAttribute("data-theme",t);}}catch(e){}</script>
 </head>
 <body>
 <div id="homeView" class="home" data-sky="night">
@@ -24,6 +26,7 @@
       <div class="hm-actions">
         <button id="hmLoc" class="chip" title="Change location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="hmLocName">...</span></button>
         <button id="hmMY" class="chip" title="Now, or pick a month and year">Now</button>
+        <button id="hmTheme" class="chip" title="Colour theme" aria-label="Colour theme">&#127912;</button>
         <button id="hmApp" class="chip strong">App &#8250;</button>
       </div>
     </div>
@@ -59,7 +62,7 @@
 </div>
 <div id="appView" hidden>
 <header>
-  <div class="ttl"><button id="btnHome" class="back" type="button" title="Back to Panchang">&#8249; Back</button><h1>Jyotisha Tejas</h1></div><span id="engine" class="pill" style="display:inline-block">Loading engine...</span>
+  <div class="ttl"><button id="btnHome" class="back" type="button" title="Back to Panchang">&#8249; Back</button><h1>Jyotisha Tejas</h1></div><button id="btnTheme" class="sec" type="button" title="Colour theme" style="padding:4px 9px">&#127912;</button><span id="engine" class="pill" style="display:inline-block">Loading engine...</span>
   <div class="hbar">
     <select id="profileSel"><option value="">Saved profiles...</option></select>
     <button id="btnSaveProfile" class="sec">Save profile</button>
@@ -110,6 +113,7 @@
 <script src="engine.js"></script>
 <script src="app.js"></script>
 <script src="home.js"></script>
+<script src="theme.js"></script>
 <script>
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   navigator.serviceWorker.register('sw.js').catch(function () {});

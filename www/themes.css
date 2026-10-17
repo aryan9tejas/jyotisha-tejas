@@ -1,0 +1,63 @@
+/* Colour themes. The default (indigo) lives in style.css and home.css; html[data-theme=...] overrides it. */
+html[data-theme=brown]{--bg:#f6f4ef;--acc:#7a3e1d;--acc2:#b5651d;--sec-bg:#efe7da;--sec-line:#d8ccb6;--tab-bg:#e9e2d3;--tab-ink:#4a3a2a;--pill:#efe7da}
+html[data-theme=marigold]{--bg:#fbf9f3;--acc:#a86400;--acc2:#e09a00;--sec-bg:#fbefd0;--sec-line:#efd691;--tab-bg:#f5e9cb;--tab-ink:#4a3810;--pill:#fbefd0;--line:#ece4d0}
+html[data-theme=teal]{--bg:#f1f6f6;--acc:#0f5c63;--acc2:#d98a1a;--sec-bg:#dfeeee;--sec-line:#b7d6d6;--tab-bg:#d9eaea;--tab-ink:#153b40;--pill:#dfeeee;--line:#d9e4e4}
+html[data-theme=brown] .sky.day{background:linear-gradient(170deg,#fbf6ef 0%,#f4e7d5 55%,#ecd6b6 100%)}
+html[data-theme=brown] .sky.dawn{background:linear-gradient(170deg,#faf3ea 0%,#f2e3cd 55%,#ecd6b6 100%)}
+html[data-theme=brown] .sky.dusk{background:linear-gradient(170deg,#f7ede0 0%,#efddc2 55%,#e9d0ab 100%)}
+html[data-theme=brown] .sky.night{background:linear-gradient(170deg,#f5e9d7 0%,#edd8ba 55%,#e7cba3 100%)}
+html[data-theme=brown] body.home-on{background:#f2e2ca}
+html[data-theme=brown] .stars{display:none!important}
+html[data-theme=brown] .orb{background:radial-gradient(circle,#fffaf0 0%,#f7ce78 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=brown] .orb.moon{background:radial-gradient(circle,#fff 0%,#f2e2ca 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=brown] #homeView{color:#3b2415}
+html[data-theme=brown] .gcard,html[data-theme=brown] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#7a3e1d33!important}
+html[data-theme=brown] .wsel{border-color:#7a3e1d99!important;background:#7a3e1d14!important}
+html[data-theme=brown] .chip{background:rgba(255,255,255,.68)!important;color:#7a3e1d!important;border-color:#7a3e1d55!important}
+html[data-theme=brown] .chip.strong,html[data-theme=brown] #hmMY.off{background:#7a3e1d!important;color:#fff!important;border-color:#7a3e1d!important}
+html[data-theme=brown] .xp{background:#7a3e1d18!important;color:#7a3e1d!important;border-color:#7a3e1d55!important}
+html[data-theme=brown] .bar{background:#7a3e1d22!important}
+html[data-theme=brown] .bar i{background:linear-gradient(90deg,#7a3e1d,#e0a030)!important}
+html[data-theme=brown] .kala.now{background:#7a3e1d18!important}
+html[data-theme=brown] .tag{background:#7a3e1d!important;color:#fff!important}
+html[data-theme=brown] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=brown] .mph svg circle{fill:#89765a!important}
+html[data-theme=brown] .mph svg path{fill:#fffaf0!important}
+html[data-theme=brown] .adjwrap,html[data-theme=brown] .mx,html[data-theme=brown] .blk+.blk,html[data-theme=brown] .kala,html[data-theme=brown] .pl{border-color:#7a3e1d2e!important}
+html[data-theme=brown] .clock{text-shadow:none!important}
+html[data-theme=brown] .mdir .arw{border-color:#7a3e1d66!important;background:#7a3e1d14!important}
+html[data-theme=brown] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=brown] .hm-foot{opacity:.75}
+html[data-theme=marigold] .sky.day{background:linear-gradient(170deg,#fef4e0 0%,#fbe3ab 55%,#f8cd6d 100%)}
+html[data-theme=marigold] .sky.dawn{background:linear-gradient(170deg,#fdf1d5 0%,#fadd9b 55%,#f8cd6d 100%)}
+html[data-theme=marigold] .sky.dusk{background:linear-gradient(170deg,#fceac0 0%,#f9d686 55%,#f7c658 100%)}
+html[data-theme=marigold] .sky.night{background:linear-gradient(170deg,#fbe4b0 0%,#f8d075 55%,#f6c147 100%)}
+html[data-theme=marigold] body.home-on{background:#fadc96}
+html[data-theme=marigold] .stars{display:none!important}
+html[data-theme=marigold] .orb{background:radial-gradient(circle,#fffaf0 0%,#fccb59 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=marigold] .orb.moon{background:radial-gradient(circle,#fff 0%,#fadc96 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=marigold] #homeView{color:#3a2a05}
+html[data-theme=marigold] .gcard,html[data-theme=marigold] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#a8640033!important}
+html[data-theme=marigold] .wsel{border-color:#a8640099!important;background:#a8640014!important}
+html[data-theme=marigold] .chip{background:rgba(255,255,255,.68)!important;color:#a86400!important;border-color:#a8640055!important}
+html[data-theme=marigold] .chip.strong,html[data-theme=marigold] #hmMY.off{background:#a86400!important;color:#fff!important;border-color:#a86400!important}
+html[data-theme=marigold] .xp{background:#a8640018!important;color:#a86400!important;border-color:#a8640055!important}
+html[data-theme=marigold] .bar{background:#a8640022!important}
+html[data-theme=marigold] .bar i{background:linear-gradient(90deg,#a86400,#f2b84b)!important}
+html[data-theme=marigold] .kala.now{background:#a8640018!important}
+html[data-theme=marigold] .tag{background:#a86400!important;color:#fff!important}
+html[data-theme=marigold] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=marigold] .mph svg circle{fill:#936e1c!important}
+html[data-theme=marigold] .mph svg path{fill:#fffaf0!important}
+html[data-theme=marigold] .adjwrap,html[data-theme=marigold] .mx,html[data-theme=marigold] .blk+.blk,html[data-theme=marigold] .kala,html[data-theme=marigold] .pl{border-color:#a864002e!important}
+html[data-theme=marigold] .clock{text-shadow:none!important}
+html[data-theme=marigold] .mdir .arw{border-color:#a8640066!important;background:#a8640014!important}
+html[data-theme=marigold] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=marigold] .hm-foot{opacity:.75}
+html[data-theme=teal] .sky.day{background:linear-gradient(170deg,#0e5a72 0%,#2a8fa0 55%,#9ad0c4 100%)}
+html[data-theme=teal] .sky.dawn{background:linear-gradient(170deg,#123a5e 0%,#2f8aa0 55%,#f0b890 100%)}
+html[data-theme=teal] .sky.dusk{background:linear-gradient(170deg,#0d2f4f 0%,#1f6a7e 55%,#e09a72 100%)}
+html[data-theme=teal] .sky.night{background:linear-gradient(170deg,#03121b 0%,#08323f 55%,#10515a 100%)}
+html[data-theme=teal] body.home-on{background:#03121b}
+html[data-theme=teal] .gcard,html[data-theme=teal] .wwrap{background:rgba(3,30,38,.52)!important}
+html[data-theme=teal] .orb{background:radial-gradient(circle,#fff6dc 0%,#ffd890 38%,rgba(255,190,110,0) 70%)!important}
