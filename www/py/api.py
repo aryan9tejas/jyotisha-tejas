@@ -178,6 +178,17 @@ def api_pday():
         return err(e)
 
 
+@route('/api/transits')
+def api_transits():
+    try:
+        d = request.get_json()
+        lat, lon = float(d['lat']), float(d['lon'])
+        tz = d.get('tz') or places.tz_for(lat, lon)
+        return jsonify(panchanga.transit_ingress(d['when'], lat, lon, tz, parse_cfg(d.get('cfg'))))
+    except Exception as e:
+        return err(e)
+
+
 @route('/api/home')
 def api_home():
     try:

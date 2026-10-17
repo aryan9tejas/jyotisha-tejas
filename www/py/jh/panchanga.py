@@ -293,6 +293,102 @@ def birth_panchanga(chart):
     }
 
 
+# ---------------------------------------------------------------- planet transits (any direction of motion)
+def segments_any(f, unit, jd0, jd1, step=0.08):
+    """Segments of f (degrees) by unit-sized bins, for a body that may also move backward (retrograde)."""
+    count = int(round(360 / unit))
+    t = jd0
+    idx = int(f(t) // unit) % count
+    cur = {'index': idx, 'start': None, 'end': None}
+    segs = []
+    while t < jd1:
+        t2 = min(t + step, jd1)
+        i2 = int(f(t2) // unit) % count
+        if i2 != idx:
+            fwd = i2 == (idx + 1) % count
+            boundary = ((idx + 1) % count if fwd else idx) * unit
+            lo, hi = t, t2
+            for _ in range(24):
+                mid = (lo + hi) / 2
+                dv = ((f(mid) - boundary + 180) % 360) - 180
+                if (dv < 0) == fwd:
+                    lo = mid
+                else:
+                    hi = mid
+            tb = (lo + hi) / 2
+            cur['end'] = tb
+            segs.append(cur)
+            cur = {'index': i2, 'start': tb, 'end': None}
+            idx = i2
+        t = t2
+    segs.append(cur)
+    return segs
+
+
+TRANSIT_BODIES = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']
+INGRESS_STEP = {'Sun': 1.0, 'Mercury': 1.0, 'Venus': 1.5, 'Mars': 3.0, 'Jupiter': 8.0, 'Saturn': 12.0, 'Rahu': 6.0, 'Ketu': 6.0}
+
+
+def transit_ingress(when, lat, lon, tz, cfg=None):
+    """For the Sun and the planets: the sign they are in at `when`, the one before and the one after, with the local
+    time each sign starts and ends (a retrograde planet can return to the previous sign)."""
+    cfg = {**DEFAULT_CFG, **(cfg or {})}
+    dpart, tpart = when.replace(' ', 'T').split('T')
+    y, m, d = [int(x) for x in dpart.split('-')]
+    hh, mm = [int(float(x)) for x in tpart.split(':')[:2]]
+    out = {}
+    with LOCK:
+        core.set_ayanamsa(cfg['ayanamsa'])
+        off = tz_offset_hours(y, m, d, hh, mm, 0, tz)
+        jd = swe.julday(y, m, d, hh + mm / 60.0) - off / 24.0
+        F = lambda t: None if t is None else fmt_local(t + 30 / 86400.0, core.offset_for_jd(t, tz), False)
+        for body in ['Sun'] + TRANSIT_BODIES:
+            memo = {}
+
+            def lon_of(t, body=body, memo=memo):
+                v = memo.get(t)
+                if v is None:
+                    v = memo[t] = norm(sid_lon(t, body, cfg))
+                return v
+            sg = lambda t, lon_of=lon_of: int(lon_of(t) // 30) % 12
+            step = INGRESS_STEP[body]
+
+            def edge(t, direction):
+                s0 = sg(t)
+                tt = t
+                for _ in range(6000):
+                    t2 = tt + direction * step
+                    if sg(t2) != s0:
+                        lo, hi = tt, t2
+                        for _ in range(28):
+                            mid = (lo + hi) / 2
+                            if sg(mid) == s0:
+                                lo = mid
+                            else:
+                                hi = mid
+                        tb = (lo + hi) / 2
+                        # the true node wobbles by about a degree, so ignore crossings that do not last
+                        if body in ('Rahu', 'Ketu') and sg(tb + direction * 20) != sg(tb + direction * 1e-4):
+                            tt = t2
+                            continue
+                        return tb
+                    tt = t2
+                return None
+            end = edge(jd, 1)
+            start = edge(jd, -1)
+            segs = [{'name': SIGNS[sg(jd)], 'a': start, 'b': end, 'cur': True}]
+            if start is not None:
+                ps = edge(start - 1e-5, -1)
+                segs.insert(0, {'name': SIGNS[sg(start - 1e-5)], 'a': ps, 'b': start})
+            if end is not None:
+                ne = edge(end + 1e-5, 1)
+                segs.append({'name': SIGNS[sg(end + 1e-5)], 'a': end, 'b': ne})
+            for s_ in segs:
+                s_['sa'], s_['sb'] = F(s_['a']), F(s_['b'])
+            out[body] = segs
+    return {'jd': jd, 'bodies': out}
+
+
 # ---------------------------------------------------------------- home page snapshot
 def home_snapshot(when, lat, lon, tz, cfg=None):
     """Everything the Panchang home page needs for the Vedic day (sunrise to sunrise) that contains the local
@@ -359,6 +455,30 @@ def home_snapshot(when, lat, lon, tz, cfg=None):
             return t
         n0, n1 = new_moon(sr, -1), new_moon(sr, 1)
         s0, s1 = int(norm(sid_lon(n0, 'Sun', cfg)) // 30), int(norm(sid_lon(n1, 'Sun', cfg)) // 30)
+        pl = []
+        for body in TRANSIT_BODIES:
+            memo = {}
+
+            def lon_of(t, body=body, memo=memo):
+                v = memo.get(t)
+                if v is None:
+                    v = memo[t] = norm(sid_lon(t, body, cfg))
+                return v
+            sp = core.planet_pos(sr, body, cfg)[3]
+            def prow(unit, namer, extra=None, lon_of=lon_of):
+                out_ = []
+                for s_ in segments_any(lon_of, unit, sr - 0.1, nsr + 0.1):
+                    r = {'name': namer(s_['index']), 'i': s_['index'], 'a': s_['start'], 'b': s_['end'],
+                         'sa': F(s_['start']), 'sb': F(s_['end'])}
+                    if extra:
+                        r.update(extra(s_['index']))
+                    out_.append(r)
+                return out_
+            pl.append({'body': body, 'retro': sp < 0 or body in ('Rahu', 'Ketu'),
+                       'sign': prow(30, lambda i: SIGNS[i]),
+                       'nak': prow(NAK_SPAN, lambda i: NAKSHATRAS[i], lambda i: {'lord': NAK_LORD[i]}),
+                       'pada': prow(NAK_SPAN / 4, lambda i: f'{NAKSHATRAS[i // 4]} {i % 4 + 1}', lambda i: {'pada': i % 4 + 1})})
+        data['planets'] = pl
         data['masa'] = ('Adhika ' if s0 == s1 else '') + MASAS[(s0 + 1) % 12]
         data['masa_span'] = {'a': n0, 'b': n1, 'sa': F(n0), 'sb': F(n1)}
         kal = []

@@ -5,11 +5,13 @@ const Home = (() => {
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const DOWF = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const GLYPH = {Sun: '☉', Moon: '☽', Mars: '♂', Mercury: '☿', Jupiter: '♃', Venus: '♀', Saturn: '♄'};
+  const GLYPH = {Sun: '☉', Moon: '☽', Mars: '♂', Mercury: '☿', Jupiter: '♃', Venus: '♀', Saturn: '♄', Rahu: '☊', Ketu: '☋'};
   const RANGE = 2000;                     // days either side of the date wheel's centre
   const $h = id => document.getElementById(id);
   const H = {place: null, when: null, jd: null, live: true, data: null, seq: 0, open: {}, cache: new Map(), timer: null,
-    dbase: null, horaKey: '', cfgKey: '', lastMin: '', started: false, visible: false};
+    dbase: null, horaKey: '', cfgKey: '', lastMin: '', started: false, visible: false,
+    sec: {kalas: true, planets: true}, ing: {key: '', data: null, busy: false}};
+  try { Object.assign(H.sec, JSON.parse(localStorage.getItem('jt_home_sec') || '{}')); } catch (e) { /* ignore */ }
   let wDate = null, wHora = null;
 
   /* ---------------------------------------------------------------- date helpers (civil dates as 'YYYY-MM-DD') */
@@ -214,6 +216,42 @@ const Home = (() => {
     return `<div class="mph" title="${wax ? 'Waxing' : 'Waning'}, ${lit}% lit"><svg viewBox="-24 -24 48 48" width="46" height="46" aria-hidden="true"><circle r="${R}" fill="#1b2040" stroke="rgba(255,255,255,.35)" stroke-width="1"/><path d="${path}" fill="#f4ecd0" transform="scale(${wax ? 1 : -1} 1)"/></svg><small>${wax ? 'Waxing' : 'Waning'}<br>${lit}%</small></div>`;
   }
 
+  /* ---- sign changes of the Sun and planets (fetched when a Previous / next view is opened) */
+  const fdt = s => s ? `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]} ${s.slice(0, 4)} ${s.slice(11, 16)}` : '...';
+  function rel(x) {
+    if (x === null || x === undefined) return '';
+    const m = Math.round(Math.abs(x - H.jd) * 1440), dd = Math.floor(m / 1440), hh = Math.floor(m % 1440 / 60), mi = m % 60;
+    const t = [dd ? dd + 'd' : '', (dd || hh) ? hh + 'h' : '', mi + 'm'].filter(Boolean).join(' ');
+    return x >= H.jd ? `in ${t}` : `${t} ago`;
+  }
+  function ingKey() { return JSON.stringify([H.place.lat, H.place.lon, H.place.tz, H.data.date, getCfg()]); }
+  async function ensureIngress() {
+    if (!H.data) return;
+    const key = ingKey();
+    if (H.ing.key === key || H.ing.busy) return;
+    H.ing.busy = true;
+    try {
+      const r = await api('/api/transits', {lat: H.place.lat, lon: H.place.lon, tz: H.place.tz, when: H.data.sunrise.s.replace(' ', 'T'), cfg: getCfg()});
+      H.ing = {key, data: r.bodies, busy: false};
+    } catch (e) { H.ing.busy = false; H.ing.key = ''; return; }
+    renderCards();
+  }
+  function ingHTML(body) {
+    const segs = H.ing.data && H.ing.data[body];
+    if (!segs) return `<div class="adjg"><div class="adj"><span class="nm">${H.ing.busy || !H.ing.data ? 'Working it out...' : 'Not available'}</span></div></div>`;
+    const ci = segs.findIndex(s => s.cur);
+    const row = (lbl, s, soon) => `<div class="adj"><span class="lbl">${lbl}</span><span class="nm">${esc(s.name)}</span><span class="rg">${fdt(s.sa)} <i class="ar">→</i> ${fdt(s.sb)}${soon ? ` <em>${rel(soon)}</em>` : ''}</span></div>`;
+    const cur = segs[ci];
+    let h = '';
+    if (segs[ci - 1]) h += row('Previous', segs[ci - 1], null);
+    if (segs[ci + 1]) h += row('Next', segs[ci + 1], cur.b);
+    return `<div class="adjg">${h}</div>`;
+  }
+  function secBtns(k, label) {
+    const on = H.sec[k];
+    return `<button class="xp" data-s="${k}" aria-expanded="${on}">${on ? 'Hide' : 'Show'} <i>${on ? '▴' : '▾'}</i></button>`;
+  }
+
   function skyOf(d, jd) {
     const m45 = 45 / 1440;
     if (Math.abs(jd - d.sunrise.jd) < m45) return 'dawn';
@@ -238,10 +276,12 @@ const Home = (() => {
     const sunSign = sunIdx >= 0 ? d.sun_sign[sunIdx].name : '';
     const sn = idxAt(d.sun_nak || [], jd);
     const sunNak = sn >= 0 ? d.sun_nak[sn].name : '';
-    const sunCard = `<section class="gcard c-sun"><div class="ch"><h2>Sun</h2></div><div class="kvs">`
+    const sunOpen = !!H.open.sun;
+    const sunCard = `<section class="gcard c-sun"><div class="ch"><h2>Sun</h2><button class="xp" data-k="sun" aria-expanded="${sunOpen}"><span class="xt">Previous / next</span> <i>${sunOpen ? '▴' : '▾'}</i></button></div><div class="kvs">`
       + `<div><span>Sunrise</span><b>${d.sunrise.s.slice(11)}</b></div><div><span>Sunset</span><b>${d.sunset.s.slice(11)}</b></div>`
       + `<div><span>Sun sign</span><b>${esc(sunSign)}</b></div><div><span>Nakshatra</span><b>${esc(sunNak)}</b></div>`
-      + `<div><span>Masa</span><b>(${esc(d.masa || '')})</b></div></div></section>`;
+      + `<div><span>Masa</span><b>${esc(d.masa || '')}</b></div></div>`
+      + (sunOpen ? `<div class="adjwrap"><div class="adjh">Sun sign</div>${ingHTML('Sun')}</div>` : '') + `</section>`;
 
     const padaRows = d.pada;
     const moonBlocks = [
@@ -279,13 +319,25 @@ const Home = (() => {
       const st = (jd >= k.a && jd < k.b) ? 'now' : (jd < k.a ? 'next' : 'past');
       return `<div class="kala ${good[k.name] ? 'g' : 'b'} ${st}"><span class="dot"></span><span class="kn">${esc(k.name)}${k.nak ? ` <small>${esc(k.nak)}</small>` : ''}</span><span class="kt">${stamp(k.sa, ref)} <i class="ar">→</i> ${stamp(k.sb, ref)}</span>${st === 'now' ? '<span class="tag">now</span>' : ''}</div>`;
     }).join('');
-    const kalasCard = `<section class="gcard wide"><div class="ch"><h2>Kalas</h2><span class="hint">for ${esc(d.weekday)}'s day</span></div>${kal}</section>`;
+    const kalasCard = `<section class="gcard wide c-kalas"><div class="ch"><h2>Kalas <span class="hint">for ${esc(d.weekday)}'s day</span></h2>${secBtns('kalas')}</div>${H.sec.kalas ? kal : ''}</section>`;
+    const pOpen = !!H.open.planets;
+    const prow = (p) => {
+      const si = idxAt(p.sign, jd), ni = idxAt(p.nak, jd), pi = idxAt(p.pada, jd);
+      const s = si >= 0 ? p.sign[si].name : '', n = ni >= 0 ? p.nak[ni].name : '', pd = pi >= 0 ? p.pada[pi].pada : '';
+      return `<div class="pl"><div class="pn1"><span class="gl">${GLYPH[p.body] || ''}</span> <b>${p.body}</b>${p.retro ? ' <i class="rx" title="Retrograde">R</i>' : ''}</div><div class="ps1">${esc(s)}</div><div class="pk1">${esc(n)} <small>pada ${pd}</small></div>${pOpen ? `<div class="pa1">${ingHTML(p.body)}</div>` : ''}</div>`;
+    };
+    const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns"><button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(kalasCard);
+    cards.push(kalasCard, plCard);
     $h('hmCards').innerHTML = cards.join('');
     document.querySelectorAll('#hmCards .xp').forEach(b => b.onclick = () => {
-      H.open[b.dataset.k] = !H.open[b.dataset.k]; renderCards();
+      if (b.dataset.s) {
+        H.sec[b.dataset.s] = !H.sec[b.dataset.s];
+        try { localStorage.setItem('jt_home_sec', JSON.stringify(H.sec)); } catch (e) { /* ignore */ }
+      } else H.open[b.dataset.k] = !H.open[b.dataset.k];
+      renderCards();
     });
+    if ((H.open.sun || (H.open.planets && H.sec.planets)) && H.ing.key !== ingKey()) ensureIngress();
   }
 
   function renderHero() {
@@ -293,7 +345,9 @@ const Home = (() => {
     $h('hmClock').textContent = H.when.slice(11, 16);
     const early = DOWF[dow] !== d.weekday;
     $h('hmSub').innerHTML = `${esc(tzLabel(H.place.tz, ref))} &middot; Vara ${esc(d.weekday)}${early ? ' (before sunrise)' : ''}`;
-    $h('hmNow').hidden = H.live;
+    $h('hmNow').classList.toggle('on', H.live);
+    $h('hmMY').textContent = `${ref.slice(5, 7)}/${ref.slice(2, 4)}`;
+    $h('hmMY').classList.toggle('on', !H.live);
     $h('hmLive').hidden = !H.live;
     const hi = idxAt(d.horas, H.jd);
     const h = hi >= 0 ? d.horas[hi] : null;
@@ -383,6 +437,21 @@ const Home = (() => {
     setTimeout(() => $h('hmPlace').focus(), 30);
   }
   const closeModal = () => { $h('hmModal').hidden = true; };
+  function openPick() {
+    const ref = H.when.slice(0, 10), ms = $h('pkMon'), ys = $h('pkYear');
+    if (!ms.options.length) {
+      ms.innerHTML = MON.map((m, i) => `<option value="${i + 1}">${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][i]}</option>`).join('');
+      let o = ''; for (let y = 1800; y <= 2200; y++) o += `<option>${y}</option>`; ys.innerHTML = o;
+    }
+    ms.value = String(+ref.slice(5, 7)); ys.value = ref.slice(0, 4);
+    $h('hmPick').hidden = false;
+  }
+  function goPick() {
+    const y = +$h('pkYear').value, m = +$h('pkMon').value, ref = H.when.slice(0, 10);
+    const dim = new Date(Date.UTC(y, m, 0)).getUTCDate(), day = Math.min(+ref.slice(8, 10), dim);
+    $h('hmPick').hidden = true; H.live = false;
+    load(`${y}-${pad(m)}-${pad(day)}T${H.when.slice(11, 16)}`);
+  }
 
   async function init() {
     if (H.started) return; H.started = true;
@@ -390,6 +459,10 @@ const Home = (() => {
     wDate.onSettle = onDate; wHora.onSettle = onHora;
     $h('hmApp').onclick = () => { location.hash = '#app'; };
     $h('hmNow').onclick = goNow;
+    $h('hmMY').onclick = openPick; $h('pkGo').onclick = goPick;
+    $h('pkNow').onclick = () => { $h('hmPick').hidden = true; goNow(); };
+    $h('pkClose').onclick = () => { $h('hmPick').hidden = true; };
+    $h('hmPick').addEventListener('click', e => { if (e.target.id === 'hmPick') $h('hmPick').hidden = true; });
     $h('hmLoc').onclick = openModal; $h('hmClose').onclick = closeModal;
     $h('hmModal').addEventListener('click', e => { if (e.target.id === 'hmModal') closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$h('hmModal').hidden) closeModal(); });

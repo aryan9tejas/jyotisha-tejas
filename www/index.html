@@ -23,7 +23,7 @@
       <div class="hm-brand">Jyotisha Tejas</div>
       <div class="hm-actions">
         <button id="hmLoc" class="chip" title="Change location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="hmLocName">...</span></button>
-        <button id="hmNow" class="chip" hidden>Now</button>
+        <div class="hm-seg" id="hmSeg"><button id="hmNow" class="chip on" title="Back to the current time">Now</button><button id="hmMY" class="chip" title="Pick a month and year">--/--</button></div>
         <button id="hmApp" class="chip strong">App &#8250;</button>
       </div>
     </div>
@@ -40,6 +40,13 @@
     <div id="hmMsg" class="hm-msg">Loading engine...</div>
     <div id="hmCards" class="cards"></div>
     <div class="hm-foot">Calculated on this device &middot; sidereal zodiac &middot; set the ayanamsa and sunrise rule under Settings in the app</div>
+  </div>
+  <div id="hmPick" class="hmodal" hidden>
+    <div class="hmbox">
+      <h3>Month and year</h3>
+      <div class="hmrow pk"><select id="pkMon" aria-label="Month"></select><select id="pkYear" aria-label="Year"></select></div>
+      <div class="hmrow"><button id="pkGo" type="button">Go</button><button id="pkNow" class="sec" type="button">Now</button><button id="pkClose" class="sec" type="button">Close</button></div>
+    </div>
   </div>
   <div id="hmModal" class="hmodal" hidden>
     <div class="hmbox">
