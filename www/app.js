@@ -340,6 +340,7 @@ function loadStrength(p) {
 }
 
 /* ---- Panchanga */
+const kt = (s, day) => s.slice(0, 10) === day ? s.slice(11) : s.slice(5, 16);   // time, with the date when it is on another day
 function loadPanchanga(p) {
   const d = defaultPlace();
   p.innerHTML = `<div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
@@ -352,14 +353,14 @@ function loadPanchanga(p) {
     const segs = (arr, extra) => tbl(['Name', 'From', 'Until'], arr.map(x => [x.name, x.start ? x.start.slice(5, 16) : 'before sunrise', x.end ? x.end.slice(5, 16) : 'after next sunrise']));
     $('#pnOut').innerHTML = kv([['Date', `${r.date} ${r.weekday}`], ['Sunrise', r.sunrise.slice(11)], ['Sunset', r.sunset.slice(11)], ['Moonrise', (r.moonrise || '-').slice(5)], ['Moonset', (r.moonset || '-').slice(5)], ['Sun sign', r.sun_sign], ['Day length (h)', r.day_length_h], ['Ayanamsa', r.ayanamsa]])
       + `<div class="two"><div><h3>Tithi</h3>${segs(r.tithi)}<h3>Karana</h3>${segs(r.karana)}</div><div><h3>Nakshatra</h3>${segs(r.nakshatra)}<h3>Yoga</h3>${segs(r.yoga)}<h3>Moon sign</h3>${segs(r.moon_sign)}</div></div>`
-      + `<h3>Kalams</h3>${tbl(['Period', 'From', 'To'], Object.entries(r.kalams).map(([k, v]) => [k, v[0].slice(11), v[1].slice(11)]))}`
+      + `<h3>Kalams</h3>${tbl(['Period', 'From', 'To'], Object.entries(r.kalams).map(([k, v]) => [k, kt(v[0], r.date), kt(v[1], r.date)]).concat(Object.keys(r.kalams).some(k => k.startsWith('Amrita')) ? [] : [['Amrita Kalam', 'none in this day', '']]))}`
       + `<h3>Horas</h3>${tbl(['#', 'Lord', 'From', 'To', ''], r.horas.map(h => [h.n, h.lord, h.start.slice(11, 16), h.end.slice(11, 16), h.night ? 'night' : 'day']), {num: [0]})}`;
   });
   $('#pnMon').onclick = guard(async () => {
     const [y, m] = $('#pnMonth').value.split('-');
     const r = await api('/api/panchanga/month', {...common(), year: +y, month: +m});
-    $('#pnOut').innerHTML = tbl(['Date', 'Day', 'Sunrise', 'Sunset', 'Tithi (at sunrise)', 'Tithi ends', 'Nakshatra', 'Ends', 'Yoga', 'Karana', 'Moon in', 'Rahu kalam', 'Yama gandam', 'Gulika kalam'],
-      r.map(x => [x.date, x.weekday, x.sunrise, x.sunset, x.tithi, x.tithi_end, x.nakshatra, x.nak_end, x.yoga, x.karana, x.moon_sign, x.rahu, x.yama, x.gulika]));
+    $('#pnOut').innerHTML = tbl(['Date', 'Day', 'Sunrise', 'Sunset', 'Tithi (at sunrise)', 'Tithi ends', 'Nakshatra', 'Ends', 'Yoga', 'Karana', 'Moon in', 'Rahu kalam', 'Yama gandam', 'Gulika kalam', 'Amrita kalam'],
+      r.map(x => [x.date, x.weekday, x.sunrise, x.sunset, x.tithi, x.tithi_end, x.nakshatra, x.nak_end, x.yoga, x.karana, x.moon_sign, x.rahu, x.yama, x.gulika, x.amrita || '-']));
   });
 }
 
@@ -726,7 +727,7 @@ function profileToForm(x) {
 async function init() {
   buildTabs();
   await Local.init();
-  Engine.onStatus = m => { const e = $('#engine'); if (e) { e.textContent = m; e.style.display = m ? 'inline-block' : 'none'; } };
+  Engine.onStatus = m => { const e = $('#engine'); if (e) { e.textContent = m; e.style.display = m ? 'inline-block' : 'none'; } Home.status(m); };
   Engine.start();
   placePicker($('#place'), $('#placeList'), r => { $('#lat').value = r.lat; $('#lon').value = r.lon; $('#tz').value = r.tz; });
   $('#lat').value = 19.0728; $('#lon').value = 72.8826; $('#tz').value = 'Asia/Kolkata'; $('#place').value = 'Mumbai, India';
@@ -754,8 +755,10 @@ async function init() {
     await api('/api/profiles/' + S.profileId, undefined, 'DELETE');
     S.profileId = null; await refreshProfiles();
   });
+  $('#btnHome').onclick = () => { location.hash = '#home'; };
   refreshProfiles();
   showTab('charts');
   $('#p-charts').innerHTML = '<p>Enter birth details above and press <b>Calculate</b>. The place search is offline (GeoNames); if a town is missing, type latitude, longitude and time zone yourself.</p>';
+  Home.init();
 }
 document.addEventListener('DOMContentLoaded', init);

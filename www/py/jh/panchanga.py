@@ -59,6 +59,52 @@ def segments(f, unit, jd0, jd1, step=0.04):
     return segs
 
 
+def segments_fast(f, unit, jd0, jd1, step=0.08):
+    """Like segments() but with a coarser scan and a regula-falsi root finder (a few evaluations per boundary).
+    f must be cheap to call repeatedly at the same instants (the home page memoises the Sun and Moon)."""
+    count = int(round(360 / unit))
+    t = jd0
+    idx = int(f(t) // unit) % count
+    cur = {'index': idx, 'start': None, 'end': None}
+    segs = []
+    while t < jd1:
+        t2 = min(t + step, jd1)
+        i2 = int(f(t2) // unit) % count
+        if i2 != idx:
+            boundary = ((idx + 1) % count) * unit
+            dv = lambda x: ((f(x) - boundary + 180) % 360) - 180
+            lo, hi = t, t2
+            dlo, dhi = dv(lo), dv(hi)
+            tb = None
+            for _ in range(8):
+                if dhi == dlo:
+                    break
+                tm = min(max(lo - dlo * (hi - lo) / (dhi - dlo), lo), hi)
+                dm = dv(tm)
+                if abs(dm) < 2e-8:
+                    tb = tm
+                    break
+                if dm < 0:
+                    lo, dlo = tm, dm
+                else:
+                    hi, dhi = tm, dm
+            if tb is None:
+                for _ in range(14):
+                    mid = (lo + hi) / 2
+                    if dv(mid) < 0:
+                        lo = mid
+                    else:
+                        hi = mid
+                tb = (lo + hi) / 2
+            cur['end'] = tb
+            segs.append(cur)
+            cur = {'index': i2, 'start': tb, 'end': None}
+            idx = i2
+        t = t2
+    segs.append(cur)
+    return segs
+
+
 def _f_tithi(cfg):
     return lambda jd: norm(sid_lon(jd, 'Moon', cfg) - sid_lon(jd, 'Sun', cfg))
 
@@ -106,6 +152,42 @@ def kalams(day):
     return out
 
 
+# Amrita Gadiya (Amrita Kalam): starts at this many 24ths of the Moon's nakshatra duration after the nakshatra begins,
+# and lasts 1.6/24 of that duration (4 ghatis of 60). Table by nakshatra, Ashwini to Revati
+# (traditional values, as in Karanam Ramakumar's Panchangam calculations).
+AMRITA_START = [16.8, 19.2, 21.6, 20.8, 15.2, 14, 21.6, 17.6, 22.4, 21.6, 17.6, 16.8, 18, 17.6, 15.2, 15.2, 13.6, 15.2,
+                17.6, 19.2, 17.6, 13.6, 13.6, 16.8, 16, 19.2, 21.6]
+AMRITA_LEN = 1.6 / 24.0
+
+
+def amrita_windows(f_moon, lo, hi):
+    """Amrita Kalam windows (a, b, nakshatra index) that overlap [lo, hi) (JD, UT)."""
+    out = []
+    for s in segments(f_moon, NAK_SPAN, lo - 1.6, hi + 1.6):
+        if s['start'] is None or s['end'] is None:
+            continue
+        dur = s['end'] - s['start']
+        a = s['start'] + AMRITA_START[s['index']] / 24.0 * dur
+        b = a + dur * AMRITA_LEN
+        if b > lo and a < hi:
+            out.append((a, b, s['index']))
+    return out
+
+
+def amrita_from_rows(nak_rows, lo, hi):
+    """Amrita Kalam windows (a, b, nakshatra index) overlapping [lo, hi) from complete nakshatra segments."""
+    out = []
+    for r in nak_rows:
+        if r['a'] is None or r['b'] is None:
+            continue
+        dur = r['b'] - r['a']
+        a = r['a'] + AMRITA_START[r['i']] / 24.0 * dur
+        b = a + dur * AMRITA_LEN
+        if b > lo and a < hi:
+            out.append((a, b, r['i']))
+    return out
+
+
 def panchanga_day(y, m, d, lat, lon, tz, cfg=None):
     cfg = {**DEFAULT_CFG, **(cfg or {})}
     with LOCK:
@@ -134,6 +216,9 @@ def panchanga_day(y, m, d, lat, lon, tz, cfg=None):
         for h in hora_table(day):
             hr.append({'n': h['n'], 'lord': h['lord'], 'start': F(h['start']), 'end': F(h['end']), 'night': h['night']})
         kl = {k: [F(a), F(b)] for k, (a, b) in kalams(day).items()}
+        am = amrita_windows(_f_moon(cfg), sr, nsr)
+        for n, (a, b, ni) in enumerate(am):
+            kl['Amrita Kalam' if n == 0 else f'Amrita Kalam ({n + 1})'] = [F(a), F(b)]
         sun = sid_lon(sr, 'Sun', cfg)
         return {
             'date': f'{y:04d}-{m:02d}-{d:02d}', 'weekday': WEEKDAYS[day['vara']], 'vara_lord': VARA_LORDS[day['vara']],
@@ -161,6 +246,7 @@ def panchanga_month(year, month, lat, lon, tz, cfg=None):
             'rahu': ' - '.join(x[11:16] for x in p['kalams']['Rahu Kalam']),
             'yama': ' - '.join(x[11:16] for x in p['kalams']['Yama Gandam']),
             'gulika': ' - '.join(x[11:16] for x in p['kalams']['Gulika Kalam']),
+            'amrita': ', '.join(' - '.join(x[11:16] for x in v) for k, v in p['kalams'].items() if k.startswith('Amrita')),
         })
     return rows
 
@@ -192,3 +278,70 @@ def birth_panchanga(chart):
         'gulika_kalam': ' - '.join(F(x)[11:] for x in kl['Gulika Kalam']),
         'moon_sign': SIGNS[int(moon // 30)],
     }
+
+
+# ---------------------------------------------------------------- home page snapshot
+def home_snapshot(when, lat, lon, tz, cfg=None):
+    """Everything the Panchang home page needs for the Vedic day (sunrise to sunrise) that contains the local
+    civil time `when` ('YYYY-MM-DDTHH:MM'). Times are local 'YYYY-MM-DD HH:MM' (rounded to the minute) next to the
+    JD (UT) they come from, so the page can pick the segment for any moment inside the day without another call."""
+    cfg = {**DEFAULT_CFG, **(cfg or {})}
+    dpart, tpart = when.replace(' ', 'T').split('T')
+    y, m, d = [int(x) for x in dpart.split('-')]
+    hh, mm = [int(float(x)) for x in tpart.split(':')[:2]]
+    with LOCK:
+        core.set_ayanamsa(cfg['ayanamsa'])
+        off = tz_offset_hours(y, m, d, hh, mm, 0, tz)
+        jd = swe.julday(y, m, d, hh + mm / 60.0) - off / 24.0
+        day = day_bounds(jd, off, lat, lon, cfg['sunrise'])
+        sr, ss, nsr = day['sr'], day['ss'], day['next_sr']
+        F = lambda t: None if t is None else fmt_local(t + 30 / 86400.0, core.offset_for_jd(t, tz), False)
+        w0, w1 = sr - 2.5, nsr + 2.5
+        memo_m, memo_s = {}, {}
+
+        def moon(t):
+            v = memo_m.get(t)
+            if v is None:
+                v = memo_m[t] = norm(sid_lon(t, 'Moon', cfg))
+            return v
+
+        def sun(t):
+            v = memo_s.get(t)
+            if v is None:
+                v = memo_s[t] = norm(sid_lon(t, 'Sun', cfg))
+            return v
+
+        def rows(f, unit, namer, extra=None):
+            out = []
+            for s_ in segments_fast(f, unit, w0, w1):
+                r = {'name': namer(s_['index']), 'i': s_['index'], 'a': s_['start'], 'b': s_['end'],
+                     'sa': F(s_['start']), 'sb': F(s_['end'])}
+                if extra:
+                    r.update(extra(s_['index']))
+                out.append(r)
+            return out
+
+        ft = lambda t: norm(moon(t) - sun(t))
+        fy = lambda t: norm(moon(t) + sun(t))
+        data = {
+            'when': f'{y:04d}-{m:02d}-{d:02d}T{hh:02d}:{mm:02d}', 'jd': jd,
+            'date': F(sr)[:10], 'weekday': WEEKDAYS[day['vara']], 'vara_lord': VARA_LORDS[day['vara']],
+            'sunrise': {'jd': sr, 's': F(sr)}, 'sunset': {'jd': ss, 's': F(ss)}, 'next_sunrise': {'jd': nsr, 's': F(nsr)},
+            'tithi': rows(ft, 12, tithi_name),
+            'nakshatra': rows(moon, NAK_SPAN, lambda i: NAKSHATRAS[i], lambda i: {'lord': NAK_LORD[i]}),
+            'pada': rows(moon, NAK_SPAN / 4, lambda i: f'{NAKSHATRAS[i // 4]} {i % 4 + 1}', lambda i: {'pada': i % 4 + 1}),
+            'yoga': rows(fy, NAK_SPAN, lambda i: YOGA_NAMES[i]),
+            'karana': rows(ft, 6, karana_name),
+            'moon_sign': rows(moon, 30, lambda i: SIGNS[i]),
+            'sun_sign': rows(sun, 30, lambda i: SIGNS[i]),
+        }
+        kal = []
+        for name, (a, b) in kalams(day).items():
+            kal.append({'name': {'Rahu Kalam': 'Rahu Kala', 'Yama Gandam': 'Yama Ganda', 'Gulika Kalam': 'Gulika Kala'}.get(name, name),
+                        'a': a, 'b': b, 'sa': F(a), 'sb': F(b)})
+        for n, (a, b, ni) in enumerate(amrita_from_rows(data['nakshatra'], sr, nsr)):
+            kal.append({'name': 'Amrita Kala', 'a': a, 'b': b, 'sa': F(a), 'sb': F(b), 'nak': NAKSHATRAS[ni]})
+        data['kalas'] = kal
+        data['horas'] = [{'n': h['n'], 'lord': h['lord'], 'a': h['start'], 'b': h['end'], 'sa': F(h['start']), 'sb': F(h['end']),
+                          'night': h['night']} for h in hora_table(day)]
+        return data
