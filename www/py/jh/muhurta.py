@@ -359,7 +359,9 @@ def chandra_factor(st, P, p, label, ex, tara_good):
                      else ('good Tarabala' if tara_good else 'Moon and the 8th lord are friends'))
         else:
             lv, absolute = 'veto', True
-    elif h in (6, 12):
+    elif h == 6:
+        lv = 'weak'          # accepted with a warning: Raman rejects it, but it is not treated as a veto
+    elif h == 12:
         lv = demote('veto', P['strict'], False) if P['strict'] == 'high' else 'bad'
     f = F('chandra', f'Chandrabala{label}', lv, f'Moon in {SIGNS[st["msign"]]}, {ordinal(h)} from your Moon sign', absolute=absolute, neut=True)
     if ex:
@@ -370,10 +372,12 @@ def chandra_factor(st, P, p, label, ex, tara_good):
                 w += f'Raman allows it to be neutralised here ({neutr}), so it is only weak, not a veto. '
             else:
                 w += 'None of Raman\'s exceptions apply (Moon waxing in a benefic sign and navamsa, good Tarabala, or the Moon friendly with the 8th lord), so avoid it. '
-        elif h in (6, 12):
-            w += f'The {ordinal(h)} house from the natal Moon is rejected by Raman ("not the 6th, 8th or 12th"). '
+        elif h == 6:
+            w += 'WARNING: B. V. Raman rejects the 6th from the natal Moon ("not the 6th, 8th or 12th"). It is accepted here with a warning and scored as weak, not blocked. Prefer another time if a better one exists. '
+        elif h == 12:
+            w += 'The 12th house from the natal Moon is rejected by Raman ("not the 6th, 8th or 12th"). '
         else:
-            w += 'Raman only rejects the 6th, 8th and 12th from the natal Moon, so this position passes. '
+            w += 'Raman rejects only the 6th, 8th and 12th from the natal Moon, so this position passes. '
         f.why = w.strip()
     return f, h
 
@@ -1190,7 +1194,7 @@ def home_view(when, person, lat, lon, tz, cfg=None, purposes=None):
             rem = (c - 1) % 9 + 1
             h = (st_now['msign'] - person['rasi']) % 12 + 1
             info = {'tara': TARA[rem][0], 'tara_n': rem, 'tara_meaning': TARA[rem][1], 'count': c,
-                    'tara_good': rem in (2, 4, 6, 8, 9), 'chandra_house': h, 'chandra_bad': h in (6, 8, 12), 'chandrashtama': h == 8,
+                    'tara_good': rem in (2, 4, 6, 8, 9), 'chandra_house': h, 'chandra_bad': h in (8, 12), 'chandra_warn': h == 6, 'chandrashtama': h == 8,
                     'moon_sign': SIGNS[st_now['msign']], 'nak': NAKS[st_now['nak']]}
         else:
             info = {'moon_sign': SIGNS[st_now['msign']], 'nak': NAKS[st_now['nak']]}
@@ -1236,7 +1240,7 @@ def guide():
         {'key': 'tara', 'title': 'Tarabala', 'weight': WEIGHTS['tara'], 'personal': True,
          'text': 'Count from your birth star to the day\'s star; the remainder after dividing by 9 gives the Tara: 1 Janma (danger to body), 2 Sampat (wealth), 3 Vipat (loss), 4 Kshema (prosperity), 5 Pratyak (obstacles), 6 Sadhana (achievement), 7 Naidhana (danger), 8 Mitra (good), 9 Parama Mitra (very good). 3, 5 and 7 are bad, fully in the first cycle of nine stars, about half in the second, little in the third. Vipat and Naidhana are still avoided for important work.'},
         {'key': 'chandra', 'title': 'Chandrabala', 'weight': WEIGHTS['chandra'], 'personal': True,
-         'text': 'The Moon of the day must not be in the 6th, 8th or 12th sign from your birth Moon sign. The 8th (Chandrashtama) is a veto unless the Moon is waxing in a benefic sign and navamsa, or Tarabala is good, or the Moon is friendly with the 8th lord.'},
+         'text': 'The Moon of the day must not be in the 6th, 8th or 12th sign from your birth Moon sign. The 8th (Chandrashtama) is a veto unless the Moon is waxing in a benefic sign and navamsa, or Tarabala is good, or the Moon is friendly with the 8th lord. B. V. Raman also rejects the 6th, which this app accepts with a warning (scored weak, not blocked). The 12th is treated as a serious fault.'},
         {'key': 'nak', 'title': 'Nakshatra', 'weight': WEIGHTS['nak'], 'text': 'Each purpose has its own list of best stars (fixed, soft, light, movable). Bharani and Krittika are rejected for almost all auspicious work.'},
         {'key': 'tithi', 'title': 'Tithi', 'weight': WEIGHTS['tithi'], 'text': 'The lunar day carries the Moon\'s energy. The 4th, 8th, 14th and New Moon are avoided; 2, 3, 5, 7, 10, 11 and 13 are generally favoured.'},
         {'key': 'vara', 'title': 'Weekday', 'weight': WEIGHTS['vara'], 'text': 'Monday, Wednesday, Thursday and Friday are generally good. Tuesday and Saturday are avoided by day, relaxed after midday (Tuesday) and at night.'},

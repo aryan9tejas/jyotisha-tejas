@@ -42,12 +42,12 @@ const Muh = (() => {
 
   /* ------------------------------------------------------------ person picker (used in the finder and in the home modal) */
   async function personUI(el, which, onChange) {
-    const profiles = await api('/api/profiles').catch(() => []);
+    let profiles = [];
     const cur = M.people[which];
     const label = which === 'me' ? 'Whose birth star?' : 'Partner\'s birth star';
     el.innerHTML = `<div class="mu-person"><label>${label}<select class="mu-psel">
       <option value="">${which === 'me' ? 'No birth details (general timing)' : 'Not adding a partner'}</option>
-      ${profiles.map(p => `<option value="p${p.id}">${esc(p.name || '(unnamed)')} - ${p.year}-${pad(p.month)}-${pad(p.day)}</option>`).join('')}
+      <optgroup label="Saved profiles" class="mu-prof"></optgroup>
       <option value="form">Chart currently in the form</option><option value="manual">Enter birth star manually</option></select></label>
       <div class="mu-manual" hidden>
         <label>Birth star<select class="mn-nak">${NAKS.map((n, i) => `<option value="${i}">${i + 1}. ${n}</option>`).join('')}</select></label>
@@ -59,6 +59,17 @@ const Muh = (() => {
     const sel = $('.mu-psel', el), man = $('.mu-manual', el), line = $('.mu-pline', el);
     const set = p => { M.people[which] = p; savePeople(); line.innerHTML = p ? `<b>${esc(p.name || '')}</b> ${personLine(p)}` : '<small>No personal checks will be applied.</small>'; if (onChange) onChange(p); };
     if (cur) sel.value = cur.src || '';
+    (async () => {      // saved profiles load in the background so the picker never waits on storage
+      try {
+        const r = await Promise.race([api('/api/profiles'), new Promise(res => setTimeout(() => res(null), 4000))]);
+        if (!Array.isArray(r)) return;
+        profiles = r;
+        const og = $('.mu-prof', el);
+        og.innerHTML = r.map(p => `<option value="p${p.id}">${esc(p.name || '(unnamed)')} - ${p.year}-${pad(p.month)}-${pad(p.day)}</option>`).join('');
+        og.hidden = !r.length;
+        if (cur && cur.src) sel.value = cur.src;
+      } catch (e) { /* ignore */ }
+    })();
     sel.onchange = async () => {
       const v = sel.value; man.hidden = v !== 'manual';
       if (!v) return set(null);
@@ -314,6 +325,11 @@ const Muh = (() => {
   }
 
   /* ------------------------------------------------------------ first-page card */
+  function homeHead(ctx) {
+    const me = M.people.me, open = ctx.open;
+    return `<div class="ch"><h2>Muhurta ${me ? 'for you' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" type="button" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set birth star'}</button>`
+      + `<button class="xp ic mu-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
+  }
   function homeBody(d, ctx) {
     const info = d.info || {};
     const jd = ctx.jd;
@@ -322,7 +338,7 @@ const Muh = (() => {
     if (me && info.tara) {
       const tg = info.tara_good, cb = info.chandra_bad;
       chips = `<div class="mu-pc"><span class="mu-chip ${tg ? 'ok' : (info.tara_n === 3 || info.tara_n === 7 ? 'no' : info.tara_n === 5 || info.tara_n === 1 ? 'mid' : 'ok')}"><small>Tarabala</small><b>${esc(info.tara)}</b><small>${esc(info.nak)} is star ${info.count} from yours: ${esc(info.tara_meaning)}</small></span>
-        <span class="mu-chip ${info.chandrashtama ? 'no' : cb ? 'no' : 'ok'}"><small>Chandrabala</small><b>${info.chandrashtama ? 'Chandrashtama' : cb ? 'Weak' : 'Good'}</b><small>Moon in ${esc(info.moon_sign)}, ${info.chandra_house}${[, 'st', 'nd', 'rd'][info.chandra_house] || 'th'} from your Moon sign</small></span></div>`;
+        <span class="mu-chip ${info.chandrashtama ? 'no' : cb ? 'no' : info.chandra_warn ? 'mid' : 'ok'}"><small>Chandrabala</small><b>${info.chandrashtama ? 'Chandrashtama' : cb ? 'Weak' : info.chandra_warn ? 'Warning: 6th' : 'Good'}</b><small>Moon in ${esc(info.moon_sign)}, ${info.chandra_house}${[, 'st', 'nd', 'rd'][info.chandra_house] || 'th'} from your Moon sign${info.chandra_warn ? '. B. V. Raman rejects the 6th, accepted here with a warning' : ''}</small></span></div>`;
     }
     const items = (M.guide ? M.guide.purposes : []).map(p => {
       const r = d.purposes[p.id]; if (!r) return '';
@@ -330,34 +346,48 @@ const Muh = (() => {
       const nowg = sl ? sl[2] : r.now.grade;
       return `<button class="mu-hp g-${r.day.grade}" data-id="${p.id}" title="Day: ${GR[r.day.grade]}${r.day.grade !== 'avoid' ? ' ' + r.day.score : ''}. Right now: ${GR[nowg]}"><span class="ic">${p.icon}</span><b>${esc(p.label.replace(/ \(.*\)/, '').replace(/ \/.*/, ''))}</b><span class="st"><i class="dot g-${r.day.grade}"></i>${GR[r.day.grade]}</span><small>now: ${GR[nowg].toLowerCase()}</small></button>`;
     }).join('');
-    return `<div class="ch"><h2>Muhurta ${me ? 'for you' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set birth star'}</button></div></div>
-      ${chips || '<p class="mu-note">Add your birth star to include Tarabala and Chandrabala. Without it this is the general quality of the day.</p>'}
+    return `${chips || '<p class="mu-note">Add your birth star to include Tarabala and Chandrabala. Without it this is the general quality of the day.</p>'}
       <div class="mu-hg">${items}</div>
       <p class="mu-note">Day quality before the rising sign and time-of-day checks. Tap a purpose to find the best dates and times.</p>`;
   }
+  /* The header (with the Set birth star button) is always drawn at once; the body is drawn only when the section is open */
+  function paint() {
+    const host = document.getElementById('hmMuh'), ctx = M.ctx;
+    if (!host || !ctx) return;
+    host.classList.add('c-muh');
+    let body = '';
+    if (ctx.open) {
+      if (M.home.data && M.guide) body = homeBody(M.home.data, ctx);
+      else if (M.home.err) body = `<p class="mu-note">${esc(M.home.err)}</p>`;
+      else body = '<p class="mu-note">Working out the day...</p>';
+    }
+    host.innerHTML = homeHead(ctx) + body;
+  }
+  document.addEventListener('click', e => {
+    const t = e.target.closest ? e.target.closest('#hmMuh .mu-set, #hmMuh .mu-tg, #hmMuh .mu-hp') : null;
+    if (!t) return;
+    if (t.classList.contains('mu-set')) personModal();
+    else if (t.classList.contains('mu-tg')) { if (M.ctx && M.ctx.toggle) M.ctx.toggle(); }
+    else go(t.dataset.id);
+  });
   function home(host, ctx) {
     if (!host) return;
-    host.classList.add('c-muh');
+    M.ctx = ctx;
+    paint();
+    if (!ctx.open) return;
     const key = `${ctx.date}|${personKey(M.people.me)}|${ctx.place.lat},${ctx.place.lon}`;
-    const draw = () => {
-      host.innerHTML = homeBody(M.home.data, ctx);
-      $$('.mu-hp', host).forEach(b => b.onclick = () => go(b.dataset.id));
-      const sb = $('.mu-set', host); if (sb) sb.onclick = () => personModal();
-    };
-    if (M.home.key === key && M.home.data && M.guide) { draw(); return; }
-    if (M.home.data && M.guide) draw(); else host.innerHTML = '<div class="ch"><h2>Muhurta</h2></div><p class="mu-note">Working out the day...</p>';
+    if (M.home.key === key && M.home.data && M.guide) return;
     if (M.home.busy === key) return;
-    M.home.busy = key;
+    M.home.busy = key; M.home.err = '';
     (async () => {
       try {
         await guide();
         const r = await api('/api/muhurta/home', {when: ctx.when, person: M.people.me, lat: ctx.place.lat, lon: ctx.place.lon, tz: ctx.place.tz, cfg: getCfg()});
         if (r.error) throw new Error(r.error);
-        M.home.key = key; M.home.data = r;
-        if (M.home.busy === key) { M.home.busy = false; const h2 = document.getElementById('hmMuh'); if (h2) { h2.classList.add('c-muh'); h2.innerHTML = homeBody(r, ctx); wire(h2); } }
-      } catch (e) { M.home.busy = false; host.innerHTML = `<div class="ch"><h2>Muhurta</h2></div><p class="mu-note">${esc(e.message)}</p>`; }
+        M.home.key = key; M.home.data = r; M.home.busy = false;
+      } catch (e) { M.home.busy = false; M.home.err = e.message || String(e); }
+      paint();
     })();
-    function wire(h) { $$('.mu-hp', h).forEach(b => b.onclick = () => go(b.dataset.id)); const sb = $('.mu-set', h); if (sb) sb.onclick = () => personModal(); }
   }
   function personModal() {
     let m = document.getElementById('muPM');

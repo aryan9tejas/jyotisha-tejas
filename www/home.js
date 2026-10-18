@@ -10,8 +10,8 @@ const Home = (() => {
   const $h = id => document.getElementById(id);
   const H = {place: null, when: null, jd: null, live: true, data: null, seq: 0, open: {}, cache: new Map(), timer: null,
     dbase: null, horaKey: '', cfgKey: '', lastMin: '', started: false, visible: false,
-    sec: {kalas: true, planets: true}, ing: {key: '', data: null, busy: false}};
-  try { Object.assign(H.sec, JSON.parse(localStorage.getItem('jt_home_sec') || '{}')); } catch (e) { /* ignore */ }
+    sec: {kalas: false, planets: false, muh: false}, ing: {key: '', data: null, busy: false}};
+  try { Object.assign(H.sec, JSON.parse(localStorage.getItem('jt_home_sec2') || '{}')); } catch (e) { /* ignore */ }
   let wDate = null, wHora = null;
 
   /* ---------------------------------------------------------------- date helpers (civil dates as 'YYYY-MM-DD') */
@@ -329,13 +329,13 @@ const Home = (() => {
     };
     const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${H.sec.planets ? `<button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>` : ''}${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(`<section class="gcard wide c-muh" id="hmMuh"></section>`, kalasCard, plCard);
+    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard);
     $h('hmCards').innerHTML = cards.join('');
-    if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place});
-    document.querySelectorAll('#hmCards .xp').forEach(b => b.onclick = () => {
+    if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place, open: !!H.sec.muh, toggle: () => { H.sec.muh = !H.sec.muh; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
+    document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg)').forEach(b => b.onclick = () => {
       if (b.dataset.s) {
         H.sec[b.dataset.s] = !H.sec[b.dataset.s];
-        try { localStorage.setItem('jt_home_sec', JSON.stringify(H.sec)); } catch (e) { /* ignore */ }
+        try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ }
       } else H.open[b.dataset.k] = !H.open[b.dataset.k];
       renderCards();
     });
