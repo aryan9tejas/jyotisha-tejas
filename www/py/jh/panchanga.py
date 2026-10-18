@@ -213,7 +213,10 @@ def panchanga_day(y, m, d, lat, lon, tz, cfg=None):
 
         def seg_rows(f, unit, namer):
             rows = []
-            for s in segments(f, unit, sr, nsr):
+            # scan beyond the day so that every element carries its true start and end (with dates)
+            for s in segments_fast(f, unit, sr - 3.0, nsr + 3.0):
+                if s['start'] is None or s['end'] is None or s['end'] <= sr or s['start'] >= nsr:
+                    continue
                 rows.append({'name': namer(s['index']), 'index': s['index'],
                              'start': F(s['start']), 'end': F(s['end'])})
             return rows

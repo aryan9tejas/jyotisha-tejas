@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import swisseph as swe
 
-from jh import core, panchanga, strength, dasa, transit, kp, tajaka, prasna, places, movetools
+from jh import core, panchanga, strength, dasa, transit, kp, tajaka, prasna, places, movetools, muhurta
 from jh.consts import *
 
 ROUTES = {}
@@ -425,3 +425,52 @@ def api_prasna():
         return err(e)
 
 
+
+
+# ---------------------------------------------------------------- muhurta
+def _mloc(d):
+    lat, lon = float(d['lat']), float(d['lon'])
+    return lat, lon, (d.get('tz') or places.tz_for(lat, lon)), parse_cfg(d.get('cfg'))
+
+
+@route('/api/muhurta/person')
+def api_mperson():
+    d = request.get_json()
+    if d.get('birth'):
+        c = get_chart({'birth': d['birth'], 'cfg': d.get('cfg')})
+        p = muhurta.person_from_chart(c, d['birth'].get('name', ''), d.get('sex') or d['birth'].get('gender'))
+        return jsonify(p)
+    return jsonify(muhurta.person_manual(d['nak'], d.get('pada'), d.get('rasi'), d.get('lagna'), d.get('name', ''), d.get('sex')))
+
+
+@route('/api/muhurta/guide')
+def api_mguide():
+    return jsonify(muhurta.guide())
+
+
+@route('/api/muhurta/scan')
+def api_mscan():
+    d = request.get_json()
+    lat, lon, tz, cfg = _mloc(d)
+    return jsonify(muhurta.scan(d['purpose'], d.get('person'), d.get('partner'), d['start'], d.get('days', 7), lat, lon, tz, cfg, d.get('direction'), bool(d.get('light')), d.get('hours')))
+
+
+@route('/api/muhurta/day')
+def api_mday():
+    d = request.get_json()
+    lat, lon, tz, cfg = _mloc(d)
+    return jsonify(muhurta.day_detail(d['purpose'], d.get('person'), d.get('partner'), d['date'], lat, lon, tz, cfg, d.get('direction'), d.get('hours')))
+
+
+@route('/api/muhurta/at')
+def api_mat():
+    d = request.get_json()
+    lat, lon, tz, cfg = _mloc(d)
+    return jsonify(muhurta.explain_at(d['purpose'], d.get('person'), d.get('partner'), d['when'], lat, lon, tz, cfg, d.get('direction')))
+
+
+@route('/api/muhurta/home')
+def api_mhome():
+    d = request.get_json()
+    lat, lon, tz, cfg = _mloc(d)
+    return jsonify(muhurta.home_view(d['when'], d.get('person'), lat, lon, tz, cfg, d.get('purposes')))

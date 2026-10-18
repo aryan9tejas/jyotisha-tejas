@@ -158,8 +158,9 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
   .cards .c-yoga{grid-column:1;grid-row:2}
   .cards .c-karana{grid-column:2;grid-row:2}
   .cards .wide{grid-column:1 / -1}
-  .cards .c-kalas{grid-row:3}
-  .cards .c-planets{grid-row:4}
+  .cards .c-muh{grid-row:3}
+  .cards .c-kalas{grid-row:4}
+  .cards .c-planets{grid-row:5}
 }
 @media (max-width:760px){
   .cards{gap:10px}.pair{gap:10px}

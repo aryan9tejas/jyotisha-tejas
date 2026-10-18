@@ -343,14 +343,25 @@ function loadStrength(p) {
 const kt = (s, day) => s.slice(0, 10) === day ? s.slice(11) : s.slice(5, 16);   // time, with the date when it is on another day
 function loadPanchanga(p) {
   const d = defaultPlace();
-  p.innerHTML = `<div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
+  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button></div>
+    <div id="pnMain"><div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
     <button class="run" id="pnDay">Day panchanga</button>
-    <label>Month<input type="month" id="pnMonth" value="${todayStr().slice(0, 7)}"></label><button class="sec" id="pnMon">Monthly panchanga</button></div><div id="pnOut"></div>`;
+    <label>Month<input type="month" id="pnMonth" value="${todayStr().slice(0, 7)}"></label><button class="sec" id="pnMon">Monthly panchanga</button></div><div id="pnOut"></div></div>
+    <div id="pnMuh" hidden></div>`;
+  let muMounted = false;
+  $$('#pnSub button').forEach(b => b.onclick = () => {
+    $$('#pnSub button').forEach(x => x.classList.toggle('on', x === b));
+    const mu = b.dataset.s === 'muhurta';
+    $('#pnMain').hidden = mu; $('#pnMuh').hidden = !mu;
+    if (mu && !muMounted && typeof Muh !== 'undefined') { muMounted = true; Muh.mount($('#pnMuh')); }
+    else if (mu && typeof Muh !== 'undefined') Muh.applyPending();
+  });
   bindPlaceField('pn');
   const common = () => { const pl = readPlaceField('pn'); return {lat: pl.lat, lon: pl.lon, tz: pl.tz, cfg: getCfg()}; };
+  const fdt = s => s ? `${+s.slice(8, 10)} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+s.slice(5, 7) - 1]} ${s.slice(11, 16)}` : '-';
   $('#pnDay').onclick = guard(async () => {
     const r = await api('/api/panchanga/day', {...common(), date: $('#pnDate').value});
-    const segs = (arr, extra) => tbl(['Name', 'From', 'Until'], arr.map(x => [x.name, x.start ? x.start.slice(5, 16) : 'before sunrise', x.end ? x.end.slice(5, 16) : 'after next sunrise']));
+    const segs = (arr, extra) => tbl(['Name', 'Starts', 'Ends'], arr.map(x => [x.name, fdt(x.start), fdt(x.end)]));
     $('#pnOut').innerHTML = kv([['Date', `${r.date} ${r.weekday}`], ['Sunrise', r.sunrise.slice(11)], ['Sunset', r.sunset.slice(11)], ['Moonrise', (r.moonrise || '-').slice(5)], ['Moonset', (r.moonset || '-').slice(5)], ['Sun sign', r.sun_sign], ['Day length (h)', r.day_length_h], ['Ayanamsa', r.ayanamsa]])
       + `<div class="two"><div><h3>Tithi</h3>${segs(r.tithi)}<h3>Karana</h3>${segs(r.karana)}</div><div><h3>Nakshatra</h3>${segs(r.nakshatra)}<h3>Yoga</h3>${segs(r.yoga)}<h3>Moon sign</h3>${segs(r.moon_sign)}</div></div>`
       + `<h3>Kalams</h3>${tbl(['Period', 'From', 'To'], Object.entries(r.kalams).map(([k, v]) => [k, kt(v[0], r.date), kt(v[1], r.date)]).concat(Object.keys(r.kalams).some(k => k.startsWith('Amrita')) ? [] : [['Amrita Kalam', 'none in this day', '']]))}`

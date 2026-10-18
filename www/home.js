@@ -36,8 +36,9 @@ const Home = (() => {
   /* 'YYYY-MM-DD HH:MM' from the engine -> 'HH:MM', with the day added when it is not the day being shown */
   function stamp(s, ref) {
     if (!s) return '...';
-    return s.slice(0, 10) === ref ? s.slice(11, 16) : `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]} ${s.slice(11, 16)}`;
+    return `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]} ${s.slice(11, 16)}`;
   }
+  const stampT = s => s ? s.slice(11, 16) : '...';    /* time only, for single instants (sunrise, sunset) */
   const rangeTxt = (r, ref) => `${stamp(r.sa, ref)} <i class="ar">→</i> ${stamp(r.sb, ref)}`;
   const hm = hours => `${Math.floor(hours)}h ${pad(Math.round((hours % 1) * 60) % 60)}m`;
 
@@ -328,8 +329,9 @@ const Home = (() => {
     };
     const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${H.sec.planets ? `<button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>` : ''}${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(kalasCard, plCard);
+    cards.push(`<section class="gcard wide c-muh" id="hmMuh"></section>`, kalasCard, plCard);
     $h('hmCards').innerHTML = cards.join('');
+    if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place});
     document.querySelectorAll('#hmCards .xp').forEach(b => b.onclick = () => {
       if (b.dataset.s) {
         H.sec[b.dataset.s] = !H.sec[b.dataset.s];
@@ -374,7 +376,7 @@ const Home = (() => {
     const key = H.data.date + '|' + H.place.lat + '|' + H.place.lon;
     if (key !== H.horaKey) {
       H.horaKey = key;
-      wHora.setItems(H.data.horas.map(h => `<div class="${h.night ? 'n' : 'd'}"><b>${GLYPH[h.lord] || ''} ${esc(h.lord)}</b><small>${h.sa.slice(11)} – ${h.sb.slice(11)}</small></div>`));
+      wHora.setItems(H.data.horas.map(h => `<div class="${h.night ? 'n' : 'd'}"><b>${GLYPH[h.lord] || ''} ${esc(h.lord)}</b><small>${stamp(h.sa)} – ${stamp(h.sb)}</small></div>`));
     }
     const hi = idxAt(H.data.horas, H.jd);
     if (hi >= 0) wHora.select(hi, smooth, false);
@@ -474,6 +476,7 @@ const Home = (() => {
       }, err => { $h('hmLocNote').textContent = 'Location was not shared: ' + err.message; }, {timeout: 15000, maximumAge: 600000});
     };
     window.addEventListener('hashchange', route);
+    document.addEventListener('muh-person', () => { if (H.data) renderCards(); });
     let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (H.visible) { syncWheels(false); wDate.paint(); wHora.paint(); } }, 150); });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
     H.timer = setInterval(tick, 15000);
