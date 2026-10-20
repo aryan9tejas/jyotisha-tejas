@@ -28,9 +28,9 @@ nav#tabs button.on{background:#fff;color:var(--acc);font-weight:600;border:1px s
 .panel{display:none}.panel.on{display:block}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{background:var(--pill);font-weight:600;color:#4a3a2a;position:sticky;top:0}
+th{background:var(--pill);font-weight:600;color:#4a3a2a;}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
-.tw{overflow:auto;max-height:560px}
+.tw{overflow-x:auto}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px}
 .chartbox{text-align:center}
 .chartbox svg{width:100%;max-width:440px;height:auto}
@@ -69,7 +69,6 @@ label.chk input{width:auto}
   nav#tabs button{white-space:nowrap;flex:0 0 auto}
   .row label{min-width:110px}
   .row label.place{min-width:100%}
-  .tw{max-height:420px}
   footer{padding:12px 10px 28px}
 }
 /* ---- transit interaction */
@@ -81,3 +80,10 @@ label.chk input{width:auto}
 .movebox b{align-self:center}
 .moved{background:#fff8e8;border:1px solid #e7d3a3;border-radius:8px;padding:8px 10px;margin:8px 0}
 .pi:hover{text-decoration:underline}
+
+.bhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.bhead button{padding:4px 12px}
+#birth.collapsed{padding-top:8px;padding-bottom:8px}
+#birth.collapsed>:not(.bhead){display:none}
+#birth.collapsed .bhead{margin-bottom:0}
+tr.cur-row td{background:rgba(31,157,85,.18);font-weight:600}

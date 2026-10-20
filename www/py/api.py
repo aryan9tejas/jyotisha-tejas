@@ -113,6 +113,10 @@ def dignity_points(name):
 
 
 def pos_view(name, v):
+    if not v.get('nak') and v.get('deg') is not None:      # special lagnas and some upagrahas carry no star: derive it from the longitude
+        lon = (v['sign'] * 30 + v['deg']) % 360
+        i = int(lon // (360 / 27))
+        v = {**v, 'nak': NAKSHATRAS[i], 'pada': int((lon % (360 / 27)) // (360 / 108)) + 1, 'nak_lord': NAK_LORD[i]}
     return {'name': name, 'sign': v['sign'], 'sign_name': SIGNS[v['sign']], 'deg': fnum(v['deg']), 'dms': core.dms(v['deg']),
             'nak': v.get('nak'), 'pada': v.get('pada'), 'nak_lord': v.get('nak_lord') or (NAK_LORD[NAKSHATRAS.index(v['nak'])] if v.get('nak') else None), 'house': v.get('house')}
 

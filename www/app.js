@@ -277,23 +277,44 @@ function loadCharts(p) {
       <label class="chk"><input type="checkbox" id="shUp"${S.show.up ? ' checked' : ''}> Upagrahas (Gulika, Mandi and others)</label></div>
     ${legend([[COL.planet, 'Planets (degrees and minutes in sign)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
     <div class="two"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div></div>
-    <h3>Positions (sidereal)</h3><div id="postab"></div>
+    <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}</select></label></div><div id="postab"></div>
     <h3>Panchanga at birth</h3><div id="bp"></div>
     <h3>Divisional positions</h3><div id="vtab"></div>`;
   const draw = () => { S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; drawChart($('#cL'), c, +$('#vL').value); drawChart($('#cR'), c, +$('#vR').value); };
   $('#vL').onchange = draw; $('#vR').onchange = draw; $('#shLA').onchange = draw; $('#shUp').onchange = draw;
   draw();
-  const rows = [];
-  rows.push(['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, '', '', '']);
-  c.planets.forEach(x => rows.push([x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord, x.house, dignityHTML(x), f(x.speed, 4), (x.retro && !['Rahu', 'Ketu'].includes(x.name) ? 'R ' : '') + (x.combust ? 'Combust' : '')]));
-  c.upagrahas.forEach(x => rows.push([x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord || '', x.house, '', '', 'Upagraha']));
-  c.lagnas.forEach(x => rows.push([x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord || '', x.house, '', '', 'Special lagna']));
-  $('#postab').innerHTML = tbl(['Body', 'Sign', 'Degree', 'Nakshatra', 'Star lord', 'House', 'Dignity / relation', 'Speed/day', 'State'], rows, {num: [5]})
-    + '<p class="note">Dignity: Exalted, Mulatrikona, Own sign or Debilitated where it applies; otherwise the compound (natural plus temporal) relation to the sign lord.</p>';
+  const ORD = ['Sun', 'Moon', 'Mercury', 'Mars', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
+  const pls = ORD.map(n => c.planets.find(x => x.name === n)).filter(Boolean).concat(c.planets.filter(x => !ORD.includes(x.name)));
+  const starTxt = x => x.nak ? `${x.nak} ${x.pada}` : '';
+  const SIGNN = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+  const drawPos = () => {
+    const n = +$('#posV').value;
+    if (n === 1) {
+      const rows = [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, '', '', '']];
+      pls.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord, x.house, dignityHTML(x), f(x.speed, 4), (x.retro && !['Rahu', 'Ketu'].includes(x.name) ? 'R ' : '') + (x.combust ? 'Combust' : '')]));
+      c.lagnas.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord || '', x.house, '', '', 'Special lagna']));
+      c.upagrahas.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord || '', x.house, '', '', 'Upagraha']));
+      $('#postab').innerHTML = tbl(['Body', 'Sign', 'Degree', 'Nakshatra', 'Star lord', 'House', 'Dignity / relation', 'Speed/day', 'State'], rows, {num: [5]})
+        + '<p class="note">Dignity: Exalted, Mulatrikona, Own sign or Debilitated where it applies; otherwise the compound (natural plus temporal) relation to the sign lord.</p>';
+      return;
+    }
+    const v = c.vargas[n], d1 = {Lagna: c.asc.sign};
+    c.planets.forEach(x => d1[x.name] = x.sign); c.lagnas.forEach(x => d1[x.name] = x.sign); c.upagrahas.forEach(x => d1[x.name] = x.sign);
+    const dg = x => (x === undefined || x === null) ? '' : DM(x);
+    const rows = [], add = (nm, sg, deg, kind) => { if (sg === undefined) return; rows.push([nm, SIGNN[sg], dg(deg), ((sg - v.asc + 12) % 12) + 1, d1[nm] !== undefined ? SIGNN[d1[nm]] : '', kind]); };
+    add('Lagna', v.asc, v.asc_deg, '');
+    ORD.forEach(nm => add(nm, v.planets[nm], v.pos[nm], ''));
+    c.lagnas.forEach(x => add(x.name, v.lagnas[x.name], v.lagna_pos[x.name], 'Special lagna'));
+    c.upagrahas.forEach(x => add(x.name, v.upa[x.name], v.upa_pos[x.name], 'Upagraha'));
+    $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, 'Rasi (D1) sign', 'Type'], rows, {num: [3]})
+      + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}).</p>`;
+  };
+  $('#posV').onchange = drawPos;
+  drawPos();
   const bp = c.panchanga;
   $('#bp').innerHTML = kv([['Vara', bp.vara], ['Tithi', `${bp.tithi} (${bp.tithi_elapsed_pct}% elapsed)`], ['Nakshatra', `${bp.nakshatra} (${bp.nakshatra_lord}) pada ${bp.pada}`], ['Yoga', bp.yoga], ['Karana', bp.karana], ['Hora lord', bp.hora_lord],
     ['Sunrise', bp.sunrise], ['Sunset', bp.sunset], ['Rahu kalam', bp.rahu_kalam], ['Yama gandam', bp.yama_gandam], ['Gulika kalam', bp.gulika_kalam]]);
-  const bodies = ['Lagna', ...PL9, ...UPAS, ...c.lagnas.map(x => x.name)];
+  const bodies = ['Lagna', ...ORD, ...c.lagnas.map(x => x.name), ...UPAS];
   const vr = bodies.map(b => [b, ...VARGAS.map(n => { const v = c.vargas[n]; const s = b === 'Lagna' ? v.asc : (b in v.planets ? v.planets[b] : (b in v.upa ? v.upa[b] : v.lagnas[b])); return SA[s]; })]);
   $('#vtab').innerHTML = tbl(['Body', ...VARGAS.map(n => 'D' + n)], vr);
 }
@@ -361,11 +382,12 @@ function loadPanchanga(p) {
   const fdt = s => s ? `${+s.slice(8, 10)} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+s.slice(5, 7) - 1]} ${s.slice(11, 16)}` : '-';
   $('#pnDay').onclick = guard(async () => {
     const r = await api('/api/panchanga/day', {...common(), date: $('#pnDate').value});
+    let nowP = ''; try { nowP = new Date().toLocaleString('sv-SE', {timeZone: common().tz}).slice(0, 16); } catch (e) { nowP = ''; }
     const segs = (arr, extra) => tbl(['Name', 'Starts', 'Ends'], arr.map(x => [x.name, fdt(x.start), fdt(x.end)]));
     $('#pnOut').innerHTML = kv([['Date', `${r.date} ${r.weekday}`], ['Sunrise', r.sunrise.slice(11)], ['Sunset', r.sunset.slice(11)], ['Moonrise', (r.moonrise || '-').slice(5)], ['Moonset', (r.moonset || '-').slice(5)], ['Sun sign', r.sun_sign], ['Day length (h)', r.day_length_h], ['Ayanamsa', r.ayanamsa]])
       + `<div class="two"><div><h3>Tithi</h3>${segs(r.tithi)}<h3>Karana</h3>${segs(r.karana)}</div><div><h3>Nakshatra</h3>${segs(r.nakshatra)}<h3>Yoga</h3>${segs(r.yoga)}<h3>Moon sign</h3>${segs(r.moon_sign)}</div></div>`
       + `<h3>Kalams</h3>${tbl(['Period', 'From', 'To'], Object.entries(r.kalams).map(([k, v]) => [k, kt(v[0], r.date), kt(v[1], r.date)]).concat(Object.keys(r.kalams).some(k => k.startsWith('Amrita')) ? [] : [['Amrita Kalam', 'none in this day', '']]))}`
-      + `<h3>Horas</h3>${tbl(['#', 'Lord', 'From', 'To', ''], r.horas.map(h => [h.n, h.lord, h.start.slice(11, 16), h.end.slice(11, 16), h.night ? 'night' : 'day']), {num: [0]})}`;
+      + `<h3>Horas</h3>${tbl(['#', 'Lord', 'From', 'To', ''], r.horas.map(h => Object.assign([h.n, h.lord, h.start.slice(0, 16), h.end.slice(0, 16), (h.night ? 'night' : 'day') + (nowP >= h.start.slice(0, 16) && nowP < h.end.slice(0, 16) ? ' - running now' : '')], nowP >= h.start.slice(0, 16) && nowP < h.end.slice(0, 16) ? {_cls: 'cur-row'} : {})), {num: [0]})}`;
   });
   $('#pnMon').onclick = guard(async () => {
     const [y, m] = $('#pnMonth').value.split('-');
@@ -773,3 +795,18 @@ async function init() {
   Home.init();
 }
 document.addEventListener('DOMContentLoaded', init);
+
+
+/* ---- collapsible birth details */
+(function () {
+  const sec = document.getElementById('birth'), tg = document.getElementById('birthTg'), sum = document.getElementById('birthSum');
+  if (!sec || !tg) return;
+  const val = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const summary = () => { sum.textContent = [val('name') || '(unnamed)', val('date'), val('time').slice(0, 5), val('place')].filter(Boolean).join('  |  '); };
+  const set = col => { sec.classList.toggle('collapsed', col); tg.setAttribute('aria-expanded', String(!col)); tg.innerHTML = (col ? '&#9656; ' : '&#9662; ') + 'Birth details'; summary(); try { localStorage.setItem('jt_birth_col', col ? '1' : '0'); } catch (e) { /* ignore */ } };
+  tg.onclick = () => set(!sec.classList.contains('collapsed'));
+  ['name', 'date', 'time', 'place'].forEach(id => { const e = document.getElementById(id); if (e) { e.addEventListener('input', summary); e.addEventListener('change', summary); } });
+  setInterval(() => { if (sec.classList.contains('collapsed')) summary(); }, 1500);   // picks up profile loads and place picks
+  let col = false; try { col = localStorage.getItem('jt_birth_col') === '1'; } catch (e) { /* ignore */ }
+  set(col);
+})();
