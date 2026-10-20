@@ -312,7 +312,7 @@ const Muh = (() => {
       <h4 class="mu-sec">What can cancel a dosha</h4><ul>${g.neutralisers.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
       <h4 class="mu-sec">Look up a star, tithi, weekday or yoga</h4>
       <div class="mu-nav sub"><button data-k="nakshatras" class="on">Nakshatra</button><button data-k="tithis">Tithi</button><button data-k="weekdays">Weekday</button><button data-k="yogas">Yoga</button></div>
-      <div id="muLook"></div>`;
+      <div id="muLook"></div><p class="note" style="text-align:center;margin-top:18px">Created by Aryan Sankara Tejasvi</p>`;
     const chips = (arr, cls) => arr.length ? arr.map(x => `<span class="chp ${cls}">${x.icon} ${esc(x.label)}</span>`).join('') : '<small>none</small>';
     const draw = k => {
       $('#muLook').innerHTML = g[k].map(x => `<div class="mu-f"><div class="fh"><b>${esc(x.name)}</b>${x.cls ? `<span class="pill">${esc(x.cls)}</span>` : ''}${x.lord ? `<span class="pill">${esc(x.lord)}</span>` : ''}${x.absolute ? '<span class="pill bad">avoided for almost all auspicious work</span>' : ''}${x.level === 'veto' ? '<span class="pill bad">great evil</span>' : x.level === 'bad' ? '<span class="pill bad">harmful</span>' : ''}</div>

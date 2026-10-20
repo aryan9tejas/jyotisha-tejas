@@ -161,6 +161,7 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
   .cards .c-kalas{grid-row:3}
   .cards .c-muh{grid-row:4}
   .cards .c-planets{grid-row:5}
+  .cards .c-mkt{grid-row:6}
 }
 @media (max-width:760px){
   .cards{gap:10px}.pair{gap:10px}

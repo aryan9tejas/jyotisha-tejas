@@ -364,18 +364,18 @@ function loadStrength(p) {
 const kt = (s, day) => s.slice(0, 10) === day ? s.slice(11) : s.slice(5, 16);   // time, with the date when it is on another day
 function loadPanchanga(p) {
   const d = defaultPlace();
-  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button></div>
+  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button><button data-s="market">Market view</button></div>
     <div id="pnMain"><div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
     <button class="run" id="pnDay">Day panchanga</button>
     <label>Month<input type="month" id="pnMonth" value="${todayStr().slice(0, 7)}"></label><button class="sec" id="pnMon">Monthly panchanga</button></div><div id="pnOut"></div></div>
-    <div id="pnMuh" hidden></div>`;
-  let muMounted = false;
+    <div id="pnMuh" hidden></div><div id="pnMkt" hidden></div>`;
+  let muMounted = false, mkMounted = false;
   $$('#pnSub button').forEach(b => b.onclick = () => {
     $$('#pnSub button').forEach(x => x.classList.toggle('on', x === b));
-    const mu = b.dataset.s === 'muhurta';
-    $('#pnMain').hidden = mu; $('#pnMuh').hidden = !mu;
-    if (mu && !muMounted && typeof Muh !== 'undefined') { muMounted = true; Muh.mount($('#pnMuh')); }
-    else if (mu && typeof Muh !== 'undefined') Muh.applyPending();
+    const k = b.dataset.s;
+    $('#pnMain').hidden = k !== 'panchanga'; $('#pnMuh').hidden = k !== 'muhurta'; $('#pnMkt').hidden = k !== 'market';
+    if (k === 'muhurta' && typeof Muh !== 'undefined') { if (!muMounted) { muMounted = true; Muh.mount($('#pnMuh')); } else Muh.applyPending(); }
+    if (k === 'market' && typeof Mkt !== 'undefined' && !mkMounted) { mkMounted = true; Mkt.mount($('#pnMkt')); }
   });
   bindPlaceField('pn');
   const common = () => { const pl = readPlaceField('pn'); return {lat: pl.lat, lon: pl.lon, tz: pl.tz, cfg: getCfg()}; };

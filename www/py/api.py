@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import swisseph as swe
 
-from jh import core, panchanga, strength, dasa, transit, kp, tajaka, prasna, places, movetools, muhurta
+from jh import core, panchanga, strength, dasa, transit, kp, tajaka, prasna, places, movetools, muhurta, market
 from jh.consts import *
 
 ROUTES = {}
@@ -478,3 +478,30 @@ def api_mhome():
     d = request.get_json()
     lat, lon, tz, cfg = _mloc(d)
     return jsonify(muhurta.home_view(d['when'], d.get('person'), lat, lon, tz, cfg, d.get('purposes')))
+
+
+# ---------------------------------------------------------------- market view
+@route('/api/market/guide')
+def api_market_guide():
+    return jsonify(market.guide())
+
+
+@route('/api/market/view')
+def api_market_view():
+    try:
+        d = request.get_json()
+        cfg = parse_cfg(d.get('cfg'))
+        mk = d.get('market') or None
+        chart, loc = None, None
+        if mk and mk.get('chart'):
+            ch = mk['chart']
+            birth = {'name': mk.get('name', ''), 'date': ch['date'], 'time': ch.get('time') or '12:00:00', 'lat': ch['lat'], 'lon': ch['lon'], 'tz': ch['tz'], 'place': ch.get('place', '')}
+            chart = dict(get_chart({'birth': birth, 'cfg': d.get('cfg')}))
+            chart['lagna_ok'] = bool(ch.get('time_known', True))
+            if mk.get('loc'):
+                loc = {'lat': float(mk['loc']['lat']), 'lon': float(mk['loc']['lon']), 'tz': mk['loc']['tz']}
+        mi = {'id': mk.get('id'), 'name': mk.get('name'), 'note': mk.get('note', '')} if mk else None
+        return jsonify(market.evaluate(d['date'], float(d['lat']), float(d['lon']), d.get('tz') or places.tz_for(float(d['lat']), float(d['lon'])), cfg,
+                                       d.get('weights'), d.get('norm'), mi, chart, (mk or {}).get('open') or '09:15', loc))
+    except Exception as e:
+        return err(e)
