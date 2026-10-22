@@ -149,3 +149,11 @@ html[data-theme=lavender] .clock{text-shadow:none!important}
 html[data-theme=lavender] .mdir .arw{border-color:#6e5aa866!important;background:#6e5aa814!important}
 html[data-theme=lavender] .rx{background:#b3261e!important;color:#fff!important}
 html[data-theme=lavender] .hm-foot{opacity:.75}
+
+/* chart background per theme */
+html[data-theme=lemon]{--chart-bg:#fffbe3}
+html[data-theme=lavender]{--chart-bg:#f9f6fd}
+html[data-theme=silver]{--chart-bg:#f9fafb}
+html[data-theme=sky]{--chart-bg:#f4faff}
+html[data-theme=brown]{--chart-bg:#fffaf1}
+html[data-theme=teal]{--chart-bg:#f5fbfb}

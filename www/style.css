@@ -100,3 +100,8 @@ footer{padding-bottom:calc(30px + env(safe-area-inset-bottom))}
 body.home-on{padding-left:0;padding-right:0}
 @media (max-width:700px){header{padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right))}}
 .bdg.pushkara{background:#7a4cc2}
+
+tr.mu-main{cursor:pointer;font-weight:600}
+tr.mu-main:hover td{background:color-mix(in srgb,var(--acc2) 12%,transparent)}
+tr.mu-sub{display:none}
+tr.mu-sub.shown{display:table-row}

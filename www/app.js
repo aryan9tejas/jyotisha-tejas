@@ -144,7 +144,7 @@ function bySign(items) { const by = Array.from({length: 12}, () => []); items.fo
 function chartSVG({style, asc, items, title, legend}) {
   const by = bySign(items || []);
   let g = '<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">';
-  g += '<rect x="1" y="1" width="398" height="398" fill="#fffdf8" stroke="var(--acc)" stroke-width="2"/>';
+  g += '<rect x="1" y="1" width="398" height="398" fill="var(--chart-bg,#fffdf8)" stroke="var(--acc)" stroke-width="2"/>';
   if (style === 'north') {
     g += '<g stroke="var(--acc)" stroke-width="1.5" fill="none"><line x1="0" y1="0" x2="400" y2="400"/><line x1="400" y1="0" x2="0" y2="400"/><polygon points="200,0 400,200 200,400 0,200"/></g>';
     const T = {1: [200, 100], 2: [100, 34], 3: [34, 100], 4: [95, 200], 5: [34, 300], 6: [100, 370], 7: [200, 305], 8: [300, 370], 9: [366, 300], 10: [305, 200], 11: [366, 100], 12: [300, 34]};
@@ -653,11 +653,11 @@ function annualResult(out, r, title, pre) {
 function muddaHTML(m) {
   if (!m) return '';
   const rows = [];
-  m.dasas.forEach(d => {
-    rows.push([d.lord + ' dasa', d.start, d.end, d.days]);
-    d.sub.forEach(a => rows.push(['\u00a0\u00a0\u21b3 ' + d.lord + '-' + a.lord, a.start, a.end, a.days]));
+  m.dasas.forEach((d, i) => {
+    const r0 = ['\u25b8 ' + d.lord + ' dasa', d.start, d.end, d.days]; r0._cls = 'mu-main mg' + i; rows.push(r0);
+    d.sub.forEach(a => { const r = ['\u00a0\u00a0\u21b3 ' + d.lord + '-' + a.lord, a.start, a.end, a.days]; r._cls = 'mu-sub mg' + i; rows.push(r); });
   });
-  return '<h3>Planetary periods for the year (Mudda dasa)</h3>' + `<p class="note">Starts with ${esc(m.start_lord)} (Moon in ${esc(m.moon_nakshatra)}).</p>` + tbl(['Period', 'From', 'To', 'Days'], rows, {num: [3]}) + `<p class="note">${esc(m.note)}</p>`;
+  return '<h3>Planetary periods for the year (Mudda dasa)</h3>' + `<p class="note">Starts with ${esc(m.start_lord)} (Moon in ${esc(m.moon_nakshatra)}). Tap a main period to show its sub-periods.</p>` + tbl(['Period', 'From', 'To', 'Days'], rows, {num: [3]}) + `<p class="note">${esc(m.note)}</p>`;
 }
 function planetTable(c) { return tbl(['Body', 'Sign', 'Degree', 'Nakshatra', 'Star lord', 'House', 'Dignity / relation'], [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, isPushkara(c.asc.sign, c.asc.deg) ? {html: PUSH_BDG} : ''], ...c.planets.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord, x.house, dignityHTML(x)]), ...c.upagrahas.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord || '', x.house, ''])], {num: [5]}); }
 
@@ -841,4 +841,15 @@ document.addEventListener('click', e => {
   const tb = tr.closest('table'), was = tr.classList.contains('sel');
   tb.querySelectorAll('tr.sel').forEach(r => r.classList.remove('sel'));
   if (!was) tr.classList.add('sel');
+});
+
+/* Mudda dasa: tap a main period row to show or hide its sub-periods */
+document.addEventListener('click', e => {
+  const tr = e.target.closest && e.target.closest('tr.mu-main');
+  if (!tr) return;
+  const g = [...tr.classList].find(c => /^mg\d+$/.test(c));
+  const open = !tr.classList.contains('open');
+  tr.classList.toggle('open', open);
+  tr.firstElementChild.textContent = (open ? '\u25be ' : '\u25b8 ') + tr.firstElementChild.textContent.slice(2);
+  tr.closest('table').querySelectorAll('tr.mu-sub.' + g).forEach(r => r.classList.toggle('shown', open));
 });

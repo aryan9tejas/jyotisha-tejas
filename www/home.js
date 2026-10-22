@@ -204,7 +204,7 @@ const Home = (() => {
   }
   function cardHTML(key, title, blocks) {
     const open = !!H.open[key];
-    return `<section class="gcard c-${key}${blocks.length > 1 ? ' multi' : ''}"><div class="ch"><h2>${title}</h2><button class="xp" data-k="${key}" aria-expanded="${open}"><span class="xt">${open ? 'Hide' : 'Previous / next'}</span> <i>${open ? '▴' : '▾'}</i></button></div>`
+    return `<section class="gcard c-${key}${blocks.length > 1 ? ' multi' : ''}"><div class="ch"><h2>${title}</h2><button class="xp" data-k="${key}" aria-expanded="${open}" aria-label="Previous / next" title="Previous / next"><span class="xt">${open ? 'Hide' : 'Previous / next'}</span> <i>${open ? '▴' : '▾'}</i></button></div>`
       + blocks.map(b => b.main).join('') + `<div class="adjwrap"${open ? '' : ' hidden'}>${blocks.map(b => b.adj).join('')}</div></section>`;
   }
 
@@ -248,6 +248,15 @@ const Home = (() => {
     if (segs[ci + 1]) h += row('Next', segs[ci + 1], cur.b);
     return `<div class="adjg">${h}</div>`;
   }
+  /* tap anywhere on a card header to expand or collapse it */
+  document.addEventListener('click', e => {
+    const ch = e.target.closest && e.target.closest('#hmCards .ch');
+    if (!ch) return;
+    const own = e.target.closest('button,a,input,select');
+    if (own && ch.contains(own)) return;
+    const tg = ch.querySelector('.xp[data-s], .mu-tg, .mk-tg, .xp[data-k]');
+    if (tg) tg.click();
+  });
   function secBtns(k) {
     const on = H.sec[k];
     return `<button class="xp ic" data-s="${k}" aria-expanded="${on}" aria-label="${on ? 'Hide' : 'Show'}" title="${on ? 'Hide' : 'Show'}"><i>${on ? '▴' : '▾'}</i></button>`;

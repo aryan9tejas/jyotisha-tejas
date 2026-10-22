@@ -251,3 +251,9 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 /* saved snapshot shown while the engine starts */
 .stale #hmCards,#hmCards.stale{pointer-events:none;opacity:.72;transition:opacity .4s}
 #hmCards{transition:opacity .4s}
+
+/* header toggles: triangle only, no box; the whole header is the tap target */
+#hmCards .ch{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#hmCards .xp.ic,#hmCards .xp[data-k],#hmCards .xp.mu-tg,#hmCards .xp.mk-tg{background:none!important;border:0!important;box-shadow:none!important;padding:6px 8px!important;font-size:17px;line-height:1;min-width:0}
+#hmCards .xp[data-k] .xt{display:none}
+#hmCards .xp.ic:hover,#hmCards .xp[data-k]:hover{background:none!important}
