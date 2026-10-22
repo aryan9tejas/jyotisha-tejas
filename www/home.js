@@ -142,7 +142,7 @@ const Home = (() => {
       const city = TZ.split('/').pop().replace(/_/g, ' ');
       const res = await api('/api/places?q=' + encodeURIComponent(city));
       const r = res.find(x => x.tz === TZ);
-      if (r) return {label: r.label, lat: r.lat, lon: r.lon, tz: r.tz};
+      if (r) { const pl = {label: r.label, lat: r.lat, lon: r.lon, tz: r.tz}; storePlace(pl); return pl; }
     } catch (e) { /* fall through */ }
     return {label: 'Mumbai, India', lat: 19.0728, lon: 72.8826, tz: 'Asia/Kolkata'};
   }
@@ -348,7 +348,7 @@ const Home = (() => {
     $h('hmClock').textContent = H.when.slice(11, 16);
     const early = DOWF[dow] !== d.weekday;
     $h('hmSub').innerHTML = `${esc(tzLabel(H.place.tz, ref))} &middot; Vara ${esc(d.weekday)}${early ? ' (before sunrise)' : ''}`;
-    $h('hmMY').innerHTML = `${H.live ? 'Now' : `${ref.slice(5, 7)}/${ref.slice(2, 4)} <i>&#9662;</i>`}`;
+    $h('hmMY').innerHTML = `${H.live ? 'Now' : `${ref.slice(8, 10)}/${ref.slice(5, 7)}/${ref.slice(2, 4)} <i>&#9662;</i>`}`;
     $h('hmMY').classList.toggle('off', !H.live);
     $h('hmLive').hidden = !H.live;
     const hi = idxAt(d.horas, H.jd);
@@ -385,7 +385,25 @@ const Home = (() => {
   function render(full) {
     if (!H.data) return;
     renderHero(); renderCards();
+    $h('hmCards').classList.remove('stale'); $h('homeView').classList.remove('stale');
     if (full) syncWheels(false);
+    if (H.live) { clearTimeout(H.snapT); H.snapT = setTimeout(saveSnap, 4000); }
+  }
+  /* last live view, kept so the page can paint at once while the engine starts */
+  function saveSnap() {
+    try {
+      const o = {t: Date.now(), place: H.place && H.place.label, clock: $h('hmClock').textContent, sub: $h('hmSub').innerHTML, lagna: $h('hmLagna').innerHTML, cards: $h('hmCards').innerHTML};
+      const j = JSON.stringify(o); if (j.length < 300000) localStorage.setItem('jt_home_snap', j);
+    } catch (e) { /* ignore */ }
+  }
+  function restoreSnap() {
+    try {
+      const o = JSON.parse(localStorage.getItem('jt_home_snap') || 'null'), sp = storedPlace();
+      if (!o || (sp && o.place !== sp.label) || Date.now() - o.t > 36e5 * 12) return;
+      if (o.place) $h('hmLocName').textContent = o.place;
+      $h('hmClock').textContent = o.clock; $h('hmSub').innerHTML = o.sub; $h('hmLagna').innerHTML = o.lagna; $h('hmCards').innerHTML = o.cards;
+      $h('hmCards').classList.add('stale'); $h('homeView').classList.add('stale');
+    } catch (e) { /* ignore */ }
   }
 
   /* ---------------------------------------------------------------- interaction */
@@ -439,24 +457,32 @@ const Home = (() => {
     setTimeout(() => $h('hmPlace').focus(), 30);
   }
   const closeModal = () => { $h('hmModal').hidden = true; };
+  function pkDays() {
+    const y = +$h('pkYear').value, m = +$h('pkMon').value, ds = $h('pkDay'), cur = +ds.value || 1;
+    const dim = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    let o = ''; for (let d = 1; d <= dim; d++) o += `<option value="${d}">${d}</option>`;
+    ds.innerHTML = o; ds.value = String(Math.min(cur, dim));
+  }
   function openPick() {
     const ref = H.when.slice(0, 10), ms = $h('pkMon'), ys = $h('pkYear');
     if (!ms.options.length) {
-      ms.innerHTML = MON.map((m, i) => `<option value="${i + 1}">${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][i]}</option>`).join('');
+      ms.innerHTML = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
       let o = ''; for (let y = 1800; y <= 2200; y++) o += `<option>${y}</option>`; ys.innerHTML = o;
+      ms.onchange = ys.onchange = pkDays;
     }
     ms.value = String(+ref.slice(5, 7)); ys.value = ref.slice(0, 4);
+    $h('pkDay').innerHTML = ''; $h('pkDay').value = ''; pkDays(); $h('pkDay').value = String(+ref.slice(8, 10));
     $h('hmPick').hidden = false;
   }
   function goPick() {
-    const y = +$h('pkYear').value, m = +$h('pkMon').value, ref = H.when.slice(0, 10);
-    const dim = new Date(Date.UTC(y, m, 0)).getUTCDate(), day = Math.min(+ref.slice(8, 10), dim);
+    const y = +$h('pkYear').value, m = +$h('pkMon').value, day = +$h('pkDay').value || 1;
     $h('hmPick').hidden = true; H.live = false;
     load(`${y}-${pad(m)}-${pad(day)}T${H.when.slice(11, 16)}`);
   }
 
   async function init() {
     if (H.started) return; H.started = true;
+    restoreSnap();
     wDate = makeWheel($h('wDate')); wHora = makeWheel($h('wHora'));
     wDate.onSettle = onDate; wHora.onSettle = onHora;
     $h('hmApp').onclick = () => { location.hash = '#app'; };

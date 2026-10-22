@@ -5,10 +5,10 @@ const Engine = (() => {
   const pending = new Map();
   const ready = new Promise((res, rej) => { readyRes = res; readyRej = rej; });
   ready.catch(() => {});
-  let onStatus = () => {};
+  let onStatus = () => {}, last = '', begun = false;
   let mode = 'worker';
   function onMsg(m) {
-    if (m.type === 'status') onStatus(m.msg);
+    if (m.type === 'status') { last = m.msg; onStatus(m.msg); }
     else if (m.type === 'ready') { onStatus(''); readyRes(); }
     else if (m.type === 'fatal') { onStatus('Engine failed: ' + m.error.split('\n')[0]); readyRej(new Error(m.error)); }
     else if (m.type === 'result') { const p = pending.get(m.id); pending.delete(m.id); if (p) p(m.result); }
@@ -19,6 +19,7 @@ const Engine = (() => {
     import('./engine/worker.js').catch(e => { onStatus('Engine failed: ' + e.message); readyRej(e); });
   }
   function start() {
+    if (begun) return; begun = true;
     let started = false;
     try {
       if (/noworker=1/.test(location.search)) throw new Error('worker disabled');
@@ -38,5 +39,6 @@ const Engine = (() => {
       if (mode === 'main') window.__engineCall(msg); else worker.postMessage(msg);
     });
   }
-  return {start, call, ready, set onStatus(f) { onStatus = f; }};
+  return {start, call, ready, set onStatus(f) { onStatus = f; if (last) f(last); }};
 })();
+Engine.start();   // begin loading the engine as soon as the page starts, not after the app has set up

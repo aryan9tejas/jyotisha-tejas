@@ -160,3 +160,42 @@ def tithi_pravesha(natal, age, tz=None, lat=None, lon=None):
     return {'age': age, 'return_local': c['meta']['local'], 'return_jd': jd, 'tz_offset': off, 'chart': c,
             'natal_tithi': tithi_name(int(e0 // 12)), 'tithi_at_return': tithi_name(int(elong(jd) // 12)),
             'note': 'Chosen as the natal-tithi recurrence nearest the Sun\'s natal longitude within the birthday window.'}
+
+
+def mudda_dasa(chart, jd0=None, year_days=365.2425):
+    """Mudda dasa: Vimsottari compressed so that the 120-year cycle spans one year.
+    Starts from the nakshatra lord of the annual chart's Moon, with the balance of that dasa
+    taken from the Moon's position in its nakshatra. Returns dasas with their antardasas, clipped to the year."""
+    from .dasa import sub_periods
+    from .core import fmt_local
+    off = chart['meta']['tz_offset']
+    jd0 = chart['meta']['jd'] if jd0 is None else jd0
+    unit = year_days / 120.0                      # days per Vimsottari year
+    moon = chart['pmap']['Moon']['lon']
+    idx = int(moon // NAK_SPAN)
+    lord = NAK_LORD[idx]
+    elapsed = (moon % NAK_SPAN) / NAK_SPAN
+    t = jd0 - elapsed * VIM_YEARS[lord] * unit
+    end = jd0 + year_days
+    i0 = VIM_ORDER.index(lord)
+    d = lambda x: fmt_local(x, off, False)[:10]
+    out = []
+    for i in range(10):
+        L = VIM_ORDER[(i0 + i) % 9]
+        dur = VIM_YEARS[L] * unit
+        a, b = t, t + dur
+        t = b
+        if b <= jd0:
+            continue
+        if a >= end:
+            break
+        subs = []
+        for sp in sub_periods(L, a, dur):
+            if sp['end'] <= jd0 or sp['start'] >= end:
+                continue
+            subs.append({'lord': sp['lord'], 'start': d(max(sp['start'], jd0)), 'end': d(min(sp['end'], end)),
+                         'days': round(min(sp['end'], end) - max(sp['start'], jd0), 1)})
+        out.append({'lord': L, 'start': d(max(a, jd0)), 'end': d(min(b, end)),
+                    'days': round(min(b, end) - max(a, jd0), 1), 'sub': subs})
+    return {'start_lord': lord, 'moon_nakshatra': NAKSHATRAS[idx], 'dasas': out,
+            'note': 'Mudda dasa: the Vimsottari sequence compressed so that its 120 years fit one year (1 Vimsottari year = 3.04 days). It starts with the lord of the annual chart\'s Moon nakshatra, with the balance from the Moon\'s position in that star.'}

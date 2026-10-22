@@ -107,9 +107,10 @@ def dignity_points(name):
         return None
     ex, de = EXALT_POINT[name], DEBIL_POINT[name]
     ms, a, b = MOOLATRIKONA[name]
-    return {'exalt': {'sign': SIGNS[int(ex // 30)], 'deg': core.dms(ex % 30)},
-            'debil': {'sign': SIGNS[int(de // 30)], 'deg': core.dms(de % 30)},
-            'mt': {'sign': SIGNS[ms], 'sign_idx': ms, 'from': core.dms(a), 'to': core.dms(b)}}
+    wd = lambda x: f'{int(round(x))}\u00b0' if abs(x - round(x)) < 1e-6 else core.dms(x)   # whole degrees when there are no minutes
+    return {'exalt': {'sign': SIGNS[int(ex // 30)], 'deg': wd(ex % 30)},
+            'debil': {'sign': SIGNS[int(de // 30)], 'deg': wd(de % 30)},
+            'mt': {'sign': SIGNS[ms], 'sign_idx': ms, 'from': wd(a), 'to': wd(b)}}
 
 
 def pos_view(name, v):
@@ -362,6 +363,7 @@ def _annual_view(res):
     c = res['chart']
     out = {k: v for k, v in res.items() if k != 'chart'}
     out['chart'] = chart_view(c, with_strength=False)
+    out['mudda'] = tajaka.mudda_dasa(c, res.get('return_jd'))
     return out
 
 

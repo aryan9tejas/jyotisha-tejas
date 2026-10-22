@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="muhurta.css">
 <link rel="stylesheet" href="market.css">
 <link rel="stylesheet" href="themes.css">
-<script>try{var t=localStorage.getItem("jt_theme");if(t&&/^(indigo|marigold|brown|teal)$/.test(t)){document.documentElement.setAttribute("data-theme",t);}}catch(e){}</script>
+<script>try{var t=localStorage.getItem("jt_theme");if(t&&/^(indigo|marigold|brown|teal|silver|sky)$/.test(t)){document.documentElement.setAttribute("data-theme",t);}}catch(e){}</script>
 </head>
 <body>
 <div id="homeView" class="home" data-sky="night">
@@ -27,7 +27,7 @@
       <div class="hm-brand">Jyotisha Tejas</div>
       <div class="hm-actions">
         <button id="hmLoc" class="chip" title="Change location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="hmLocName">...</span></button>
-        <button id="hmMY" class="chip" title="Now, or pick a month and year">Now</button>
+        <button id="hmMY" class="chip" title="Now, or pick a date">Now</button>
         <button id="hmTheme" class="chip" title="Colour theme" aria-label="Colour theme">&#127912;</button>
         <button id="hmApp" class="chip strong">App &#8250;</button>
       </div>
@@ -48,9 +48,9 @@
   </div>
   <div id="hmPick" class="hmodal" hidden>
     <div class="hmbox">
-      <h3>Month and year</h3>
-      <div class="hmrow pk"><select id="pkMon" aria-label="Month"></select><select id="pkYear" aria-label="Year"></select></div>
-      <div class="hmrow"><button id="pkGo" type="button">Go</button><button id="pkNow" class="sec" type="button">Now</button><button id="pkClose" class="sec" type="button">Close</button></div>
+      <h3>Date, month and year</h3>
+      <div class="hmrow pk"><select id="pkDay" aria-label="Day" style="flex:0 0 72px"></select><select id="pkMon" aria-label="Month"></select><select id="pkYear" aria-label="Year"></select></div>
+      <div class="hmrow"><button id="pkGo" type="button">Go</button><button id="pkClose" class="sec" type="button">Close</button><button id="pkNow" class="sec" type="button" style="margin-left:auto">Now</button></div>
     </div>
   </div>
   <div id="hmModal" class="hmodal" hidden>
@@ -64,12 +64,13 @@
 </div>
 <div id="appView" hidden>
 <header>
-  <div class="ttl"><button id="btnHome" class="back" type="button" title="Back to Panchang">&#8249; Back</button><h1>Jyotisha Tejas</h1></div><button id="btnTheme" class="sec" type="button" title="Colour theme" style="padding:4px 9px">&#127912;</button><span id="engine" class="pill" style="display:inline-block">Loading engine...</span>
+  <div class="ttl"><button id="btnHome" class="back" type="button" title="Home (Panchang)">&#8249; Home</button><h1>Jyotisha Tejas</h1></div><span id="engine" class="pill" style="display:inline-block">Loading engine...</span>
   <div class="hbar">
     <select id="profileSel"><option value="">Saved profiles...</option></select>
     <button id="btnSaveProfile" class="sec">Save profile</button>
     <button id="btnDelProfile" class="sec">Delete</button>
     <button id="btnNew" class="sec">New</button>
+    <button id="btnTheme" class="sec" type="button" title="Colour theme">&#127912;</button>
   </div>
 </header>
 

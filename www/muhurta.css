@@ -35,9 +35,9 @@
 .mu-day .sc{margin-left:6px;font-weight:700}
 .mu-day .bw,.mu-day .fc,.mu-day .why{grid-column:1 / -1;font-size:12.5px}.mu-day .why{color:var(--bad)}
 /* day sheet */
-.mu-sheet{position:fixed;inset:0;background:rgba(10,10,30,.55);z-index:900;display:flex;justify-content:center;align-items:flex-end}
+.mu-sheet{position:fixed;inset:0;background:rgba(10,10,30,.55);z-index:900;display:flex;justify-content:center;align-items:flex-end;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
 .mu-sheet[hidden]{display:none}
-.mu-sheet-in{position:relative;background:var(--card);color:var(--ink);width:min(760px,100%);max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
+.mu-sheet-in{position:relative;background:var(--card);color:var(--ink);width:min(760px,100%);max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(28px + env(safe-area-inset-bottom))}
 .mu-sheet-in.small{width:min(520px,100%)}
 @media(min-width:800px){.mu-sheet{align-items:center}.mu-sheet-in{border-radius:16px}}
 .mu-x{position:absolute;top:8px;right:10px;background:transparent;color:var(--mut);font-size:26px;padding:0 8px;line-height:1}

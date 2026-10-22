@@ -19,7 +19,7 @@ body.home-on{background:#0b1030;overscroll-behavior-y:none}
 .orb{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;z-index:0;pointer-events:none;transition:left 2s ease,top 2s ease,background 1.5s ease,box-shadow 1.5s ease;
   background:radial-gradient(circle,#fff6d6 0%,#ffd98a 35%,rgba(255,200,110,.0) 70%);box-shadow:0 0 90px 40px rgba(255,205,120,.28);opacity:.85}
 .orb.moon{background:radial-gradient(circle,#f4f6ff 0%,#cdd6f5 38%,rgba(190,205,245,0) 70%);box-shadow:0 0 80px 30px rgba(190,205,255,.2);width:90px;height:90px;margin:-45px 0 0 -45px}
-.hm-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 18px 40px}
+.hm-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
 .hm-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0 12px}
 .hm-brand{font-size:17px;letter-spacing:.6px;font-weight:600;white-space:nowrap}
 .hm-actions{display:flex;gap:8px;align-items:center;min-width:0}
@@ -91,7 +91,7 @@ body.home-on{background:#0b1030;overscroll-behavior-y:none}
 .kala:not(:has(.tag)){grid-template-columns:14px 1fr auto}
 .hm-foot{margin-top:18px;font-size:12px;opacity:.6;text-align:center}
 #homeView.busy .cards,#homeView.busy .clock{opacity:.72;transition:opacity .2s}
-.hmodal{position:fixed;inset:0;z-index:30;background:rgba(5,8,25,.6);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.hmodal{position:fixed;inset:0;z-index:30;background:rgba(5,8,25,.6);display:flex;align-items:flex-start;justify-content:center;padding:max(12vh,calc(12px + env(safe-area-inset-top))) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 .hmbox{background:#fffdf8;color:#222;border-radius:16px;padding:18px;width:min(440px,100%);box-shadow:0 20px 60px rgba(0,0,0,.45)}
 .hmbox h3{margin:0 0 10px;color:var(--acc)}
 .hmbox label{font-size:12px;color:#6b6b6b}
@@ -99,7 +99,7 @@ body.home-on{background:#0b1030;overscroll-behavior-y:none}
 .hmrow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 @media (max-width:760px){
   #homeView{--ih:46px;font-size:15px}
-  .hm-wrap{padding:max(8px,env(safe-area-inset-top)) 12px 32px}
+  .hm-wrap{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
   .hm-hero{grid-template-columns:1fr;gap:12px}
   .wheels{grid-template-columns:1fr 1.15fr;gap:10px}
   #hmLoc span{max-width:120px}
@@ -247,3 +247,7 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 }
 
 @media (max-width:560px){.hm-brand{display:none}}
+
+/* saved snapshot shown while the engine starts */
+.stale #hmCards,#hmCards.stale{pointer-events:none;opacity:.72;transition:opacity .4s}
+#hmCards{transition:opacity .4s}

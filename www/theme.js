@@ -3,7 +3,9 @@
     {id:'indigo',name:'Indigo',sub:'Default',c:['#2b2150','#d99a1e','#0b1030'],m:'#2b2150'},
     {id:'marigold',name:'Off-white & Marigold',sub:'Light',c:['#a86400','#f5b82e','#fbf9f3'],m:'#a86400'},
     {id:'brown',name:'Brown & Cream',sub:'Classic',c:['#7a3e1d','#e4c496','#f6f4ef'],m:'#7a3e1d'},
-    {id:'teal',name:'Teal / Ocean',sub:'Cool',c:['#0f5c63','#2a8fa0','#03121b'],m:'#0f5c63'}
+    {id:'teal',name:'Teal / Ocean',sub:'Cool',c:['#0f5c63','#2a8fa0','#03121b'],m:'#0f5c63'},
+    {id:'silver',name:'Black, White & Silver',sub:'Monochrome',c:['#1d1f23','#c4c8cd','#f2f3f4'],m:'#1d1f23'},
+    {id:'sky',name:'Sky Blue',sub:'Light blue',c:['#0a5c9e','#7ec3ec','#eef7fd'],m:'#0a5c9e'}
   ];
   function cur(){try{var t=localStorage.getItem('jt_theme');if(T.some(function(x){return x.id===t}))return t}catch(e){}return 'indigo'}
   function apply(id){
@@ -15,7 +17,7 @@
   function open(){
     var c=cur(), o=document.createElement('div');
     o.id='thModal';
-    o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+    o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))';
     var h='<div style="background:#fff;color:#222;border-radius:16px;padding:16px;width:100%;max-width:340px;box-shadow:0 10px 40px rgba(0,0,0,.4);font:15px system-ui,sans-serif"><div style="font-weight:700;margin-bottom:10px">Colour theme</div>';
     T.forEach(function(t){
       h+='<button data-id="'+t.id+'" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px;margin:6px 0;border-radius:12px;border:2px solid '+(t.id===c?'#2b2150':'#ddd')+';background:#fff;color:#222;font:inherit;cursor:pointer">'

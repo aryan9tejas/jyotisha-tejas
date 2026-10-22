@@ -20,13 +20,13 @@ const Local = (() => {
     if (!db) return;
     await new Promise(res => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(JSON.parse(JSON.stringify(state)), KEY); t.oncomplete = res; t.onerror = res; });
   }
+  const needPlaces = () => placesReady || (placesReady = import('./places.mjs').then(m => { Places = m; return m.load('data/places.json'); }));   // the 3 MB places file loads only when a search needs it
   async function init() {
     db = await idb();
     let s = await getKV();
     if (!s) { try { s = JSON.parse(localStorage.getItem('jt_state') || 'null'); } catch (e) { s = null; } }
     if (s) state = s;
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignore */ }
-    placesReady = import('./places.mjs').then(m => { Places = m; return m.load('data/places.json'); });
   }
   const now = () => new Date().toISOString().slice(0, 19);
   const PF = ['name', 'year', 'month', 'day', 'hour', 'minute', 'second', 'place', 'lat', 'lon', 'tz', 'gender', 'notes'];
@@ -35,8 +35,8 @@ const Local = (() => {
     const [path, qs] = url.split('?');
     const q = new URLSearchParams(qs || '');
     method = method || (body === undefined ? 'GET' : 'POST');
-    if (path === '/api/places') { await placesReady; return Places.search(q.get('q') || ''); }
-    if (path === '/api/tz') { await placesReady; return {tz: Places.tzFor(+q.get('lat'), +q.get('lon'))}; }
+    if (path === '/api/places') { await needPlaces(); return Places.search(q.get('q') || ''); }
+    if (path === '/api/tz') { await needPlaces(); return {tz: Places.tzFor(+q.get('lat'), +q.get('lon'))}; }
     if (path === '/api/profiles') {
       if (method === 'GET') return [...state.profiles].sort((a, b) => (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase()));
       const d = body, rec = {};

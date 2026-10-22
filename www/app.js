@@ -181,7 +181,7 @@ function planetItems(c, n, o = {}) {
   for (const name of PL9) {
     const p = c.planets.find(x => x.name === name);
     const retro = p && p.retro && name !== 'Rahu' && name !== 'Ketu';
-    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : ''), color, body: o.body ? name : undefined});
+    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : '') + (n === 1 && isPushkara(v.planets[name], v.pos[name]) ? ' \u2726' : ''), color, body: o.body ? name : undefined});
   }
   return out;
 }
@@ -196,7 +196,9 @@ function upaItems(c, n, o = {}) {
   return UPAS.filter(k => k in v.upa).map(k => ({sign: v.upa[k], text: (o.pre || '') + ABBR[k] + ' ' + DM(v.upa_pos[k]), color: o.color || COL.upa}));
 }
 function chartItems(c, n, show, o = {}) {
+  const v = c.vargas[String(n)];
   let it = planetItems(c, n, o);
+  if (v.asc_deg != null) it.push({sign: v.asc, text: (o.pre || '') + 'Asc ' + DM(v.asc_deg), color: COL.lagna, bold: true});
   if (show.la) it = it.concat(lagnaItems(c, n));
   if (show.up) it = it.concat(upaItems(c, n, o));
   return it;
@@ -215,6 +217,14 @@ function drawFree(el, data, title, degs) {
   el.innerHTML = chartSVG({style: styleNow(), asc: data.asc, items: freeItems(data.planets, degs || data.degs), title});
 }
 function legend(parts) { return '<p class="legend">' + parts.map(([c, t]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join('') + '</p>'; }
+/* Pushkara navamsa: the navamsa falls in Libra/Sagittarius (fire and water signs) or Taurus/Pisces (earth and air signs) */
+function isPushkara(sign, deg) {
+  if (sign == null || deg == null) return false;
+  const start = [0, 9, 6, 3][sign % 4], ns = (start + Math.min(8, Math.floor(deg / (30 / 9)))) % 12;
+  const fireWater = sign % 4 === 0 || sign % 4 === 3;
+  return fireWater ? (ns === 6 || ns === 8) : (ns === 1 || ns === 11);
+}
+const PUSH_BDG = '<span class="bdg pushkara" title="Pushkara navamsa: a navamsa of Venus or Jupiter that gives the planet strength and benefic results">Pushkara</span>';
 /* dignity badges for the positions table */
 function dignityHTML(x) {
   const lab = {exalted: 'Exalted', debilitated: 'Debilitated', moolatrikona: 'Mulatrikona', own: 'Own sign'};
@@ -228,7 +238,8 @@ function dignityHTML(x) {
   const st = sts.map(k => `<span class="bdg ${k}">${lab[k]}</span>` + (nt[k] ? ` <span class="rel">(${esc(nt[k])})</span>` : '')).join(' ');
   const mt = (nt.mt && !sts.includes('moolatrikona')) ? ` <span class="rel">(${esc(nt.mt)})</span>` : (nt.mt ? ` <span class="rel">(range ${esc(dp.mt.from)} to ${esc(dp.mt.to)} ${esc(dp.mt.sign)})</span>` : '');
   const rel = x.rel ? `<span class="rel">${esc(x.rel)}</span>` : '';
-  return {html: st + mt + (rel && (st || mt) ? ' ' : '') + rel};
+  const pu = isPushkara(x.sign, x.deg) ? PUSH_BDG + ' ' : '';
+  return {html: pu + st + mt + (rel && (st || mt) ? ' ' : '') + rel};
 }
 
 /* ---------------------------------------------------------------- tabs */
@@ -275,7 +286,7 @@ function loadCharts(p) {
     <div class="row" style="margin-top:12px"><label>Left chart<select id="vL">${opts(1)}</select></label><label>Right chart<select id="vR">${opts(9)}</select></label>
       <label class="chk"><input type="checkbox" id="shLA"${S.show.la ? ' checked' : ''}> Lagnas &amp; Arudhas</label>
       <label class="chk"><input type="checkbox" id="shUp"${S.show.up ? ' checked' : ''}> Upagrahas (Gulika, Mandi and others)</label></div>
-    ${legend([[COL.planet, 'Planets (degrees and minutes in sign)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
+    ${legend([[COL.planet, 'Planets (degrees and minutes in sign; \u2726 = Pushkara navamsa in D1)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
     <div class="two"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div></div>
     <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}</select></label></div><div id="postab"></div>
     <h3>Panchanga at birth</h3><div id="bp"></div>
@@ -290,7 +301,7 @@ function loadCharts(p) {
   const drawPos = () => {
     const n = +$('#posV').value;
     if (n === 1) {
-      const rows = [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, '', '', '']];
+      const rows = [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, isPushkara(c.asc.sign, c.asc.deg) ? {html: PUSH_BDG} : '', '', '']];
       pls.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord, x.house, dignityHTML(x), f(x.speed, 4), (x.retro && !['Rahu', 'Ketu'].includes(x.name) ? 'R ' : '') + (x.combust ? 'Combust' : '')]));
       c.lagnas.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord || '', x.house, '', '', 'Special lagna']));
       c.upagrahas.forEach(x => rows.push([x.name, x.sign_name, x.dms, starTxt(x), x.nak_lord || '', x.house, '', '', 'Upagraha']));
@@ -629,6 +640,7 @@ function annualResult(out, r, title, pre) {
   const draw = () => {
     const show = {la: $('#' + pre + 'LA').checked, up: $('#' + pre + 'Up').checked};
     let items1 = freeItems(pl, dg);
+    if (c.asc && c.asc.deg != null) items1.push({sign: c.asc.sign, text: 'Asc ' + DM(c.asc.deg), color: COL.lagna, bold: true});
     if (show.la) items1 = items1.concat(lagnaItems(c, 1));
     if (show.up) items1 = items1.concat(upaItems(c, 1));
     $('#' + pre + 'D1', out).innerHTML = chartSVG({style: styleNow(), asc: c.asc.sign, items: items1, title});
@@ -638,7 +650,16 @@ function annualResult(out, r, title, pre) {
   draw();
   return c;
 }
-function planetTable(c) { return tbl(['Body', 'Sign', 'Degree', 'Nakshatra', 'Star lord', 'House', 'Dignity / relation'], [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, ''], ...c.planets.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord, x.house, dignityHTML(x)]), ...c.upagrahas.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord || '', x.house, ''])], {num: [5]}); }
+function muddaHTML(m) {
+  if (!m) return '';
+  const rows = [];
+  m.dasas.forEach(d => {
+    rows.push([d.lord + ' dasa', d.start, d.end, d.days]);
+    d.sub.forEach(a => rows.push(['\u00a0\u00a0\u21b3 ' + d.lord + '-' + a.lord, a.start, a.end, a.days]));
+  });
+  return '<h3>Planetary periods for the year (Mudda dasa)</h3>' + `<p class="note">Starts with ${esc(m.start_lord)} (Moon in ${esc(m.moon_nakshatra)}).</p>` + tbl(['Period', 'From', 'To', 'Days'], rows, {num: [3]}) + `<p class="note">${esc(m.note)}</p>`;
+}
+function planetTable(c) { return tbl(['Body', 'Sign', 'Degree', 'Nakshatra', 'Star lord', 'House', 'Dignity / relation'], [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, isPushkara(c.asc.sign, c.asc.deg) ? {html: PUSH_BDG} : ''], ...c.planets.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord, x.house, dignityHTML(x)]), ...c.upagrahas.map(x => [x.name, x.sign_name, x.dms, `${x.nak} ${x.pada}`, x.nak_lord || '', x.house, ''])], {num: [5]}); }
 
 function ageControls(prefix, run) {
   const d = defaultPlace();
@@ -658,7 +679,7 @@ function loadVarsha(p) {
     const hb = r.harsha_bala, pv = r.pancha_vargeeya;
     out.insertAdjacentHTML('afterbegin', kv([['Age', r.age], ['Solar return (local)', r.return_local], ['Varsha lagna', r.varsha_lagna], ['Muntha', `${r.muntha.sign} (house ${r.muntha.house_in_varsha}), lord ${r.muntha.lord}`], ['Suggested Varsha lord', r.suggested_varsha_lord]])
       + '<h3>Candidates for Varsha lord</h3>' + tbl(['Role', 'Planet', 'Pancha Vargeeya'], Object.entries(r.varsha_lord_candidates).map(([k, v]) => [k, v, f(pv[v].total, 2)]), {num: [2]}));
-    out.insertAdjacentHTML('beforeend', '<h3>Positions in the Varsha chart</h3>' + planetTable(c)
+    out.insertAdjacentHTML('beforeend', '<h3>Positions in the Varsha chart</h3>' + planetTable(c) + muddaHTML(r.mudda)
       + '<h3>Harsha bala (max 20)</h3>' + tbl(['Planet', 'Sthana', 'Stri-Purusha', 'Ucchadi', 'Dina-Ratri', 'Total'], PL7.map(n => [n, hb[n].sthana, hb[n].stri_purusha, hb[n].ucchadi, hb[n].dina_ratri, hb[n].total]), {num: [1, 2, 3, 4, 5]})
       + '<h3>Pancha Vargeeya bala (max 20)</h3>' + tbl(['Planet', 'Kshetra /30', 'Uccha /20', 'Hadda /15', 'Drekkana /10', 'Navamsa /5', 'Total /20', 'Grade'], PL7.map(n => [n, f(pv[n].kshetra, 1), f(pv[n].uccha, 1), f(pv[n].hadda, 1), f(pv[n].drekkana, 1), f(pv[n].navamsa, 1), f(pv[n].total, 2), pv[n].grade]), {num: [1, 2, 3, 4, 5, 6]})
       + `<p class="note">${esc(r.note)}</p>`);
@@ -676,7 +697,7 @@ function loadTP(p) {
     const out = $('#tpOut');
     const c = annualResult(out, r, 'Tithi Pravesha', 'tp');
     out.insertAdjacentHTML('afterbegin', kv([['Age', r.age], ['Tithi pravesha (local)', r.return_local], ['Natal tithi', r.natal_tithi], ['Tithi at return', r.tithi_at_return], ['Lagna', c.asc.sign_name + ' ' + c.asc.dms + ', ' + c.asc.nak + ' (' + c.asc.nak_lord + ')']]));
-    out.insertAdjacentHTML('beforeend', '<h3>Positions</h3>' + planetTable(c) + `<p class="note">${esc(r.note)}</p>`);
+    out.insertAdjacentHTML('beforeend', '<h3>Positions</h3>' + planetTable(c) + muddaHTML(r.mudda) + `<p class="note">${esc(r.note)}</p>`);
   });
   $('#tpRun').click();
 }
@@ -810,3 +831,14 @@ document.addEventListener('DOMContentLoaded', init);
   let col = false; try { col = localStorage.getItem('jt_birth_col') === '1'; } catch (e) { /* ignore */ }
   set(col);
 })();
+
+/* click a row of a wide table to highlight it, so it can be read across the line */
+document.addEventListener('click', e => {
+  const tr = e.target.closest && e.target.closest('table tr');
+  if (!tr || e.target.closest('a,button,input,select,label,textarea')) return;
+  const cells = tr.children.length;
+  if (cells < 4 || tr.querySelector('th') && !tr.querySelector('td')) return;
+  const tb = tr.closest('table'), was = tr.classList.contains('sel');
+  tb.querySelectorAll('tr.sel').forEach(r => r.classList.remove('sel'));
+  if (!was) tr.classList.add('sel');
+});

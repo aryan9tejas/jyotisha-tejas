@@ -61,3 +61,60 @@ html[data-theme=teal] .sky.night{background:linear-gradient(170deg,#03121b 0%,#0
 html[data-theme=teal] body.home-on{background:#03121b}
 html[data-theme=teal] .gcard,html[data-theme=teal] .wwrap{background:rgba(3,30,38,.52)!important}
 html[data-theme=teal] .orb{background:radial-gradient(circle,#fff6dc 0%,#ffd890 38%,rgba(255,190,110,0) 70%)!important}
+
+/* Silver: black, white, silver, light grey */
+html[data-theme=silver]{--bg:#f2f2f3;--acc:#1d1f23;--acc2:#64676e;--sec-bg:#e3e4e6;--sec-line:#c4c6ca;--tab-bg:#dcdde0;--tab-ink:#393a3b;--pill:#e3e4e6}
+html[data-theme=silver] .sky.day{background:linear-gradient(170deg,#f4f5f5 0%,#e3e4e6 55%,#cfd0d3 100%)}
+html[data-theme=silver] .sky.dawn{background:linear-gradient(170deg,#f1f2f3 0%,#dedfe1 55%,#cfd0d3 100%)}
+html[data-theme=silver] .sky.dusk{background:linear-gradient(170deg,#ebebec 0%,#d7d8da 55%,#c7c9cd 100%)}
+html[data-theme=silver] .sky.night{background:linear-gradient(170deg,#e5e6e7 0%,#d1d3d6 55%,#c2c4c8 100%)}
+html[data-theme=silver] body.home-on{background:#dcdde0}
+html[data-theme=silver] .stars{display:none!important}
+html[data-theme=silver] .orb{background:radial-gradient(circle,#f7f7f8 0%,#b4b6bb 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=silver] .orb.moon{background:radial-gradient(circle,#fff 0%,#dcdde0 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=silver] #homeView{color:#272829}
+html[data-theme=silver] .gcard,html[data-theme=silver] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#1d1f2333!important}
+html[data-theme=silver] .wsel{border-color:#1d1f2399!important;background:#1d1f2314!important}
+html[data-theme=silver] .chip{background:rgba(255,255,255,.68)!important;color:#1d1f23!important;border-color:#1d1f2355!important}
+html[data-theme=silver] .chip.strong,html[data-theme=silver] #hmMY.off{background:#1d1f23!important;color:#fff!important;border-color:#1d1f23!important}
+html[data-theme=silver] .xp{background:#1d1f2318!important;color:#1d1f23!important;border-color:#1d1f2355!important}
+html[data-theme=silver] .bar{background:#1d1f2322!important}
+html[data-theme=silver] .bar i{background:linear-gradient(90deg,#1d1f23,#82868e)!important}
+html[data-theme=silver] .kala.now{background:#1d1f2318!important}
+html[data-theme=silver] .tag{background:#1d1f23!important;color:#fff!important}
+html[data-theme=silver] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=silver] .mph svg circle{fill:#6c7077!important}
+html[data-theme=silver] .mph svg path{fill:#f7f7f8!important}
+html[data-theme=silver] .adjwrap,html[data-theme=silver] .mx,html[data-theme=silver] .blk+.blk,html[data-theme=silver] .kala,html[data-theme=silver] .pl{border-color:#1d1f232e!important}
+html[data-theme=silver] .clock{text-shadow:none!important}
+html[data-theme=silver] .mdir .arw{border-color:#1d1f2366!important;background:#1d1f2314!important}
+html[data-theme=silver] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=silver] .hm-foot{opacity:.75}
+/* Sky: sky blue to light blue */
+html[data-theme=sky]{--bg:#ebf4fa;--acc:#0a5c9e;--acc2:#2874aa;--sec-bg:#d4e7f5;--sec-line:#a4cdea;--tab-bg:#cae1f2;--tab-ink:#283d4c;--pill:#d4e7f5}
+html[data-theme=sky] .sky.day{background:linear-gradient(170deg,#eff6fb 0%,#d4e7f5 55%,#b4d6ee 100%)}
+html[data-theme=sky] .sky.dawn{background:linear-gradient(170deg,#eaf3fa 0%,#cce3f3 55%,#b4d6ee 100%)}
+html[data-theme=sky] .sky.dusk{background:linear-gradient(170deg,#dfeef8 0%,#c1dcf0 55%,#a9cfeb 100%)}
+html[data-theme=sky] .sky.night{background:linear-gradient(170deg,#d6e9f6 0%,#b9d8ee 55%,#a1cbe9 100%)}
+html[data-theme=sky] body.home-on{background:#cae1f2}
+html[data-theme=sky] .stars{display:none!important}
+html[data-theme=sky] .orb{background:radial-gradient(circle,#f3f8fc 0%,#8bbfe4 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=sky] .orb.moon{background:radial-gradient(circle,#fff 0%,#cae1f2 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=sky] #homeView{color:#1c2a34}
+html[data-theme=sky] .gcard,html[data-theme=sky] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#0a5c9e33!important}
+html[data-theme=sky] .wsel{border-color:#0a5c9e99!important;background:#0a5c9e14!important}
+html[data-theme=sky] .chip{background:rgba(255,255,255,.68)!important;color:#0a5c9e!important;border-color:#0a5c9e55!important}
+html[data-theme=sky] .chip.strong,html[data-theme=sky] #hmMY.off{background:#0a5c9e!important;color:#fff!important;border-color:#0a5c9e!important}
+html[data-theme=sky] .xp{background:#0a5c9e18!important;color:#0a5c9e!important;border-color:#0a5c9e55!important}
+html[data-theme=sky] .bar{background:#0a5c9e22!important}
+html[data-theme=sky] .bar i{background:linear-gradient(90deg,#0a5c9e,#3e94d2)!important}
+html[data-theme=sky] .kala.now{background:#0a5c9e18!important}
+html[data-theme=sky] .tag{background:#0a5c9e!important;color:#fff!important}
+html[data-theme=sky] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=sky] .mph svg circle{fill:#2b7db8!important}
+html[data-theme=sky] .mph svg path{fill:#f3f8fc!important}
+html[data-theme=sky] .adjwrap,html[data-theme=sky] .mx,html[data-theme=sky] .blk+.blk,html[data-theme=sky] .kala,html[data-theme=sky] .pl{border-color:#0a5c9e2e!important}
+html[data-theme=sky] .clock{text-shadow:none!important}
+html[data-theme=sky] .mdir .arw{border-color:#0a5c9e66!important;background:#0a5c9e14!important}
+html[data-theme=sky] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=sky] .hm-foot{opacity:.75}
