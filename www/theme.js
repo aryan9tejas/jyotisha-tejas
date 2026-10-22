@@ -27,9 +27,6 @@
     n.name='theme-color'; n.content=col;
     if(old)old.remove(); document.head.appendChild(n);
     document.documentElement.style.backgroundColor=home?col:'';
-    document.documentElement.style.setProperty('--notch',col);
-    var nb=document.getElementById('notchBar');
-    if(nb){nb.style.height='6px';void nb.offsetHeight;requestAnimationFrame(function(){nb.style.height='';nb.style.transform='translateZ(0)';requestAnimationFrame(function(){nb.style.transform='';});});}
     if(document.body){document.body.style.backgroundColor=home?col:'';void document.body.offsetHeight;}
   }
   window.addEventListener('jt-view',function(){setTimeout(syncBar,60)});
