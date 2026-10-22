@@ -1,6 +1,5 @@
 /* Colour themes. The default (indigo) lives in style.css and home.css; html[data-theme=...] overrides it. */
 html[data-theme=brown]{--bg:#f6f4ef;--acc:#7a3e1d;--acc2:#b5651d;--sec-bg:#efe7da;--sec-line:#d8ccb6;--tab-bg:#e9e2d3;--tab-ink:#4a3a2a;--pill:#efe7da}
-html[data-theme=marigold]{--bg:#fbf9f3;--acc:#a86400;--acc2:#e09a00;--sec-bg:#fbefd0;--sec-line:#efd691;--tab-bg:#f5e9cb;--tab-ink:#4a3810;--pill:#fbefd0;--line:#ece4d0}
 html[data-theme=teal]{--bg:#f1f6f6;--acc:#0f5c63;--acc2:#d98a1a;--sec-bg:#dfeeee;--sec-line:#b7d6d6;--tab-bg:#d9eaea;--tab-ink:#153b40;--pill:#dfeeee;--line:#d9e4e4}
 html[data-theme=brown] .sky.day{background:linear-gradient(170deg,#fbf6ef 0%,#f4e7d5 55%,#ecd6b6 100%)}
 html[data-theme=brown] .sky.dawn{background:linear-gradient(170deg,#faf3ea 0%,#f2e3cd 55%,#ecd6b6 100%)}
@@ -28,32 +27,6 @@ html[data-theme=brown] .clock{text-shadow:none!important}
 html[data-theme=brown] .mdir .arw{border-color:#7a3e1d66!important;background:#7a3e1d14!important}
 html[data-theme=brown] .rx{background:#b3261e!important;color:#fff!important}
 html[data-theme=brown] .hm-foot{opacity:.75}
-html[data-theme=marigold] .sky.day{background:linear-gradient(170deg,#fef4e0 0%,#fbe3ab 55%,#f8cd6d 100%)}
-html[data-theme=marigold] .sky.dawn{background:linear-gradient(170deg,#fdf1d5 0%,#fadd9b 55%,#f8cd6d 100%)}
-html[data-theme=marigold] .sky.dusk{background:linear-gradient(170deg,#fceac0 0%,#f9d686 55%,#f7c658 100%)}
-html[data-theme=marigold] .sky.night{background:linear-gradient(170deg,#fbe4b0 0%,#f8d075 55%,#f6c147 100%)}
-html[data-theme=marigold] body.home-on{background:#fadc96}
-html[data-theme=marigold] .stars{display:none!important}
-html[data-theme=marigold] .orb{background:radial-gradient(circle,#fffaf0 0%,#fccb59 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
-html[data-theme=marigold] .orb.moon{background:radial-gradient(circle,#fff 0%,#fadc96 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
-html[data-theme=marigold] #homeView{color:#3a2a05}
-html[data-theme=marigold] .gcard,html[data-theme=marigold] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#a8640033!important}
-html[data-theme=marigold] .wsel{border-color:#a8640099!important;background:#a8640014!important}
-html[data-theme=marigold] .chip{background:rgba(255,255,255,.68)!important;color:#a86400!important;border-color:#a8640055!important}
-html[data-theme=marigold] .chip.strong,html[data-theme=marigold] #hmMY.off{background:#a86400!important;color:#fff!important;border-color:#a86400!important}
-html[data-theme=marigold] .xp{background:#a8640018!important;color:#a86400!important;border-color:#a8640055!important}
-html[data-theme=marigold] .bar{background:#a8640022!important}
-html[data-theme=marigold] .bar i{background:linear-gradient(90deg,#a86400,#f2b84b)!important}
-html[data-theme=marigold] .kala.now{background:#a8640018!important}
-html[data-theme=marigold] .tag{background:#a86400!important;color:#fff!important}
-html[data-theme=marigold] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
-html[data-theme=marigold] .mph svg circle{fill:#936e1c!important}
-html[data-theme=marigold] .mph svg path{fill:#fffaf0!important}
-html[data-theme=marigold] .adjwrap,html[data-theme=marigold] .mx,html[data-theme=marigold] .blk+.blk,html[data-theme=marigold] .kala,html[data-theme=marigold] .pl{border-color:#a864002e!important}
-html[data-theme=marigold] .clock{text-shadow:none!important}
-html[data-theme=marigold] .mdir .arw{border-color:#a8640066!important;background:#a8640014!important}
-html[data-theme=marigold] .rx{background:#b3261e!important;color:#fff!important}
-html[data-theme=marigold] .hm-foot{opacity:.75}
 html[data-theme=teal] .sky.day{background:linear-gradient(170deg,#0e5a72 0%,#2a8fa0 55%,#9ad0c4 100%)}
 html[data-theme=teal] .sky.dawn{background:linear-gradient(170deg,#123a5e 0%,#2f8aa0 55%,#f0b890 100%)}
 html[data-theme=teal] .sky.dusk{background:linear-gradient(170deg,#0d2f4f 0%,#1f6a7e 55%,#e09a72 100%)}
@@ -63,7 +36,7 @@ html[data-theme=teal] .gcard,html[data-theme=teal] .wwrap{background:rgba(3,30,3
 html[data-theme=teal] .orb{background:radial-gradient(circle,#fff6dc 0%,#ffd890 38%,rgba(255,190,110,0) 70%)!important}
 
 /* Silver: black, white, silver, light grey */
-html[data-theme=silver]{--bg:#f2f2f3;--acc:#1d1f23;--acc2:#64676e;--sec-bg:#e3e4e6;--sec-line:#c4c6ca;--tab-bg:#dcdde0;--tab-ink:#393a3b;--pill:#e3e4e6}
+html[data-theme=silver]{--bg:#f5f6f8;--acc:#5a6573;--acc2:#a3abb5;--sec-bg:#e7eaee;--sec-line:#d0d5db;--tab-bg:#e2e5e9;--tab-ink:#39424e;--pill:#e7eaee}
 html[data-theme=silver] .sky.day{background:linear-gradient(170deg,#f4f5f5 0%,#e3e4e6 55%,#cfd0d3 100%)}
 html[data-theme=silver] .sky.dawn{background:linear-gradient(170deg,#f1f2f3 0%,#dedfe1 55%,#cfd0d3 100%)}
 html[data-theme=silver] .sky.dusk{background:linear-gradient(170deg,#ebebec 0%,#d7d8da 55%,#c7c9cd 100%)}
@@ -73,21 +46,21 @@ html[data-theme=silver] .stars{display:none!important}
 html[data-theme=silver] .orb{background:radial-gradient(circle,#f7f7f8 0%,#b4b6bb 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
 html[data-theme=silver] .orb.moon{background:radial-gradient(circle,#fff 0%,#dcdde0 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
 html[data-theme=silver] #homeView{color:#272829}
-html[data-theme=silver] .gcard,html[data-theme=silver] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#1d1f2333!important}
-html[data-theme=silver] .wsel{border-color:#1d1f2399!important;background:#1d1f2314!important}
-html[data-theme=silver] .chip{background:rgba(255,255,255,.68)!important;color:#1d1f23!important;border-color:#1d1f2355!important}
-html[data-theme=silver] .chip.strong,html[data-theme=silver] #hmMY.off{background:#1d1f23!important;color:#fff!important;border-color:#1d1f23!important}
-html[data-theme=silver] .xp{background:#1d1f2318!important;color:#1d1f23!important;border-color:#1d1f2355!important}
-html[data-theme=silver] .bar{background:#1d1f2322!important}
-html[data-theme=silver] .bar i{background:linear-gradient(90deg,#1d1f23,#82868e)!important}
-html[data-theme=silver] .kala.now{background:#1d1f2318!important}
-html[data-theme=silver] .tag{background:#1d1f23!important;color:#fff!important}
+html[data-theme=silver] .gcard,html[data-theme=silver] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#5a657333!important}
+html[data-theme=silver] .wsel{border-color:#5a657399!important;background:#5a657314!important}
+html[data-theme=silver] .chip{background:rgba(255,255,255,.68)!important;color:#5a6573!important;border-color:#5a657355!important}
+html[data-theme=silver] .chip.strong,html[data-theme=silver] #hmMY.off{background:#5a6573!important;color:#fff!important;border-color:#5a6573!important}
+html[data-theme=silver] .xp{background:#5a657318!important;color:#5a6573!important;border-color:#5a657355!important}
+html[data-theme=silver] .bar{background:#5a657322!important}
+html[data-theme=silver] .bar i{background:linear-gradient(90deg,#5a6573,#82868e)!important}
+html[data-theme=silver] .kala.now{background:#5a657318!important}
+html[data-theme=silver] .tag{background:#5a6573!important;color:#fff!important}
 html[data-theme=silver] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
 html[data-theme=silver] .mph svg circle{fill:#6c7077!important}
 html[data-theme=silver] .mph svg path{fill:#f7f7f8!important}
-html[data-theme=silver] .adjwrap,html[data-theme=silver] .mx,html[data-theme=silver] .blk+.blk,html[data-theme=silver] .kala,html[data-theme=silver] .pl{border-color:#1d1f232e!important}
+html[data-theme=silver] .adjwrap,html[data-theme=silver] .mx,html[data-theme=silver] .blk+.blk,html[data-theme=silver] .kala,html[data-theme=silver] .pl{border-color:#5a65732e!important}
 html[data-theme=silver] .clock{text-shadow:none!important}
-html[data-theme=silver] .mdir .arw{border-color:#1d1f2366!important;background:#1d1f2314!important}
+html[data-theme=silver] .mdir .arw{border-color:#5a657366!important;background:#5a657314!important}
 html[data-theme=silver] .rx{background:#b3261e!important;color:#fff!important}
 html[data-theme=silver] .hm-foot{opacity:.75}
 /* Sky: sky blue to light blue */
@@ -118,3 +91,61 @@ html[data-theme=sky] .clock{text-shadow:none!important}
 html[data-theme=sky] .mdir .arw{border-color:#0a5c9e66!important;background:#0a5c9e14!important}
 html[data-theme=sky] .rx{background:#b3261e!important;color:#fff!important}
 html[data-theme=sky] .hm-foot{opacity:.75}
+/* Lemon: iPhone-style light yellow */
+html[data-theme=lemon]{--bg:#fefae7;--acc:#8a6a00;--acc2:#cdac05;--sec-bg:#fef5cb;--sec-line:#fcea92;--tab-bg:#fdf3bf;--tab-ink:#564c1e;--pill:#fef5cb;--hdr-bg:#f7e68c;--hdr-ink:#3b3000}
+html[data-theme=lemon] .sky.day{background:linear-gradient(170deg,#fefbeb 0%,#fef5cb 55%,#fdeea5 100%)}
+html[data-theme=lemon] .sky.dawn{background:linear-gradient(170deg,#fefae6 0%,#fdf3c2 55%,#fdeea5 100%)}
+html[data-theme=lemon] .sky.dusk{background:linear-gradient(170deg,#fef8d9 0%,#fdf1b4 55%,#fcec98 100%)}
+html[data-theme=lemon] .sky.night{background:linear-gradient(170deg,#fef6ce 0%,#fdefaa 55%,#fcea8e 100%)}
+html[data-theme=lemon] body.home-on{background:#fdf3bf}
+html[data-theme=lemon] .stars{display:none!important}
+html[data-theme=lemon] .orb{background:radial-gradient(circle,#fffcf0 0%,#fbe574 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=lemon] .orb.moon{background:radial-gradient(circle,#fff 0%,#fdf3bf 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=lemon] #homeView{color:#3b3515}
+html[data-theme=lemon] .gcard,html[data-theme=lemon] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#8a6a0033!important}
+html[data-theme=lemon] .wsel{border-color:#8a6a0099!important;background:#8a6a0014!important}
+html[data-theme=lemon] .chip{background:rgba(255,255,255,.68)!important;color:#8a6a00!important;border-color:#8a6a0055!important}
+html[data-theme=lemon] .chip.strong,html[data-theme=lemon] #hmMY.off{background:#8a6a00!important;color:#fff!important;border-color:#8a6a00!important}
+html[data-theme=lemon] .xp{background:#8a6a0018!important;color:#8a6a00!important;border-color:#8a6a0055!important}
+html[data-theme=lemon] .bar{background:#8a6a0022!important}
+html[data-theme=lemon] .bar i{background:linear-gradient(90deg,#8a6a00,#f9d317)!important}
+html[data-theme=lemon] .kala.now{background:#8a6a0018!important}
+html[data-theme=lemon] .tag{background:#8a6a00!important;color:#fff!important}
+html[data-theme=lemon] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=lemon] .mph svg circle{fill:#ddb906!important}
+html[data-theme=lemon] .mph svg path{fill:#fffcf0!important}
+html[data-theme=lemon] .adjwrap,html[data-theme=lemon] .mx,html[data-theme=lemon] .blk+.blk,html[data-theme=lemon] .kala,html[data-theme=lemon] .pl{border-color:#8a6a002e!important}
+html[data-theme=lemon] .clock{text-shadow:none!important}
+html[data-theme=lemon] .mdir .arw{border-color:#8a6a0066!important;background:#8a6a0014!important}
+html[data-theme=lemon] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=lemon] .hm-foot{opacity:.75}
+html[data-theme=lemon] header .back{background:rgba(59,48,0,.08);border-color:rgba(59,48,0,.3);color:#3b3000}
+html[data-theme=lemon] header .back:hover{background:rgba(59,48,0,.16)}
+/* Lavender */
+html[data-theme=lavender]{--bg:#f1ecf9;--acc:#6e5aa8;--acc2:#a48fd6;--sec-bg:#e1d6f3;--sec-line:#bfa8e6;--tab-bg:#d9ccf0;--tab-ink:#362a4a;--pill:#e1d6f3}
+html[data-theme=lavender] .sky.day{background:linear-gradient(170deg,#f4effa 0%,#e1d6f3 55%,#cab8ea 100%)}
+html[data-theme=lavender] .sky.dawn{background:linear-gradient(170deg,#f0ebf9 0%,#dbcef1 55%,#cab8ea 100%)}
+html[data-theme=lavender] .sky.dusk{background:linear-gradient(170deg,#e9e1f6 0%,#d3c3ee 55%,#c2ade7 100%)}
+html[data-theme=lavender] .sky.night{background:linear-gradient(170deg,#e2d8f4 0%,#cdbceb 55%,#bca5e5 100%)}
+html[data-theme=lavender] body.home-on{background:#d9ccf0}
+html[data-theme=lavender] .stars{display:none!important}
+html[data-theme=lavender] .orb{background:radial-gradient(circle,#f6f3fc 0%,#ad90df 40%,rgba(255,220,140,0) 70%)!important;box-shadow:0 0 90px 40px rgba(255,220,140,.25)!important;opacity:.7}
+html[data-theme=lavender] .orb.moon{background:radial-gradient(circle,#fff 0%,#d9ccf0 40%,rgba(255,255,255,0) 70%)!important;box-shadow:0 0 70px 24px rgba(255,255,255,.2)!important}
+html[data-theme=lavender] #homeView{color:#251d33}
+html[data-theme=lavender] .gcard,html[data-theme=lavender] .wwrap{background:rgba(255,255,255,.66)!important;border-color:#6e5aa833!important}
+html[data-theme=lavender] .wsel{border-color:#6e5aa899!important;background:#6e5aa814!important}
+html[data-theme=lavender] .chip{background:rgba(255,255,255,.68)!important;color:#6e5aa8!important;border-color:#6e5aa855!important}
+html[data-theme=lavender] .chip.strong,html[data-theme=lavender] #hmMY.off{background:#6e5aa8!important;color:#fff!important;border-color:#6e5aa8!important}
+html[data-theme=lavender] .xp{background:#6e5aa818!important;color:#6e5aa8!important;border-color:#6e5aa855!important}
+html[data-theme=lavender] .bar{background:#6e5aa822!important}
+html[data-theme=lavender] .bar i{background:linear-gradient(90deg,#6e5aa8,#7747c9)!important}
+html[data-theme=lavender] .kala.now{background:#6e5aa818!important}
+html[data-theme=lavender] .tag{background:#6e5aa8!important;color:#fff!important}
+html[data-theme=lavender] .livepill{background:rgba(27,122,58,.15)!important;border-color:rgba(27,122,58,.5)!important;color:#1b5e30}
+html[data-theme=lavender] .mph svg circle{fill:#6133b0!important}
+html[data-theme=lavender] .mph svg path{fill:#f6f3fc!important}
+html[data-theme=lavender] .adjwrap,html[data-theme=lavender] .mx,html[data-theme=lavender] .blk+.blk,html[data-theme=lavender] .kala,html[data-theme=lavender] .pl{border-color:#6e5aa82e!important}
+html[data-theme=lavender] .clock{text-shadow:none!important}
+html[data-theme=lavender] .mdir .arw{border-color:#6e5aa866!important;background:#6e5aa814!important}
+html[data-theme=lavender] .rx{background:#b3261e!important;color:#fff!important}
+html[data-theme=lavender] .hm-foot{opacity:.75}

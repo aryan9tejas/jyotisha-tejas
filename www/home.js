@@ -444,6 +444,7 @@ const Home = (() => {
     const app = location.hash === '#app';
     $h('homeView').hidden = app; $h('appView').hidden = !app;
     document.body.classList.toggle('home-on', !app);
+    window.dispatchEvent(new Event('jt-view'));
     H.visible = !app;
     if (!app) {
       document.title = 'Jyotisha Tejas - Panchang';

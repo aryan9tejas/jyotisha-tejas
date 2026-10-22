@@ -1,7 +1,7 @@
 :root{--bg:#f6f4ef;--card:#fff;--ink:#222;--mut:#6b6b6b;--acc:#2b2150;--acc2:#d99a1e;--line:#e2ddd2;--good:#1b7a3a;--bad:#b3261e;--sec-bg:#ece9f4;--sec-line:#d3cde6;--tab-bg:#e6e2f0;--tab-ink:#2f2a4a;--pill:#ece9f4}
 *{box-sizing:border-box}
 body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:var(--acc);color:#fff}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:var(--hdr-bg,var(--acc));color:var(--hdr-ink,#fff)}
 header h1{margin:0;font-size:18px;letter-spacing:.3px}
 .hbar{display:flex;gap:8px}
 .card{background:var(--card);margin:12px 20px;padding:14px 16px;border:1px solid var(--line);border-radius:10px}
