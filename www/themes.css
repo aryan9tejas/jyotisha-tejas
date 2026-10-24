@@ -157,3 +157,10 @@ html[data-theme=silver]{--chart-bg:#f9fafb}
 html[data-theme=sky]{--chart-bg:#f4faff}
 html[data-theme=brown]{--chart-bg:#fffaf1}
 html[data-theme=teal]{--chart-bg:#f5fbfb}
+
+/* Slate & Silver home page: secondary text was too faint on the light background */
+html[data-theme=silver] #homeView :is(.hm-sub,.wlabel,.wi,.bl,.adjh,.lbl,.rg,.bs,.mdir,.hint,.hm-foot,.ar,.arw,.ch h2,.ps1,.pn1,.kt,.kn){opacity:1!important}
+html[data-theme=silver] #homeView :is(span,small,i,b,div):not([class]){opacity:1!important}
+html[data-theme=silver] #homeView :is(.hm-sub,.wlabel,.wi,.bl,.adjh,.lbl,.hint,.hm-foot,.ar,.arw,.ch h2,small){color:#2a3038!important}
+html[data-theme=silver] #homeView .hm-foot{color:#3a424c!important}
+html[data-theme=silver] #homeView .mdir .arw,html[data-theme=silver] #homeView .mdir{color:#2a3038!important}

@@ -9,7 +9,29 @@ from zoneinfo import ZoneInfo
 
 import swisseph as swe
 
-from jh import core, panchanga, strength, dasa, transit, kp, tajaka, prasna, places, movetools, muhurta, market
+import importlib
+from jh import core, panchanga, places
+
+
+class _Lazy:
+    """Module imported on first use. The engine preloads these in the background after start-up (see preload_step)."""
+    def __init__(self, name):
+        object.__setattr__(self, '_n', name)
+
+    def __getattr__(self, a):
+        return getattr(importlib.import_module('jh.' + self._n), a)
+
+
+strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market = (
+    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market'))
+_PRELOAD = ['muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'movetools']
+
+
+def preload_step(i):
+    """Import one deferred module; returns how many are left. Called from the worker while idle."""
+    if i < len(_PRELOAD):
+        importlib.import_module('jh.' + _PRELOAD[i])
+    return len(_PRELOAD) - i - 1
 from jh.consts import *
 
 ROUTES = {}

@@ -2264,20 +2264,27 @@ function tzFor(lat, lon) {
 var ROOT = new URL("../", import.meta.url).href;
 var IN_WORKER = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
 var api = null;
+var placesP = null;
 function post(m) {
   if (IN_WORKER) self.postMessage(m);
   else window.dispatchEvent(new CustomEvent("engine-msg", { detail: m }));
 }
 async function init() {
-  post({ type: "status", msg: "Loading ephemeris..." });
-  const swe = await A.init(ROOT + "vendor/sweph/swisseph.wasm");
-  await load(ROOT + "data/places.json");
-  post({ type: "status", msg: "Starting Python engine..." });
-  const { loadPyodide } = await import(
-    /* @vite-ignore */
-    ROOT + "vendor/pyodide/pyodide.mjs"
-  );
-  const py = await loadPyodide({ indexURL: ROOT + "vendor/pyodide/" });
+  post({ type: "status", msg: "Starting engine..." });
+  placesP = load(ROOT + "data/places.json").catch(() => null);   // background: only the timezone lookup needs it
+  const sweP = A.init(ROOT + "vendor/sweph/swisseph.wasm");
+  const pyP = (async () => {
+    const { loadPyodide } = await import(
+      /* @vite-ignore */
+      ROOT + "vendor/pyodide/pyodide.mjs"
+    );
+    return loadPyodide({ indexURL: ROOT + "vendor/pyodide/" });
+  })();
+  const wheelP = fetch(ROOT + "vendor/tzdata.whl").then((r2) => r2.arrayBuffer());
+  const filesP = fetch(ROOT + "py/manifest.json").then((r2) => r2.json()).then((list) => Promise.all(list.map(
+    (f) => fetch(ROOT + "py/" + f).then((r2) => r2.arrayBuffer()).then((b2) => [f, new Uint8Array(b2)])
+  )));
+  const [swe, py, wheel, files] = await Promise.all([sweP, pyP, wheelP, filesP]);
   py.registerJsModule("_swe_js", {
     julday: (y, m, d, h2, g) => swe.swe_julday(y, m, d, h2, g),
     revjul: (jd, g) => swe.swe_revjul(jd, g),
@@ -2288,17 +2295,23 @@ async function init() {
     rise_trans: (jd, ipl, ef, rsmi, lon, lat, alt, p, t2) => swe.swe_rise_trans(jd, ipl, null, ef, rsmi, [lon, lat, alt], p, t2),
     tz_for: (lat, lon) => tzFor(lat, lon)
   });
-  const wheel = await (await fetch(ROOT + "vendor/tzdata.whl")).arrayBuffer();
   await py.unpackArchive(wheel, "wheel");
-  const files = await (await fetch(ROOT + "py/manifest.json")).json();
-  for (const f of files) {
+  for (const [f, bytes] of files) {
     const dir = f.includes("/") ? "/home/pyodide/py/" + f.slice(0, f.lastIndexOf("/")) : "/home/pyodide/py";
     py.FS.mkdirTree(dir);
-    py.FS.writeFile("/home/pyodide/py/" + f, new Uint8Array(await (await fetch(ROOT + "py/" + f)).arrayBuffer()));
+    py.FS.writeFile("/home/pyodide/py/" + f, bytes);
   }
   py.runPython("import sys; sys.path.insert(0, '/home/pyodide/py')");
   api = py.pyimport("api");
   post({ type: "ready" });
+  let step = 0;
+  const preload = () => {
+    try {
+      if (api.preload_step(step++) > 0) setTimeout(preload, 150);
+    } catch (e3) {
+    }
+  };
+  setTimeout(preload, 1500);
 }
 var ready = init().catch((e3) => {
   post({ type: "fatal", error: String(e3 && e3.stack || e3) });
@@ -2307,6 +2320,7 @@ var ready = init().catch((e3) => {
 async function handle({ id, path, body }) {
   try {
     await ready;
+    if (!/^\/api\/(home|muhurta|market)/.test(path) && placesP) await placesP;
     const res = api.dispatch(path, body);
     post({ type: "result", id, result: res });
   } catch (e3) {

@@ -105,3 +105,6 @@ tr.mu-main{cursor:pointer;font-weight:600}
 tr.mu-main:hover td{background:color-mix(in srgb,var(--acc2) 12%,transparent)}
 tr.mu-sub{display:none}
 tr.mu-sub.shown{display:table-row}
+
+/* thin fixed bar at the very top: iOS 26 Safari tints its status area from the fixed element at the top edge */
+#notchBar{position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),4px);background:var(--notch,#2b2150);z-index:2;pointer-events:none}
