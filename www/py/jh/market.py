@@ -149,11 +149,13 @@ RULES = [
     _R('retro_saturn', 'Retrograde and stations', 'Saturn retrograde', 1.5, -1, P_, 'Retrograde Saturn re-opens unfinished restriction, with delays and re-tests.'),
     _R('double_retro', 'Retrograde and stations', 'Mercury and Venus both retrograde', 3, -1, P_, 'Both trade and value planets retrograde at once: price discovery is distorted and liquidity cautious.'),
     _R('station', 'Retrograde and stations', 'Planet turning direction (station)', 2, -1, P_, 'Stations of Mercury, Venus, Mars, Jupiter and Saturn coincide with trend reversals and false breakouts in practitioner experience.'),
+    _R('retro_strong', 'Retrograde and stations', 'Strong planet turned retrograde (strength reverses)', 2.5, -1, P_, 'A planet in its exaltation, own or friendly sign is strong, but when retrograde its good results are withheld, delayed or reversed: the support it would give turns into a reversal or a re-test. Strength is full for exaltation and own sign, and 60% for a friendly sign.'),
     _R('all_direct', 'Benefic support', 'No retrograde among Mercury, Venus, Mars, Jupiter, Saturn', 2, 1, P_, 'With every planet direct, trends tend to run without the re-tests that retrogrades bring.'),
     # sensitive placements
     _R('pap_mercury', 'Hemming and edges', 'Mercury hemmed between malefics', 3, -1, C, 'Papartari: a planet with malefics on both sides loses support and its theme suffers.'),
     _R('pap_venus', 'Hemming and edges', 'Venus hemmed between malefics', 3, -1, C, 'Papartari applied to Venus.'),
     _R('pap_jupiter', 'Hemming and edges', 'Jupiter hemmed between malefics', 3, -1, C, 'Papartari applied to Jupiter.'),
+    _R('sandhi', 'Hemming and edges', 'Planet at a sign junction (sandhi)', 1.5, -1, C, 'A planet within 1 degree of the start or end of a sign (a sandhi, or junction) is unsettled, since it is neither fully in one sign nor the other, and its results are weak or unreliable. The three water-to-fire junctions are scored separately under Gandanta.'),
     _R('gandanta', 'Hemming and edges', 'Planet at a water-sign edge (Gandanta)', 2, -1, C, 'The last or first 3 degrees 20 minutes at Cancer-Leo, Scorpio-Sagittarius and Pisces-Aries are the knot points. Planets there are unstable.'),
     # supportive combinations
     _R('jup_ven', 'Benefic support', 'Jupiter with Venus', 3, 1, C, 'The two natural benefics together support credit, consumption and valuations.'),
@@ -243,6 +245,18 @@ def _dignity(name, sign):
     return ''
 
 
+def _strong_level(name, sign):
+    """(strength 0..1, label) when the planet sits in exaltation, own or a friendly sign, else None."""
+    d = _dignity(name, sign)
+    if d == 'exalted':
+        return 1.0, 'exalted'
+    if d == 'own':
+        return 1.0, 'in its own sign'
+    if SIGN_LORD[sign] in NAT_FRIENDS.get(name, []):
+        return 0.6, 'in a friendly sign'
+    return None
+
+
 def _state(name, P, pos):
     """Strength of a planet for its sector themes, from -1 to +1, with the reasons."""
     p = pos[name]
@@ -256,6 +270,8 @@ def _state(name, P, pos):
         s -= 1.0; why.append('debilitated')
     if p['retro'] and name not in ('Rahu', 'Ketu'):
         s -= 0.3; why.append('retrograde')
+        if _strong_level(name, p['sign']):
+            s -= 0.4; why.append('strength reversed')
     if name in COMBUST_ORB and name != 'Moon' and sep(p['lon'], pos['Sun']['lon']) < (COMBUST_ORB[name] - (2 if (p['retro'] and name in ('Mercury', 'Venus')) else 0)):
         s -= 0.6; why.append('combust')
     for q in ('Saturn', 'Mars', 'Rahu', 'Ketu'):
@@ -264,6 +280,13 @@ def _state(name, P, pos):
     for q in ('Jupiter', 'Venus'):
         if q != name and sep(p['lon'], pos[q]['lon']) <= 6:
             s += 0.3; why.append('with ' + q)
+    if name not in ('Moon', 'Rahu', 'Ketu'):
+        for edge in range(0, 360, 30):
+            dd = sep(p['lon'], float(edge))
+            if edge in (0, 120, 240) and dd <= 3 + 1 / 3.0:
+                s -= 0.4; why.append('sandhi (gandanta)'); break
+            if dd < 1.0:
+                s -= 0.3; why.append('sandhi'); break
     sg = p['sign']
     if name in ('Mercury', 'Venus', 'Jupiter', 'Sun'):
         if any(pos[m]['sign'] == (sg + 1) % 12 for m in MAL) and any(pos[m]['sign'] == (sg - 1) % 12 for m in MAL):
@@ -429,6 +452,11 @@ def evaluate(date, lat, lon, tz, cfg=None, weights=None, norm_scale=None, market
         for nm, rid in (('Mercury', 'retro_mercury'), ('Venus', 'retro_venus'), ('Mars', 'retro_mars'), ('Jupiter', 'retro_jupiter'), ('Saturn', 'retro_saturn')):
             if pos[nm]['retro']:
                 add(rid, 1.0, f'{nm} retrograde in {SIGNS[pos[nm]["sign"]]}')
+        for nm in ('Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'):
+            if pos[nm]['retro']:
+                lvl = _strong_level(nm, pos[nm]['sign'])
+                if lvl:
+                    add('retro_strong', lvl[0], f'{nm} is {lvl[1]} in {SIGNS[pos[nm]["sign"]]} but retrograde: its strength reverses')
         if pos['Mercury']['retro'] and pos['Venus']['retro']:
             add('double_retro', 1.0, 'Mercury and Venus both retrograde')
         if not any(pos[nm]['retro'] for nm in ('Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn')):
@@ -451,6 +479,15 @@ def evaluate(date, lat, lon, tz, cfg=None, weights=None, norm_scale=None, market
                 dd = sep(l, edge)
                 if dd <= 3 + 1 / 3.0:
                     add('gandanta', 0.5 + 0.5 * (1 - dd / 3.34), f'{nm} {dd:.1f} degrees from the {SIGNS[int(edge // 30) - 1 if edge else 11]}-{SIGNS[int(edge // 30)]} junction')
+        # sandhi: within 1 degree of a sign boundary (the Gandanta edges are scored above)
+        for nm in ('Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'):
+            l = pos[nm]['lon']
+            for edge in range(0, 360, 30):
+                if edge in (0, 120, 240):
+                    continue
+                dd = sep(l, float(edge))
+                if dd < 1.0:
+                    add('sandhi', 0.5 + 0.5 * (1 - dd), f'{nm} {dd:.1f} degrees from the {SIGNS[(edge // 30 - 1) % 12]}-{SIGNS[edge // 30]} junction')
         # support
         orb_hit('Jupiter', 'Venus', 8, 'jup_ven')
         orb_hit('Jupiter', 'Mercury', 8, 'jup_merc')
@@ -632,8 +669,8 @@ def evaluate(date, lat, lon, tz, cfg=None, weights=None, norm_scale=None, market
         for a in ahead:
             a['days'] = int(round(a.pop('jd') - jd))
 
-    top_bull = [r for r in rows if r['pts'] > 0][:3]
-    top_bear = [r for r in rows if r['pts'] < 0][:3]
+    top_bull = [r for r in rows if r['pts'] > 0][:5]
+    top_bear = [r for r in rows if r['pts'] < 0][:5]
     return {'date': date, 'market': market, 'bias': {'score': score, 'label': label, 'bull': round(bull, 1), 'bear': round(bear, 1), 'net': round(total, 1), 'norm': norm_},
             'rules': rows, 'top_bull': top_bull, 'top_bear': top_bear, 'sectors': sectors, 'planets': plist, 'sbc': sbc, 'ahead': ahead[:14], 'open': open_info,
             'chart_used': bool(chart is not None), 'tz': tz}

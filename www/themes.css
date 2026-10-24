@@ -164,3 +164,6 @@ html[data-theme=silver] #homeView :is(span,small,i,b,div):not([class]){opacity:1
 html[data-theme=silver] #homeView :is(.hm-sub,.wlabel,.wi,.bl,.adjh,.lbl,.hint,.hm-foot,.ar,.arw,.ch h2,small){color:#2a3038!important}
 html[data-theme=silver] #homeView .hm-foot{color:#3a424c!important}
 html[data-theme=silver] #homeView .mdir .arw,html[data-theme=silver] #homeView .mdir{color:#2a3038!important}
+
+/* the Bearish-Bullish gauge keeps its full colour gradient in every theme */
+html[data-theme] .mk-gauge .bar{background:linear-gradient(90deg,#cf4a42,#e0833a 30%,#e2b53a 50%,#6fb43f 70%,#1f9d55)!important}

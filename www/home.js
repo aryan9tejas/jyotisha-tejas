@@ -248,6 +248,14 @@ const Home = (() => {
     if (segs[ci + 1]) h += row('Next', segs[ci + 1], cur.b);
     return `<div class="adjg">${h}</div>`;
   }
+  /* tap a planet row to show or hide its previous and next sign */
+  document.addEventListener('click', e => {
+    const row = e.target.closest && e.target.closest('#hmCards .pl[data-pb]');
+    if (!row) return;
+    const pl = H.open.pl || (H.open.pl = {}), b = row.dataset.pb;
+    pl[b] = !pl[b];
+    renderCards();
+  });
   /* tap anywhere on a card header to expand or collapse it */
   document.addEventListener('click', e => {
     const ch = e.target.closest && e.target.closest('#hmCards .ch');
@@ -330,13 +338,14 @@ const Home = (() => {
       return `<div class="kala ${good[k.name] ? 'g' : 'b'} ${st}"><span class="dot"></span><span class="kn">${esc(k.name)}${k.nak ? ` <small>${esc(k.nak)}</small>` : ''}</span><span class="kt">${stamp(k.sa, ref)} <i class="ar">→</i> ${stamp(k.sb, ref)}</span>${st === 'now' ? '<span class="tag">now</span>' : ''}</div>`;
     }).join('');
     const kalasCard = `<section class="gcard wide c-kalas"><div class="ch"><h2>Kalas <span class="hint">for ${esc(d.weekday)}'s day</span></h2>${secBtns('kalas')}</div>${H.sec.kalas ? kal : ''}</section>`;
-    const pOpen = !!H.open.planets;
+    const plOpen = H.open.pl || (H.open.pl = {});
     const prow = (p) => {
       const si = idxAt(p.sign, jd), ni = idxAt(p.nak, jd), pi = idxAt(p.pada, jd);
       const s = si >= 0 ? p.sign[si].name : '', n = ni >= 0 ? p.nak[ni].name : '', pd = pi >= 0 ? p.pada[pi].pada : '';
-      return `<div class="pl"><div class="pn1"><span class="gl">${GLYPH[p.body] || ''}</span> <b>${p.body}</b>${p.retro ? ' <i class="rx" title="Retrograde">R</i>' : ''}</div><div class="ps1">${esc(s)}</div><div class="pk1">${esc(n)} <small>pada ${pd}</small></div>${pOpen ? `<div class="pa1">${ingHTML(p.body)}</div>` : ''}</div>`;
+      const po = !!plOpen[p.body];
+      return `<div class="pl${po ? ' open' : ''}" data-pb="${p.body}" role="button" aria-expanded="${po}" title="Tap for previous and next sign"><div class="pn1"><span class="gl">${GLYPH[p.body] || ''}</span> <b>${p.body}</b>${p.retro ? ' <i class="rx" title="Retrograde">R</i>' : ''}</div><div class="ps1">${esc(s)}</div><div class="pk1">${esc(n)} <small>pada ${pd}</small><i class="pt">${po ? '▴' : '▾'}</i></div>${po ? `<div class="pa1">${ingHTML(p.body)}</div>` : ''}</div>`;
     };
-    const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${H.sec.planets ? `<button class="xp" data-k="planets" aria-expanded="${pOpen}"><span class="xt">Previous / next</span> <i>${pOpen ? '▴' : '▾'}</i></button>` : ''}${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
+    const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
     cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`);
     $h('hmCards').innerHTML = cards.join('');
@@ -349,7 +358,7 @@ const Home = (() => {
       } else H.open[b.dataset.k] = !H.open[b.dataset.k];
       renderCards();
     });
-    if ((H.open.sun || (H.open.planets && H.sec.planets)) && H.ing.key !== ingKey()) ensureIngress();
+    if ((H.open.sun || (Object.values(H.open.pl || {}).some(Boolean) && H.sec.planets)) && H.ing.key !== ingKey()) ensureIngress();
   }
 
   function renderHero() {

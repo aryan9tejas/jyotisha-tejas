@@ -853,3 +853,11 @@ document.addEventListener('click', e => {
   tr.firstElementChild.textContent = (open ? '\u25be ' : '\u25b8 ') + tr.firstElementChild.textContent.slice(2);
   tr.closest('table').querySelectorAll('tr.mu-sub.' + g).forEach(r => r.classList.toggle('shown', open));
 });
+
+/* floating button: jump back to the top of a long page */
+(() => {
+  const b = document.getElementById('toTop'); if (!b) return;
+  const upd = () => { b.hidden = (window.scrollY || document.documentElement.scrollTop) < 500; };
+  window.addEventListener('scroll', upd, {passive: true}); window.addEventListener('hashchange', upd); upd();
+  b.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
+})();

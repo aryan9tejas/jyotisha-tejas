@@ -257,3 +257,9 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 #hmCards .xp.ic,#hmCards .xp[data-k],#hmCards .xp.mu-tg,#hmCards .xp.mk-tg{background:none!important;border:0!important;box-shadow:none!important;padding:6px 8px!important;font-size:17px;line-height:1;min-width:0}
 #hmCards .xp[data-k] .xt{display:none}
 #hmCards .xp.ic:hover,#hmCards .xp[data-k]:hover{background:none!important}
+
+/* transiting planets: each row opens its own previous/next sign */
+#hmCards .pl[data-pb]{cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+#hmCards .pl .pt{float:right;font-style:normal;opacity:.7;font-size:14px;padding-left:8px}
+#hmCards .pl[data-pb]:active{background:rgba(255,255,255,.06)}
+@media (max-width:700px){#hmCards .pl .pt{position:absolute;right:4px;top:10px}}
