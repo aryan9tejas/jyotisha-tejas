@@ -389,7 +389,30 @@ def transit_ingress(when, lat, lon, tz, cfg=None):
             for s_ in segs:
                 s_['sa'], s_['sb'] = F(s_['a']), F(s_['b'])
             out[body] = segs
-    return {'jd': jd, 'bodies': out}
+        stations = {}
+        for body in ('Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'):
+            sp = lambda t, body=body: core.planet_pos(t, body, cfg)[3]
+            stp = {'Mercury': 2.0, 'Venus': 3.0, 'Mars': 5.0, 'Jupiter': 6.0, 'Saturn': 6.0}[body]
+
+            def find(direction, body=body, sp=sp, stp=stp):
+                t = jd
+                for _ in range(int(900 / stp)):
+                    t2 = t + direction * stp
+                    if (sp(t2) < 0) != (sp(t) < 0):
+                        lo, hi = t, t2
+                        for _ in range(30):
+                            mid = (lo + hi) / 2
+                            if (sp(mid) < 0) == (sp(t) < 0):
+                                lo = mid
+                            else:
+                                hi = mid
+                        tb = (lo + hi) / 2
+                        k = ('R' if sp(tb + 0.05) < 0 else 'D')
+                        return {'k': k, 'jd': tb, 's': F(tb)}
+                    t = t2
+                return None
+            stations[body] = {'retro': sp(jd) < 0, 'prev': find(-1), 'next': find(1)}
+    return {'jd': jd, 'bodies': out, 'stations': stations}
 
 
 # ---------------------------------------------------------------- home page snapshot

@@ -29,7 +29,7 @@ const Local = (() => {
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignore */ }
   }
   const now = () => new Date().toISOString().slice(0, 19);
-  const PF = ['name', 'year', 'month', 'day', 'hour', 'minute', 'second', 'place', 'lat', 'lon', 'tz', 'gender', 'notes'];
+  const PF = ['name', 'year', 'month', 'day', 'hour', 'minute', 'second', 'place', 'lat', 'lon', 'tz', 'gender', 'notes', 'tag', 'star', 'sessions', 'follow'];
 
   async function handle(url, body, method) {
     const [path, qs] = url.split('?');
@@ -39,9 +39,9 @@ const Local = (() => {
     if (path === '/api/tz') { await needPlaces(); return {tz: Places.tzFor(+q.get('lat'), +q.get('lon'))}; }
     if (path === '/api/profiles') {
       if (method === 'GET') return [...state.profiles].sort((a, b) => (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase()));
-      const d = body, rec = {};
-      PF.forEach(k => rec[k] = d[k] ?? null);
-      if (d.id) { const i = state.profiles.findIndex(p => p.id === d.id); if (i >= 0) { state.profiles[i] = {...state.profiles[i], ...rec}; await persist(); return {id: d.id}; } }
+      const d = body, rec = {}, upd = {};
+      PF.forEach(k => { rec[k] = d[k] ?? null; if (d[k] !== undefined) upd[k] = d[k]; });
+      if (d.id) { const i = state.profiles.findIndex(p => p.id === d.id); if (i >= 0) { state.profiles[i] = {...state.profiles[i], ...upd}; await persist(); return {id: d.id}; } }
       const id = ++state.pseq; state.profiles.push({id, ...rec, created: now()}); await persist(); return {id};
     }
     let m = path.match(/^\/api\/profiles\/(\d+)$/);

@@ -233,7 +233,7 @@ const Home = (() => {
     H.ing.busy = true;
     try {
       const r = await api('/api/transits', {lat: H.place.lat, lon: H.place.lon, tz: H.place.tz, when: H.data.sunrise.s.replace(' ', 'T'), cfg: getCfg()});
-      H.ing = {key, data: r.bodies, busy: false};
+      H.ing = {key, data: r.bodies, st: r.stations, busy: false};
     } catch (e) { H.ing.busy = false; H.ing.key = ''; return; }
     renderCards();
   }
@@ -246,6 +246,14 @@ const Home = (() => {
     let h = '';
     if (segs[ci - 1]) h += row('Previous', segs[ci - 1], null);
     if (segs[ci + 1]) h += row('Next', segs[ci + 1], cur.b);
+    const st = H.ing.st && H.ing.st[body];
+    if (st) {
+      const nm = k => k === 'R' ? 'Turns retrograde' : 'Turns direct';
+      const srow = (lbl, x, soon) => `<div class="adj"><span class="lbl">${lbl}</span><span class="nm">${nm(x.k)}</span><span class="rg">${fdt(x.s)}${soon ? ` <em>${rel(x.jd)}</em>` : ''}</span></div>`;
+      h += `<div class="adjh" style="margin-top:6px">${st.retro ? 'Retrograde now' : 'Direct now'}</div>`;
+      if (st.prev) h += srow('Last', st.prev, false);
+      if (st.next) h += srow('Next', st.next, true);
+    }
     return `<div class="adjg">${h}</div>`;
   }
   /* tap a planet row to show or hide its previous and next sign */
@@ -347,11 +355,12 @@ const Home = (() => {
     };
     const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`);
+    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`, `<section class="gcard wide c-cal" id="hmCal"></section>`);
     $h('hmCards').innerHTML = cards.join('');
     if (typeof Mkt !== 'undefined') Mkt.home(document.getElementById('hmMkt'), {date: d.date, place: H.place, open: !!H.sec.mkt, toggle: () => { H.sec.mkt = !H.sec.mkt; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
+    if (typeof Extra !== 'undefined') Extra.home(document.getElementById('hmCal'), {date: d.date, place: H.place, open: H.sec.cal !== false, toggle: () => { H.sec.cal = H.sec.cal === false; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
     if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place, open: !!H.sec.muh, toggle: () => { H.sec.muh = !H.sec.muh; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
-    document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg):not(.mk-open):not(.mk-tg)').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg):not(.mk-open):not(.mk-tg):not(.x-open):not(.x-brief):not(.x-alerts)').forEach(b => b.onclick = () => {
       if (b.dataset.s) {
         H.sec[b.dataset.s] = !H.sec[b.dataset.s];
         try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ }

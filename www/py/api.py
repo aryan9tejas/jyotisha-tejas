@@ -22,9 +22,9 @@ class _Lazy:
         return getattr(importlib.import_module('jh.' + self._n), a)
 
 
-strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market = (
-    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market'))
-_PRELOAD = ['muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'movetools']
+strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market, cal = (
+    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market', 'cal'))
+_PRELOAD = ['cal', 'muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'movetools']
 
 
 def preload_step(i):
@@ -150,6 +150,33 @@ def _varga_view(x):
             'upa': x['upa'], 'upa_pos': r4(x['upa_pos']), 'lagnas': x['lagnas'], 'lagna_pos': r4(x['lagna_pos'])}
 
 
+def chalit_view(c):
+    """Bhava Chalit (Sripati): bhava madhyas by trisecting the quadrants between Asc, IC, Desc and MC;
+    each bhava runs from the midpoint with the previous madhya to the midpoint with the next."""
+    asc, mc = float(c['asc']['lon']) % 360, float(c['mc']) % 360
+    q = [asc, (mc + 180) % 360, (asc + 180) % 360, mc]   # H1, H4, H7, H10
+    h = {1: q[0], 4: q[1], 7: q[2], 10: q[3]}
+    for a_h, b_h, n in ((1, 4, 3), (4, 7, 3), (7, 10, 3), (10, 1, 3)):
+        a, b = h[a_h], h[b_h]
+        span = (b - a) % 360
+        for j in range(1, 3):
+            h[(a_h + j - 1) % 12 + 1] = (a + span * j / 3.0) % 360
+    mid = [h[i] for i in range(1, 13)]
+    beg = [(mid[i - 1] + ((mid[i] - mid[i - 1]) % 360) / 2.0) % 360 for i in range(12)]
+    rows = []
+    for i in range(12):
+        rows.append({'house': i + 1, 'begin': core.dms(beg[i] % 30), 'begin_sign': int(beg[i] // 30), 'madhya': core.dms(mid[i] % 30),
+                     'madhya_sign': int(mid[i] // 30), 'end': core.dms(beg[(i + 1) % 12] % 30), 'end_sign': int(beg[(i + 1) % 12] // 30)})
+    planets = {}
+    for p in c['planets']:
+        lon = float(p['lon']) % 360
+        for i in range(12):
+            if (lon - beg[i]) % 360 < (beg[(i + 1) % 12] - beg[i]) % 360:
+                planets[p['name']] = i + 1
+                break
+    return {'rows': rows, 'planets': planets, 'asc_sign': c['asc']['sign']}
+
+
 def chart_view(c, with_strength=True):
     vargas = core.all_vargas(c)
     v = {
@@ -167,6 +194,12 @@ def chart_view(c, with_strength=True):
         'panchanga': panchanga.birth_panchanga(c),
         'signs': SIGNS, 'sign_abbr': SIGN_ABBR,
     }
+    d9 = vargas[9]['planets']
+    DIGHOUSE = {'Jupiter': 1, 'Mercury': 1, 'Sun': 10, 'Mars': 10, 'Saturn': 7, 'Moon': 4, 'Venus': 4}
+    for pv in v['planets']:
+        pv['vargottama'] = pv['name'] in d9 and d9[pv['name']] == pv['sign']
+        pv['digbala'] = DIGHOUSE.get(pv['name']) == pv['house']
+    v['chalit'] = chalit_view(c)
     if with_strength:
         sb = strength.shadbala(c)
         v['shadbala'] = {p: {k: fnum(x, 2) if isinstance(x, float) else x for k, x in r.items()} for p, r in sb['planets'].items()}
@@ -223,6 +256,41 @@ def api_home():
         lat, lon = float(d['lat']), float(d['lon'])
         tz = d.get('tz') or places.tz_for(lat, lon)
         return jsonify(panchanga.home_snapshot(d['when'], lat, lon, tz, parse_cfg(d.get('cfg'))))
+    except Exception as e:
+        return err(e)
+
+
+@route('/api/calendar/month')
+def api_calmonth():
+    try:
+        d = request.get_json()
+        lat, lon = float(d['lat']), float(d['lon'])
+        tz = d.get('tz') or places.tz_for(lat, lon)
+        return jsonify({'days': cal.month(int(d['year']), int(d['month']), lat, lon, tz, parse_cfg(d.get('cfg')))})
+    except Exception as e:
+        return err(e)
+
+
+@route('/api/calendar/range')
+def api_calrange():
+    try:
+        d = request.get_json()
+        lat, lon = float(d['lat']), float(d['lon'])
+        tz = d.get('tz') or places.tz_for(lat, lon)
+        y, m, dd = [int(x) for x in d['from'].split('-')]
+        return jsonify({'days': cal.range_(y, m, dd, int(d['days']), lat, lon, tz, parse_cfg(d.get('cfg')))})
+    except Exception as e:
+        return err(e)
+
+
+@route('/api/alerts/plan')
+def api_alertplan():
+    try:
+        d = request.get_json()
+        lat, lon = float(d['lat']), float(d['lon'])
+        tz = d.get('tz') or places.tz_for(lat, lon)
+        y, m, dd = [int(x) for x in d['from'].split('-')]
+        return jsonify({'items': cal.plan(d['rules'], y, m, dd, int(d.get('days', 14)), lat, lon, tz, parse_cfg(d.get('cfg')), d.get('person'))})
     except Exception as e:
         return err(e)
 

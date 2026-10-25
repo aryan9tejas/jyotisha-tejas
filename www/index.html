@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="home.css">
 <link rel="stylesheet" href="muhurta.css">
 <link rel="stylesheet" href="market.css">
+<link rel="stylesheet" href="extras.css">
 <link rel="stylesheet" href="themes.css">
 <script>try{var t=localStorage.getItem("jt_theme");if(t==="marigold")t="lemon";if(t&&/^(indigo|lemon|brown|teal|silver|sky|lavender)$/.test(t)){document.documentElement.setAttribute("data-theme",t);}}catch(e){}</script>
 </head>
@@ -45,7 +46,7 @@
     </div>
     <div id="hmMsg" class="hm-msg">Loading engine...</div>
     <div id="hmCards" class="cards"></div>
-    <div class="hm-foot">Calculated on this device &middot; sidereal zodiac &middot; set the ayanamsa and sunrise rule under Settings in the app<br>Created by Aryan Sankara Tejasvi</div>
+    <div class="hm-foot">Calculated on this device &middot; sidereal zodiac &middot; set the ayanamsa and sunrise rule under Settings in the app<br>Predictions are astrological only and may not apply to the real world &middot; <a href="#" class="x-disc">About</a><br>Created by Aryan Sankara Tejasvi</div>
   </div>
   <div id="hmPick" class="hmodal" hidden>
     <div class="hmbox">
@@ -102,6 +103,7 @@
   <div class="actions">
     <button id="btnCalc">Calculate</button>
     <button id="btnSaveView" class="sec">Save current view</button>
+    <button id="btnReport" class="sec">Create report</button>
     <span class="seg">Chart style:
       <label><input type="radio" name="style" value="south" checked> South Indian</label>
       <label><input type="radio" name="style" value="north"> North Indian</label>
@@ -112,7 +114,7 @@
 
 <nav id="tabs"></nav>
 <main id="panels"></main>
-<footer>Runs fully on this device: no internet needed after the first load. Swiss Ephemeris (Moshier), sidereal zodiac. For personal use. Verify against Jagannatha Hora before relying on any value.<br>Created by Aryan Sankara Tejasvi</footer>
+<footer>Runs fully on this device: no internet needed after the first load. Swiss Ephemeris (Moshier), sidereal zodiac. For personal use. Predictive insights come only from astrological rules and may not apply to the real world; use your own discretion before acting on them (<a href="#" class="x-disc">read more</a>).<br>Created by Aryan Sankara Tejasvi</footer>
 </div>
 <button id="toTop" type="button" aria-label="Back to top" title="Back to top" hidden>&#8593;</button>
 <script src="store.js"></script>
@@ -120,6 +122,8 @@
 <script src="app.js"></script>
 <script src="muhurta.js"></script>
 <script src="market.js"></script>
+<script src="extras.js"></script>
+<script src="clients.js"></script>
 <script src="home.js"></script>
 <script src="theme.js"></script>
 <script>

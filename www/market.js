@@ -103,7 +103,7 @@ const Mkt = (() => {
       <div class="tw"><table class="mk-sbc"><tbody>${g}</tbody></table></div>
       <div class="mk-two"><div><h5>Most pierced by malefics</h5><ul class="mk-dr">${stress.map(nline).join('') || '<li>none</li>'}</ul></div><div><h5>Most supported by benefics</h5><ul class="mk-dr">${help.map(nline).join('') || '<li>none</li>'}</ul></div></div>
       <h4 class="mu-sec">Coming up (next 90 days)</h4><ul class="mk-dr">${ahead}</ul>
-      <p class="mk-credit">Traditional rules, not tested against price history. An astrological reading, not a forecast or advice. Created by Aryan Sankara Tejasvi.</p>`;
+      <p class="mk-credit">Traditional rules, not tested against price history. An astrological reading, not a forecast or advice. Predictive insights are based only on astrological concepts and may not apply to the real world; use your own discretion before acting on them. Created by Aryan Sankara Tejasvi.</p>`;
   }
 
   /* ---------------------------------------------------------------- settings: weights and reference charts */
@@ -158,7 +158,7 @@ const Mkt = (() => {
     return `<div class="mk-head ${toneCls(b.score)}"><div><small>${esc(r.market ? r.market.name : 'Global transits')} &middot; ${fmtDate(r.date)}</small><h3>${b.label} <span>${sgn(b.score)}</span></h3></div>${gauge(b)}</div>
       <div class="mk-two"><div><h5>Benefic</h5><ul class="mk-dr">${r.top_bull.map(driverLine).join('') || '<li>none</li>'}</ul></div><div><h5>Malefic</h5><ul class="mk-dr">${r.top_bear.map(driverLine).join('') || '<li>none</li>'}</ul></div></div>
       <div class="mk-two"><div><h5>Favoured sectors</h5><div class="mk-chips">${chips(up, 'ok')}</div></div><div><h5>Pressured sectors</h5><div class="mk-chips">${chips(dn, 'no')}</div></div></div>
-      <p class="mu-note">Traditional rules, not tested against price history. Not advice. Moon left out. Tap Open for the full reasons.</p>`;
+      <p class="mu-note">Traditional rules, not tested against price history. Astrological only, not advice; may not apply to the real world. Moon left out. Tap Open for the full reasons.</p>`;
   }
   function paint() {
     const host = document.getElementById('hmMkt'), ctx = S.ctx; if (!host || !ctx) return;

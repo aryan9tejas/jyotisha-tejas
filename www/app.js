@@ -181,7 +181,7 @@ function planetItems(c, n, o = {}) {
   for (const name of PL9) {
     const p = c.planets.find(x => x.name === name);
     const retro = p && p.retro && name !== 'Rahu' && name !== 'Ketu';
-    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : '') + (n === 1 && isPushkara(v.planets[name], v.pos[name]) ? ' \u2726' : ''), color, body: o.body ? name : undefined});
+    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : '') + (n === 1 && isPushkara(v.planets[name], v.pos[name]) ? ' \u2726' : '') + ((n === 1 || n === 9) && p && p.vargottama ? ' \u25c6' : '') + (n === 1 && p && p.digbala ? ' \u25b2' : ''), color, body: o.body ? name : undefined});
   }
   return out;
 }
@@ -204,7 +204,19 @@ function chartItems(c, n, show, o = {}) {
   return it;
 }
 function styleNow() { return $('input[name=style]:checked').value; }
+const vsel = x => x === 'C' ? 'C' : +x;
+function chalitItems(c) {
+  const ch = c.chalit, d1 = c.vargas['1'], out = [];
+  for (const name of PL9) {
+    const h = ch.planets[name]; if (!h) continue;
+    const p = c.planets.find(x => x.name === name);
+    out.push({sign: (ch.asc_sign + h - 1) % 12, text: ABBR[name] + ' ' + DM(d1.pos[name]) + (p && p.retro && name !== 'Rahu' && name !== 'Ketu' ? ' R' : ''), color: COL.planet});
+  }
+  out.push({sign: ch.asc_sign, text: 'Asc ' + DM(d1.asc_deg), color: COL.lagna, bold: true});
+  return out;
+}
 function drawChart(el, chart, n, title, show) {
+  if (n === 'C') { el.innerHTML = chartSVG({style: styleNow(), asc: chart.chalit.asc_sign, items: chalitItems(chart), title: title || 'Bhava Chalit (Sripati)'}); return; }
   const v = chart.vargas[String(n)];
   el.innerHTML = chartSVG({style: styleNow(), asc: v.asc, items: chartItems(chart, n, show || S.show), title: title || `D${n} ${v.name}`});
 }
@@ -224,6 +236,8 @@ function isPushkara(sign, deg) {
   const fireWater = sign % 4 === 0 || sign % 4 === 3;
   return fireWater ? (ns === 6 || ns === 8) : (ns === 1 || ns === 11);
 }
+const VARG_BDG = '<span class="bdg vargottama" title="Vargottama: same sign in the Rasi and Navamsa charts, which strengthens the planet">Vargottama</span>';
+const DIG_BDG = '<span class="bdg digbala" title="Digbala: the planet is in the house where it gets directional strength">Digbala</span>';
 const PUSH_BDG = '<span class="bdg pushkara" title="Pushkara navamsa: a navamsa of Venus or Jupiter that gives the planet strength and benefic results">Pushkara</span>';
 /* dignity badges for the positions table */
 function dignityHTML(x) {
@@ -238,7 +252,7 @@ function dignityHTML(x) {
   const st = sts.map(k => `<span class="bdg ${k}">${lab[k]}</span>` + (nt[k] ? ` <span class="rel">(${esc(nt[k])})</span>` : '')).join(' ');
   const mt = (nt.mt && !sts.includes('moolatrikona')) ? ` <span class="rel">(${esc(nt.mt)})</span>` : (nt.mt ? ` <span class="rel">(range ${esc(dp.mt.from)} to ${esc(dp.mt.to)} ${esc(dp.mt.sign)})</span>` : '');
   const rel = x.rel ? `<span class="rel">${esc(x.rel)}</span>` : '';
-  const pu = isPushkara(x.sign, x.deg) ? PUSH_BDG + ' ' : '';
+  const pu = (isPushkara(x.sign, x.deg) ? PUSH_BDG + ' ' : '') + (x.vargottama ? VARG_BDG + ' ' : '') + (x.digbala ? DIG_BDG + ' ' : '');
   return {html: pu + st + mt + (rel && (st || mt) ? ' ' : '') + rel};
 }
 
@@ -254,6 +268,7 @@ const TABS = [
   {id: 'varsha', title: 'Varshaphala', load: loadVarsha, lazy: true},
   {id: 'tp', title: 'Tithi Pravesha', load: loadTP, lazy: true},
   {id: 'prasna', title: 'Prasna', load: loadPrasna, lazy: true},
+  {id: 'clients', title: 'Clients', load: p => Cl.load(p), lazy: true},
   {id: 'saved', title: 'Saved', load: loadSaved, lazy: true},
 ];
 function buildTabs() {
@@ -273,11 +288,37 @@ function showTab(id) {
 }
 function guard(fn) { return async (...a) => { try { setStatus('Working...'); await fn(...a); setStatus(''); } catch (e) { console.error(e); setStatus(e.message, true); } }; }
 
+
+/* amsa number, ruler and devata of a position in divisional chart D-n (classical lists for the charts that have a standard one) */
+const SIGN_LORDS = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
+const NAK_DEITY = ['Ashwini Kumaras','Yama','Agni','Brahma','Soma','Rudra','Aditi','Brihaspati','Sarpa','Pitris','Bhaga','Aryaman','Savitar','Tvashtar','Vayu','Indragni','Mitra','Indra','Nirriti','Apas','Vishvedevas','Vishnu','Vasus','Varuna','Aja Ekapada','Ahir Budhnya','Pushan'];
+const D60 = ['Ghora','Rakshasa','Deva','Kubera','Yaksha','Kinnara','Bhrashta','Kulaghna','Garala','Vahni','Maya','Purishaka','Apampati','Marutvan','Kala','Sarpa','Amrita','Indu','Mridu','Komala','Heramba','Brahma','Vishnu','Maheshwara','Deva','Ardra','Kalinasa','Kshitisa','Kamalakara','Gulika','Mrityu','Kala','Davagni','Ghora','Yama','Kantaka','Sudha','Amrita','Poorna Chandra','Vishadagdha','Kulanasa','Vamshakshaya','Utpata','Kala','Saumya','Komala','Sheetala','Karaladamshtra','Chandramukhi','Praveena','Kalagni','Dandayudha','Nirmala','Saumya','Kroora','Atisheetala','Amrita','Payodhi','Bhramana','Chandrarekha'];
+function amsaInfo(n, sign, deg) {
+  if (n === 1 || sign === undefined || deg === undefined || deg === null) return null;
+  const idx = Math.min(n - 1, Math.floor(deg / (30 / n))), odd = sign % 2 === 0;
+  let ruler = '', dev = '';
+  if (n === 2) { const sunH = (deg < 15) === odd; ruler = sunH ? 'Sun' : 'Moon'; dev = sunH ? 'Devas' : 'Pitris'; }
+  else if (n === 3) dev = ['Narada', 'Agastya', 'Durvasa'][idx];
+  else if (n === 4) dev = ['Sanaka', 'Sanandana', 'Sanatkumara', 'Sanatana'][idx];
+  else if (n === 7) { const L = ['Kshara (salt water)', 'Ksheera (milk)', 'Dadhi (curd)', 'Ghrita (ghee)', 'Ikshu (cane juice)', 'Madya (wine)', 'Shuddha jala (pure water)']; dev = L[odd ? idx : 6 - idx]; }
+  else if (n === 9) dev = ['Deva', 'Manushya', 'Rakshasa'][odd ? idx % 3 : 2 - idx % 3];
+  else if (n === 10) { const L = ['Indra', 'Agni', 'Yama', 'Nirriti', 'Varuna', 'Vayu', 'Kubera', 'Ishana', 'Brahma', 'Ananta']; dev = L[odd ? idx : 9 - idx]; }
+  else if (n === 12) dev = ['Ganesha', 'Ashwini Kumara', 'Yama', 'Sarpa'][idx % 4];
+  else if (n === 27) dev = NAK_DEITY[idx];
+  else if (n === 30) {
+    const lim = odd ? [5, 10, 18, 25, 30] : [5, 12, 20, 25, 30], pl = odd ? ['Mars', 'Saturn', 'Jupiter', 'Mercury', 'Venus'] : ['Venus', 'Mercury', 'Jupiter', 'Saturn', 'Mars'];
+    const k = lim.findIndex(x => deg < x); ruler = pl[k < 0 ? 4 : k];
+    dev = {Mars: 'Agni', Saturn: 'Vayu', Jupiter: 'Indra', Mercury: 'Kubera', Venus: 'Varuna'}[ruler];
+  }
+  else if (n === 60) dev = D60[idx];
+  return {no: idx + 1, ruler, dev};
+}
+
 /* ---- Charts */
 function loadCharts(p) {
   const c = S.chart;
   if (!c) { p.innerHTML = '<p>Enter birth details and press Calculate.</p>'; return; }
-  const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('');
+  const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('') + '<option value="C">Bhava Chalit (Sripati)</option>';
   const m = c.meta;
   p.innerHTML = `<div class="kv">
       <div><span>Name</span>${esc(m.name || '(unnamed)')}</div><div><span>Local time</span>${esc(m.local)} (UTC${m.tz_offset >= 0 ? '+' : ''}${m.tz_offset})</div>
@@ -286,12 +327,12 @@ function loadCharts(p) {
     <div class="row" style="margin-top:12px"><label>Left chart<select id="vL">${opts(1)}</select></label><label>Right chart<select id="vR">${opts(9)}</select></label>
       <label class="chk"><input type="checkbox" id="shLA"${S.show.la ? ' checked' : ''}> Lagnas &amp; Arudhas</label>
       <label class="chk"><input type="checkbox" id="shUp"${S.show.up ? ' checked' : ''}> Upagrahas (Gulika, Mandi and others)</label></div>
-    ${legend([[COL.planet, 'Planets (degrees and minutes in sign; \u2726 = Pushkara navamsa in D1)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
+    ${legend([[COL.planet, 'Planets (degrees and minutes in sign; \u2726 Pushkara navamsa, \u25c6 Vargottama, \u25b2 Digbala; in D1)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
     <div class="two"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div></div>
-    <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}</select></label></div><div id="postab"></div>
+    <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}<option value="C">Bhava Chalit (Sripati)</option></select></label></div><div id="postab"></div>
     <h3>Panchanga at birth</h3><div id="bp"></div>
     <h3>Divisional positions</h3><div id="vtab"></div>`;
-  const draw = () => { S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; drawChart($('#cL'), c, +$('#vL').value); drawChart($('#cR'), c, +$('#vR').value); };
+  const draw = () => { S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; drawChart($('#cL'), c, vsel($('#vL').value)); drawChart($('#cR'), c, vsel($('#vR').value)); };
   $('#vL').onchange = draw; $('#vR').onchange = draw; $('#shLA').onchange = draw; $('#shUp').onchange = draw;
   draw();
   const ORD = ['Sun', 'Moon', 'Mercury', 'Mars', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
@@ -299,6 +340,14 @@ function loadCharts(p) {
   const starTxt = x => x.nak ? `${x.nak} ${x.pada}` : '';
   const SIGNN = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   const drawPos = () => {
+    if ($('#posV').value === 'C') {
+      const ch = c.chalit, inB = {};
+      Object.keys(ch.planets).forEach(nm => (inB[ch.planets[nm]] = inB[ch.planets[nm]] || []).push(nm));
+      const mv = c.planets.filter(x => ch.planets[x.name] && ch.planets[x.name] !== x.house).map(x => `${x.name} (house ${x.house} in Rasi, bhava ${ch.planets[x.name]})`);
+      $('#postab').innerHTML = tbl(['Bhava', 'Begins', 'Madhya (centre)', 'Ends', 'Planets'], ch.rows.map(r => [r.house, `${SIGNN[r.begin_sign]} ${r.begin}`, `${SIGNN[r.madhya_sign]} ${r.madhya}`, `${SIGNN[r.end_sign]} ${r.end}`, (inB[r.house] || []).join(', ')]), {num: [0]})
+        + `<p class="note">Sripati bhavas: the centre of each bhava is found by dividing the arcs between Lagna, IC, Descendant and MC into thirds; a bhava runs from the midpoint with the previous centre to the midpoint with the next. ${mv.length ? 'Planets that change house: ' + esc(mv.join('; ')) + '.' : 'No planet changes house from the Rasi chart.'}</p>`;
+      return;
+    }
     const n = +$('#posV').value;
     if (n === 1) {
       const rows = [['Lagna', c.asc.sign_name, c.asc.dms, `${c.asc.nak} ${c.asc.pada}`, c.asc.nak_lord, 1, isPushkara(c.asc.sign, c.asc.deg) ? {html: PUSH_BDG} : '', '', '']];
@@ -312,13 +361,20 @@ function loadCharts(p) {
     const v = c.vargas[n], d1 = {Lagna: c.asc.sign};
     c.planets.forEach(x => d1[x.name] = x.sign); c.lagnas.forEach(x => d1[x.name] = x.sign); c.upagrahas.forEach(x => d1[x.name] = x.sign);
     const dg = x => (x === undefined || x === null) ? '' : DM(x);
-    const rows = [], add = (nm, sg, deg, kind) => { if (sg === undefined) return; rows.push([nm, SIGNN[sg], dg(deg), ((sg - v.asc + 12) % 12) + 1, d1[nm] !== undefined ? SIGNN[d1[nm]] : '', kind]); };
+    const v1 = c.vargas['1'], d1d = {Lagna: v1.asc_deg, ...v1.pos, ...v1.lagna_pos, ...v1.upa_pos};
+    let anyDev = false;
+    const rows = [], add = (nm, sg, deg, kind) => {
+      if (sg === undefined) return;
+      const am = amsaInfo(n, d1[nm], d1d[nm]);
+      if (am && am.dev) anyDev = true;
+      rows.push([nm, SIGNN[sg], dg(deg), ((sg - v.asc + 12) % 12) + 1, d1[nm] !== undefined ? SIGNN[d1[nm]] : '', kind, am ? am.no : '', am ? (am.ruler || SIGN_LORDS[sg]) : SIGN_LORDS[sg], am ? am.dev : '']);
+    };
     add('Lagna', v.asc, v.asc_deg, '');
     ORD.forEach(nm => add(nm, v.planets[nm], v.pos[nm], ''));
     c.lagnas.forEach(x => add(x.name, v.lagnas[x.name], v.lagna_pos[x.name], 'Special lagna'));
     c.upagrahas.forEach(x => add(x.name, v.upa[x.name], v.upa_pos[x.name], 'Upagraha'));
-    $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, 'Rasi (D1) sign', 'Type'], rows, {num: [3]})
-      + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}).</p>`;
+    $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, 'Rasi (D1) sign', 'Type', `Amsa no. (of ${n})`, 'Amsa ruler', 'Devata'], rows, {num: [3, 6]})
+      + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}). Amsa ruler is the lord of the divisional sign (in D2 and D30 the lord of that part). ${anyDev ? 'Devatas follow the classical Parasara lists.' : 'No standard devata list is used for this chart.'}</p>`;
   };
   $('#posV').onchange = drawPos;
   drawPos();
@@ -375,16 +431,20 @@ function loadStrength(p) {
 const kt = (s, day) => s.slice(0, 10) === day ? s.slice(11) : s.slice(5, 16);   // time, with the date when it is on another day
 function loadPanchanga(p) {
   const d = defaultPlace();
-  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button><button data-s="market">Market view</button></div>
+  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button><button data-s="market">Market view</button><button data-s="calendar">Calendar</button><button data-s="brief">My day</button><button data-s="alerts">Alerts</button></div>
     <div id="pnMain"><div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
     <button class="run" id="pnDay">Day panchanga</button>
     <label>Month<input type="month" id="pnMonth" value="${todayStr().slice(0, 7)}"></label><button class="sec" id="pnMon">Monthly panchanga</button></div><div id="pnOut"></div></div>
-    <div id="pnMuh" hidden></div><div id="pnMkt" hidden></div>`;
-  let muMounted = false, mkMounted = false;
+    <div id="pnMuh" hidden></div><div id="pnMkt" hidden></div><div id="pnCal" hidden></div><div id="pnBrief" hidden></div><div id="pnAlerts" hidden></div>`;
+  let muMounted = false, mkMounted = false, calMounted = false;
   $$('#pnSub button').forEach(b => b.onclick = () => {
     $$('#pnSub button').forEach(x => x.classList.toggle('on', x === b));
     const k = b.dataset.s;
     $('#pnMain').hidden = k !== 'panchanga'; $('#pnMuh').hidden = k !== 'muhurta'; $('#pnMkt').hidden = k !== 'market';
+    $('#pnCal').hidden = k !== 'calendar'; $('#pnBrief').hidden = k !== 'brief'; $('#pnAlerts').hidden = k !== 'alerts';
+    if (k === 'calendar') { if (!calMounted) { calMounted = true; Extra.calMount($('#pnCal')); } }
+    if (k === 'brief') Extra.briefMount($('#pnBrief'));
+    if (k === 'alerts') Extra.alMount($('#pnAlerts'));
     if (k === 'muhurta' && typeof Muh !== 'undefined') { if (!muMounted) { muMounted = true; Muh.mount($('#pnMuh')); } else Muh.applyPending(); }
     if (k === 'market' && typeof Mkt !== 'undefined' && !mkMounted) { mkMounted = true; Mkt.mount($('#pnMkt')); }
   });
@@ -772,6 +832,7 @@ const calc = guard(async () => {
 async function refreshProfiles(selectId) {
   const list = await api('/api/profiles');
   window._profiles = list;
+  S.loaded.clients = -1;
   $('#profileSel').innerHTML = '<option value="">Saved profiles...</option>' + list.map(x => `<option value="${x.id}"${x.id === selectId ? ' selected' : ''}>${esc(x.name || '(unnamed)')} - ${x.year}-${String(x.month).padStart(2, '0')}-${String(x.day).padStart(2, '0')}</option>`).join('');
 }
 function profileToForm(x) {
@@ -787,6 +848,7 @@ async function init() {
   $('#lat').value = 19.0728; $('#lon').value = 72.8826; $('#tz').value = 'Asia/Kolkata'; $('#place').value = 'Mumbai, India';
   $('#btnCalc').onclick = calc;
   $('#btnSaveView').onclick = saveView;
+  $('#btnReport').onclick = () => Rp.open((window._profiles || []).find(x => x.id === S.profileId) || null);
   $$('input[name=style]').forEach(r => r.onchange = () => { S.loaded = {}; showTab(S.tab); });
   $('#btnNew').onclick = () => { S.profileId = null; $('#profileSel').value = ''; $('#name').value = ''; };
   $('#profileSel').onchange = guard(async () => {
@@ -799,7 +861,7 @@ async function init() {
   $('#btnSaveProfile').onclick = guard(async () => {
     const b = getBirth();
     const [y, m, d] = b.date.split('-').map(Number); const [hh, mm, ss] = b.time.split(':').map(Number);
-    const res = await api('/api/profiles', {id: S.profileId || undefined, name: b.name, year: y, month: m, day: d, hour: hh, minute: mm, second: ss || 0, place: b.place, lat: b.lat, lon: b.lon, tz: b.tz, gender: b.gender, notes: ''});
+    const res = await api('/api/profiles', {id: S.profileId || undefined, name: b.name, year: y, month: m, day: d, hour: hh, minute: mm, second: ss || 0, place: b.place, lat: b.lat, lon: b.lon, tz: b.tz, gender: b.gender});
     S.profileId = res.id;
     await refreshProfiles(res.id);
     setStatus('Profile saved');
@@ -814,6 +876,7 @@ async function init() {
   showTab('charts');
   $('#p-charts').innerHTML = '<p>Enter birth details above and press <b>Calculate</b>. The place search is offline (GeoNames); if a town is missing, type latitude, longitude and time zone yourself.</p>';
   Home.init();
+  Extra.startup();
 }
 document.addEventListener('DOMContentLoaded', init);
 

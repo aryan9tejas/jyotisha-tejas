@@ -49,7 +49,7 @@ const ready = init().catch(e => { post({type: 'fatal', error: String(e && e.stac
 async function handle({id, path, body}) {
   try {
     await ready;
-    if (!/^\/api\/(home|muhurta|market)/.test(path) && placesP) await placesP;
+    if (!/^\/api\/(home|muhurta|market|calendar|alerts)/.test(path) && placesP) await placesP;
     const res = api.dispatch(path, body);
     post({type: 'result', id, result: res});
   } catch (e) {
