@@ -144,9 +144,32 @@ def pos_view(name, v):
             'nak': v.get('nak'), 'pada': v.get('pada'), 'nak_lord': v.get('nak_lord') or (NAK_LORD[NAKSHATRAS.index(v['nak'])] if v.get('nak') else None), 'house': v.get('house')}
 
 
+MARANA = {'Sun': 12, 'Moon': 8, 'Mars': 7, 'Mercury': 7, 'Jupiter': 3, 'Venus': 6, 'Saturn': 1, 'Rahu': 9}
+DIGH = {'Jupiter': 1, 'Mercury': 1, 'Sun': 10, 'Mars': 10, 'Saturn': 7, 'Moon': 4, 'Venus': 4}
+
+
+def varga_marks(x):
+    """Per-planet marks inside one chart: dignity or relation, digbala, maranakaraka sthana, parivartana."""
+    pl, asc = x['planets'], x['asc']
+    seven = [p for p in SEVEN if p in pl]
+    out = {}
+    for p in pl:
+        s = pl[p]
+        h = (s - asc) % 12 + 1
+        m = {'h': h, 'dg': DIGH.get(p) == h, 'mk': MARANA.get(p) == h, 'pv': None, 'd': ''}
+        if p in seven:
+            d = core.sign_dignity(p, s, pl)
+            m['d'] = {'exalted': 'exalted', 'debilitated': 'debilitated', 'own': 'own'}.get(d, d)
+            lord = SIGN_LORD[s]
+            if lord != p and lord in pl and pl[lord] is not None and pl[lord] in OWN_SIGNS[p] and lord in seven:
+                m['pv'] = lord
+        out[p] = m
+    return out
+
+
 def _varga_view(x):
     r4 = lambda m: {k: fnum(v) for k, v in m.items()}
-    return {'name': x['name'], 'asc': x['asc'], 'asc_deg': fnum(x['asc_deg']), 'planets': x['planets'], 'pos': r4(x['pos']),
+    return {'marks': varga_marks(x), 'name': x['name'], 'asc': x['asc'], 'asc_deg': fnum(x['asc_deg']), 'planets': x['planets'], 'pos': r4(x['pos']),
             'upa': x['upa'], 'upa_pos': r4(x['upa_pos']), 'lagnas': x['lagnas'], 'lagna_pos': r4(x['lagna_pos'])}
 
 
@@ -199,6 +222,9 @@ def chart_view(c, with_strength=True):
     for pv in v['planets']:
         pv['vargottama'] = pv['name'] in d9 and d9[pv['name']] == pv['sign']
         pv['digbala'] = DIGHOUSE.get(pv['name']) == pv['house']
+        _m = v['vargas']['1']['marks'].get(pv['name'], {})
+        pv['marana'] = bool(_m.get('mk'))
+        pv['parivartana'] = _m.get('pv')
     v['chalit'] = chalit_view(c)
     if with_strength:
         sb = strength.shadbala(c)

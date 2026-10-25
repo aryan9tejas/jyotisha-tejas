@@ -102,3 +102,14 @@ textarea{font:inherit;padding:8px;border:1px solid #cfc8b8;border-radius:6px;wid
 .xhl span{opacity:.7;font-variant-numeric:tabular-nums}.xhl em{font-style:normal;opacity:.65;font-size:12px}
 .xhb{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 @media (max-width:480px){.xc{min-height:54px}.xhl>div{grid-template-columns:70px 1fr}.xhl em{grid-column:2}}
+
+.xsel{min-height:40px;border:1px solid var(--sec-line);border-radius:8px;background:var(--card);color:var(--ink);padding:0 8px;font:inherit;font-weight:600}
+.xhead .sp{flex:1}
+.xseg{display:flex;border:1px solid var(--sec-line);border-radius:10px;overflow:hidden}
+.xseg button{flex:1;min-height:42px;border:0;border-radius:0;background:var(--card);color:var(--acc)}
+.xseg button.on{background:var(--acc);color:#fff}
+.hm-calpanel{background:var(--card,#fffdf8);color:var(--ink,#1f1b2e);border-radius:16px;padding:12px;margin:6px 0 12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.hm-calpanel .xcal{max-width:none}
+@media (min-width:900px){.hm-calpanel .xcal{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 18px;align-items:start}.hm-calpanel .xcal>.xhead,.hm-calpanel .xcal>.xfilt{grid-column:1/-1}.hm-calpanel .xbody{grid-column:1;grid-row:3/span 2}.hm-calpanel .xcal>#xDetail,.hm-calpanel .xcal>#xUp{grid-column:2}.hm-calpanel .xcal>#xDetail{grid-row:3}.hm-calpanel .xcal>#xUp{grid-row:4}.hm-calpanel .xsheet{margin-top:0}}
+label.xl{display:flex;flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:12px}
+label.xl>div{flex:1;text-align:left}

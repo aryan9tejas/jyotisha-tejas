@@ -134,10 +134,10 @@ function textBlock(cx, cy, items, per, fsMax = 12, maxW = 92) {
   const lh = fs + 2.5;
   let y = cy - ((lines.length - 1) * lh) / 2 + fs / 3;
   return lines.map((l, i) => {
-    const len = l.reduce((a, x) => a + x.text.length + 2, 0);
+    const len = l.reduce((a, x) => a + x.text.length + 2 + (x.mk ? x.mk.length * 0.7 : 0), 0);
     const adj = Math.min(fs, (maxW / (len * 0.56)));
     return `<text x="${cx}" y="${y + i * lh}" text-anchor="middle" font-size="${adj.toFixed(1)}">` +
-      l.map((x, k) => `<tspan fill="${x.color || COL.planet}"${x.bold ? ' font-weight="700"' : ''}${x.body ? ` class="pi" data-body="${esc(x.body)}" style="cursor:grab"` : ''}>${k ? '  ' : ''}${esc(x.text)}</tspan>`).join('') + '</text>';
+      l.map((x, k) => `<tspan fill="${x.color || COL.planet}"${x.bold ? ' font-weight="700"' : ''}${x.body ? ` class="pi" data-body="${esc(x.body)}" style="cursor:grab"` : ''}>${k ? '  ' : ''}${esc(x.text)}</tspan>` + (x.mk || []).map(m => `<tspan fill="${m[1]}"${m[2] ? ` font-size="${(adj * m[2]).toFixed(1)}"` : ''}> ${m[0]}</tspan>`).join('')).join('') + '</text>';
   }).join('');
 }
 function bySign(items) { const by = Array.from({length: 12}, () => []); items.forEach(x => by[x.sign].push(x)); return by; }
@@ -174,6 +174,21 @@ function chartSVG({style, asc, items, title, legend}) {
   return g + '</svg>';
 }
 /* build chart items for one varga of a chart view c (chart_view payload) */
+/* chart marks (same symbols in every chart): [symbol, colour, relative size] */
+const MK = {ex: ['\u25b2', '#1f5fbf'], de: ['\u25bc', '#c0261c'], cb: ['c', '#8a5a00'], pu: ['\u2726', '#7a4cc2'], va: ['\u25c6', '#b4531a', 0.72], dg: ['\u2197', '#2b6f9e'], mk: ['\u271a', '#7a1b13'], pv: ['\u21c4', '#0a7a7a']};
+function marksFor(c, n, name, o = {}) {
+  const v = c.vargas[String(n)], m = v && v.marks && v.marks[name];
+  const p = c.planets.find(x => x.name === name), out = [];
+  if (!m) return out;
+  if (p && p.combust && n === 1) out.push(MK.cb);
+  if (m.d === 'exalted') out.push(MK.ex); else if (m.d === 'debilitated') out.push(MK.de);
+  if (n === 1 && isPushkara(v.planets[name], v.pos[name])) out.push(MK.pu);
+  if ((n === 1 || n === 9) && p && p.vargottama) out.push(MK.va);
+  if (m.dg) out.push(MK.dg);
+  if (m.mk) out.push(MK.mk);
+  if (m.pv) out.push(MK.pv);
+  return out;
+}
 function planetItems(c, n, o = {}) {
   const v = c.vargas[String(n)];
   const color = o.color || COL.planet, pre = o.pre || '';
@@ -181,7 +196,7 @@ function planetItems(c, n, o = {}) {
   for (const name of PL9) {
     const p = c.planets.find(x => x.name === name);
     const retro = p && p.retro && name !== 'Rahu' && name !== 'Ketu';
-    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : '') + (n === 1 && isPushkara(v.planets[name], v.pos[name]) ? ' \u2726' : '') + ((n === 1 || n === 9) && p && p.vargottama ? ' \u25c6' : '') + (n === 1 && p && p.digbala ? ' \u25b2' : ''), color, body: o.body ? name : undefined});
+    out.push({sign: v.planets[name], text: pre + ABBR[name] + ' ' + DM(v.pos[name]) + (retro ? ' R' : ''), mk: marksFor(c, n, name), color, body: o.body ? name : undefined});
   }
   return out;
 }
@@ -210,7 +225,7 @@ function chalitItems(c) {
   for (const name of PL9) {
     const h = ch.planets[name]; if (!h) continue;
     const p = c.planets.find(x => x.name === name);
-    out.push({sign: (ch.asc_sign + h - 1) % 12, text: ABBR[name] + ' ' + DM(d1.pos[name]) + (p && p.retro && name !== 'Rahu' && name !== 'Ketu' ? ' R' : ''), color: COL.planet});
+    out.push({sign: (ch.asc_sign + h - 1) % 12, text: ABBR[name] + ' ' + DM(d1.pos[name]) + (p && p.retro && name !== 'Rahu' && name !== 'Ketu' ? ' R' : ''), mk: marksFor(c, 1, name), color: COL.planet});
   }
   out.push({sign: ch.asc_sign, text: 'Asc ' + DM(d1.asc_deg), color: COL.lagna, bold: true});
   return out;
@@ -228,6 +243,10 @@ function freeItems(planets, degs, extra = []) {
 function drawFree(el, data, title, degs) {
   el.innerHTML = chartSVG({style: styleNow(), asc: data.asc, items: freeItems(data.planets, degs || data.degs), title});
 }
+function markLegend() {
+  const it = [[MK.ex, 'Exalted'], [MK.de, 'Debilitated'], [['R', COL.planet], 'Retrograde'], [MK.cb, 'Combust (D1)'], [MK.pu, 'Pushkara navamsa (D1)'], [MK.va, 'Vargottama (D1, D9)'], [MK.dg, 'Digbala'], [MK.mk, 'Maranakaraka sthana (from Lagna)'], [MK.pv, 'Rasi parivartana (sign exchange)']];
+  return '<p class="legend marks">' + it.map(([m, t]) => `<span><b style="color:${m[1]}">${m[0]}</b>${esc(t)}</span>`).join('') + '</p>';
+}
 function legend(parts) { return '<p class="legend">' + parts.map(([c, t]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join('') + '</p>'; }
 /* Pushkara navamsa: the navamsa falls in Libra/Sagittarius (fire and water signs) or Taurus/Pisces (earth and air signs) */
 function isPushkara(sign, deg) {
@@ -240,6 +259,19 @@ const VARG_BDG = '<span class="bdg vargottama" title="Vargottama: same sign in t
 const DIG_BDG = '<span class="bdg digbala" title="Digbala: the planet is in the house where it gets directional strength">Digbala</span>';
 const PUSH_BDG = '<span class="bdg pushkara" title="Pushkara navamsa: a navamsa of Venus or Jupiter that gives the planet strength and benefic results">Pushkara</span>';
 /* dignity badges for the positions table */
+const REL_TXT = {adhimitra: 'Great friend', mitra: 'Friend', sama: 'Neutral', satru: 'Enemy', adhisatru: 'Great enemy'};
+function divDig(v, nm) {
+  const m = v.marks && v.marks[nm]; if (!m) return '';
+  const b = [];
+  if (m.d === 'exalted') b.push('<span class="bdg exalted">Exalted</span>');
+  else if (m.d === 'debilitated') b.push('<span class="bdg debilitated">Debilitated</span>');
+  else if (m.d === 'own') b.push('<span class="bdg own">Own sign</span>');
+  else if (m.d) b.push(`<span class="rel">${esc(REL_TXT[m.d] || m.d)}</span>`);
+  if (m.dg) b.push('<span class="bdg digbala">Digbala</span>');
+  if (m.mk) b.push('<span class="bdg marana">Maranakaraka</span>');
+  if (m.pv) b.push(`<span class="bdg parivartana">Parivartana with ${esc(m.pv)}</span>`);
+  return {html: b.join(' ')};
+}
 function dignityHTML(x) {
   const lab = {exalted: 'Exalted', debilitated: 'Debilitated', moolatrikona: 'Mulatrikona', own: 'Own sign'};
   const dp = x.dig_pts, sts = x.states || [];
@@ -252,7 +284,7 @@ function dignityHTML(x) {
   const st = sts.map(k => `<span class="bdg ${k}">${lab[k]}</span>` + (nt[k] ? ` <span class="rel">(${esc(nt[k])})</span>` : '')).join(' ');
   const mt = (nt.mt && !sts.includes('moolatrikona')) ? ` <span class="rel">(${esc(nt.mt)})</span>` : (nt.mt ? ` <span class="rel">(range ${esc(dp.mt.from)} to ${esc(dp.mt.to)} ${esc(dp.mt.sign)})</span>` : '');
   const rel = x.rel ? `<span class="rel">${esc(x.rel)}</span>` : '';
-  const pu = (isPushkara(x.sign, x.deg) ? PUSH_BDG + ' ' : '') + (x.vargottama ? VARG_BDG + ' ' : '') + (x.digbala ? DIG_BDG + ' ' : '');
+  const pu = (isPushkara(x.sign, x.deg) ? PUSH_BDG + ' ' : '') + (x.vargottama ? VARG_BDG + ' ' : '') + (x.digbala ? DIG_BDG + ' ' : '') + (x.marana ? '<span class="bdg marana" title="Maranakaraka sthana: a house that is difficult for this planet, counted from Lagna">Maranakaraka</span> ' : '') + (x.parivartana ? `<span class="bdg parivartana" title="Rasi parivartana: the two planets exchange signs">Parivartana with ${esc(x.parivartana)}</span> ` : '');
   return {html: pu + st + mt + (rel && (st || mt) ? ' ' : '') + rel};
 }
 
@@ -291,26 +323,37 @@ function guard(fn) { return async (...a) => { try { setStatus('Working...'); awa
 
 /* amsa number, ruler and devata of a position in divisional chart D-n (classical lists for the charts that have a standard one) */
 const SIGN_LORDS = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter'];
-const NAK_DEITY = ['Ashwini Kumaras','Yama','Agni','Brahma','Soma','Rudra','Aditi','Brihaspati','Sarpa','Pitris','Bhaga','Aryaman','Savitar','Tvashtar','Vayu','Indragni','Mitra','Indra','Nirriti','Apas','Vishvedevas','Vishnu','Vasus','Varuna','Aja Ekapada','Ahir Budhnya','Pushan'];
-const D60 = ['Ghora','Rakshasa','Deva','Kubera','Yaksha','Kinnara','Bhrashta','Kulaghna','Garala','Vahni','Maya','Purishaka','Apampati','Marutvan','Kala','Sarpa','Amrita','Indu','Mridu','Komala','Heramba','Brahma','Vishnu','Maheshwara','Deva','Ardra','Kalinasa','Kshitisa','Kamalakara','Gulika','Mrityu','Kala','Davagni','Ghora','Yama','Kantaka','Sudha','Amrita','Poorna Chandra','Vishadagdha','Kulanasa','Vamshakshaya','Utpata','Kala','Saumya','Komala','Sheetala','Karaladamshtra','Chandramukhi','Praveena','Kalagni','Dandayudha','Nirmala','Saumya','Kroora','Atisheetala','Amrita','Payodhi','Bhramana','Chandrarekha'];
+const NAK_DEITY = ['Dastra (Ashwini Kumara)', 'Yama', 'Agni', 'Brahma', 'Chandra', 'Isa', 'Aditi', 'Jiva', 'Ahi', 'Pitara', 'Bhaga', 'Aryama', 'Surya', 'Tvashta', 'Marut', 'Sakragni', 'Mitra', 'Vasava', 'Rakshasa', 'Varuna', 'Visvadeva', 'Govinda', 'Vasu', 'Varuna', 'Ajapa', 'Ahirbudhanya', 'Pusha'];
+const D60 = ['Ghora', 'Rakshasa', 'Deva', 'Kubera', 'Yaksha', 'Kinnara', 'Bhrashta', 'Kulaghna', 'Garala', 'Agni', 'Maya', 'Pureesha', 'Apampati', 'Marutvan', 'Kala', 'Ahibhaga', 'Amrita', 'Chandra', 'Mridu', 'Komala', 'Heramba', 'Brahma', 'Vishnu', 'Maheshwara', 'Deva', 'Ardra', 'Kalinasha', 'Kshiteeshwara', 'Kamalakara', 'Gulika', 'Mrityu', 'Kala', 'Davagni', 'Ghora', 'Yama', 'Kantaka', 'Sudha', 'Amrita', 'Poornachandra', 'Vishadagdha', 'Kulanasha', 'Vamshakshaya', 'Utpata', 'Kalaroopa', 'Saumya', 'Komala', 'Sheetala', 'Danshtrakarala', 'Indumukha', 'Praveena', 'Kalagni', 'Dandayudha', 'Nirmala', 'Saumya', 'Kroora', 'Atisheetala', 'Sudha', 'Payodheesha', 'Bhramana', 'Indurekha'];
+const D20_ODD = ['Kali', 'Gauri', 'Jaya', 'Lakshmi', 'Vijaya', 'Vimala', 'Sati', 'Tara', 'Jvalamukhi', 'Sveta', 'Lalita', 'Bagalamukhi', 'Pratyangira', 'Sachi', 'Raudri', 'Bhavani', 'Varada', 'Jaya', 'Tripura', 'Sumukhi'];
+const D20_EVEN = ['Daya', 'Megha', 'Chinnasirah', 'Pisachini', 'Dhumavati', 'Matangi', 'Bala', 'Bhadra', 'Aruna', 'Anala', 'Pingala', 'Chuchchuka', 'Ghora', 'Varahi', 'Vaishnavi', 'Sita', 'Bhuvaneshwari', 'Bhairavi', 'Mangala', 'Aparajita'];
+const D24 = ['Skanda', 'Parashudhara', 'Anala', 'Vishwakarma', 'Bhaga', 'Mitra', 'Maya', 'Antaka', 'Vrishadhwaja', 'Govinda', 'Madana', 'Bhima'];
+const D40 = ['Vishnu', 'Chandra', 'Marichi', 'Tvashta', 'Dhata', 'Shiva', 'Ravi', 'Yama', 'Yaksha', 'Gandharva', 'Kala', 'Varuna'];
+/* Parasara (BPHS ch. 6). The position used is the rasi (D1) sign and degree; even signs reverse the order where the text says so. */
 function amsaInfo(n, sign, deg) {
   if (n === 1 || sign === undefined || deg === undefined || deg === null) return null;
-  const idx = Math.min(n - 1, Math.floor(deg / (30 / n))), odd = sign % 2 === 0;
+  const idx = Math.min(n - 1, Math.floor(deg / (30 / n))), odd = sign % 2 === 0, mode = sign % 3;   // mode 0 movable, 1 fixed, 2 dual
+  const rv = k => odd ? idx : k - 1 - idx;                 // index counted from the end in even signs
   let ruler = '', dev = '';
   if (n === 2) { const sunH = (deg < 15) === odd; ruler = sunH ? 'Sun' : 'Moon'; dev = sunH ? 'Devas' : 'Pitris'; }
   else if (n === 3) dev = ['Narada', 'Agastya', 'Durvasa'][idx];
   else if (n === 4) dev = ['Sanaka', 'Sanandana', 'Sanatkumara', 'Sanatana'][idx];
-  else if (n === 7) { const L = ['Kshara (salt water)', 'Ksheera (milk)', 'Dadhi (curd)', 'Ghrita (ghee)', 'Ikshu (cane juice)', 'Madya (wine)', 'Shuddha jala (pure water)']; dev = L[odd ? idx : 6 - idx]; }
-  else if (n === 9) dev = ['Deva', 'Manushya', 'Rakshasa'][odd ? idx % 3 : 2 - idx % 3];
-  else if (n === 10) { const L = ['Indra', 'Agni', 'Yama', 'Nirriti', 'Varuna', 'Vayu', 'Kubera', 'Ishana', 'Brahma', 'Ananta']; dev = L[odd ? idx : 9 - idx]; }
+  else if (n === 7) dev = ['Kshara (salt water)', 'Ksheera (milk)', 'Dadhi (curd)', 'Ghrita (ghee)', 'Ikshu rasa (cane juice)', 'Madya (wine)', 'Shuddha jala (pure water)'][rv(7)];
+  else if (n === 9) dev = [['Deva', 'Manushya', 'Rakshasa'], ['Manushya', 'Rakshasa', 'Deva'], ['Rakshasa', 'Manushya', 'Deva']][mode][idx % 3];
+  else if (n === 10) dev = ['Indra', 'Agni', 'Yama', 'Rakshasa', 'Varuna', 'Vayu', 'Kubera', 'Isana', 'Brahma', 'Ananta'][rv(10)];
   else if (n === 12) dev = ['Ganesha', 'Ashwini Kumara', 'Yama', 'Sarpa'][idx % 4];
-  else if (n === 27) dev = NAK_DEITY[idx];
+  else if (n === 16) dev = ['Brahma', 'Vishnu', 'Shiva', 'Surya'][rv(16) % 4];
+  else if (n === 20) dev = (odd ? D20_ODD : D20_EVEN)[idx];
+  else if (n === 24) dev = D24[rv(24) % 12];
+  else if (n === 27) dev = NAK_DEITY[rv(27)];
   else if (n === 30) {
     const lim = odd ? [5, 10, 18, 25, 30] : [5, 12, 20, 25, 30], pl = odd ? ['Mars', 'Saturn', 'Jupiter', 'Mercury', 'Venus'] : ['Venus', 'Mercury', 'Jupiter', 'Saturn', 'Mars'];
     const k = lim.findIndex(x => deg < x); ruler = pl[k < 0 ? 4 : k];
     dev = {Mars: 'Agni', Saturn: 'Vayu', Jupiter: 'Indra', Mercury: 'Kubera', Venus: 'Varuna'}[ruler];
   }
-  else if (n === 60) dev = D60[idx];
+  else if (n === 40) dev = D40[idx % 12];
+  else if (n === 45) dev = [['Brahma', 'Shiva', 'Vishnu'], ['Shiva', 'Vishnu', 'Brahma'], ['Vishnu', 'Brahma', 'Shiva']][mode][idx % 3];
+  else if (n === 60) dev = D60[rv(60)];
   return {no: idx + 1, ruler, dev};
 }
 
@@ -321,19 +364,25 @@ function loadCharts(p) {
   const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('') + '<option value="C">Bhava Chalit (Sripati)</option>';
   const m = c.meta;
   p.innerHTML = `<div class="kv">
-      <div><span>Name</span>${esc(m.name || '(unnamed)')}</div><div><span>Local time</span>${esc(m.local)} (UTC${m.tz_offset >= 0 ? '+' : ''}${m.tz_offset})</div>
-      <div><span>Place</span>${esc(m.place)} (${m.lat.toFixed(3)}, ${m.lon.toFixed(3)})</div><div><span>Ayanamsa</span>${esc(m.ayanamsa)} ${esc(m.ayanamsa_value)}</div>
-      <div><span>Lagna</span>${esc(c.asc.sign_name)} ${esc(c.asc.dms)}</div><div><span>Lagna star (nakshatra, pada, lord)</span>${esc(c.asc.nak)}, pada ${c.asc.pada}, ${esc(c.asc.nak_lord)}</div><div><span>Moon star</span>${esc(c.panchanga.nakshatra)} pada ${c.panchanga.pada}</div></div>
-    <div class="row" style="margin-top:12px"><label>Left chart<select id="vL">${opts(1)}</select></label><label>Right chart<select id="vR">${opts(9)}</select></label>
+      <div><span>Lagna</span>${esc(c.asc.sign_name)} ${esc(c.asc.dms)}</div><div><span>Lagna star (nakshatra, pada, lord)</span>${esc(c.asc.nak)}, pada ${c.asc.pada}, ${esc(c.asc.nak_lord)}</div>
+      <div><span>Moon sign</span>${esc(c.planets.find(x => x.name === 'Moon').sign_name)}</div><div><span>Moon star</span>${esc(c.panchanga.nakshatra)} pada ${c.panchanga.pada}</div></div>
+    <div class="row" style="margin-top:12px"><label>Chart 1<select id="vL">${opts(1)}</select></label><label>Chart 2<select id="vR">${opts(9)}</select></label>
+      <label class="chk"><input type="checkbox" id="sh3"${S.show.c3 ? ' checked' : ''}> Add Chart 3</label><label id="vMw"${S.show.c3 ? '' : ' hidden'}>Chart 3<select id="vM">${opts(+S.show.v3 || 10)}</select></label>
       <label class="chk"><input type="checkbox" id="shLA"${S.show.la ? ' checked' : ''}> Lagnas &amp; Arudhas</label>
       <label class="chk"><input type="checkbox" id="shUp"${S.show.up ? ' checked' : ''}> Upagrahas (Gulika, Mandi and others)</label></div>
-    ${legend([[COL.planet, 'Planets (degrees and minutes in sign; \u2726 Pushkara navamsa, \u25c6 Vargottama, \u25b2 Digbala; in D1)'], [COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
-    <div class="two"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div></div>
+    ${legend([[COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
+    ${markLegend()}
+    <div class="two" id="cRow"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div><div class="chartbox" id="cM" hidden></div></div>
     <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}<option value="C">Bhava Chalit (Sripati)</option></select></label></div><div id="postab"></div>
     <h3>Panchanga at birth</h3><div id="bp"></div>
     <h3>Divisional positions</h3><div id="vtab"></div>`;
-  const draw = () => { S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; drawChart($('#cL'), c, vsel($('#vL').value)); drawChart($('#cR'), c, vsel($('#vR').value)); };
-  $('#vL').onchange = draw; $('#vR').onchange = draw; $('#shLA').onchange = draw; $('#shUp').onchange = draw;
+  const draw = () => {
+    S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; S.show.c3 = $('#sh3').checked; S.show.v3 = $('#vM').value;
+    $('#vMw').hidden = !S.show.c3; $('#cM').hidden = !S.show.c3; $('#cRow').classList.toggle('three', S.show.c3);
+    drawChart($('#cL'), c, vsel($('#vL').value)); drawChart($('#cR'), c, vsel($('#vR').value));
+    if (S.show.c3) drawChart($('#cM'), c, vsel($('#vM').value));
+  };
+  $('#vL').onchange = draw; $('#vR').onchange = draw; $('#vM').onchange = draw; $('#sh3').onchange = draw; $('#shLA').onchange = draw; $('#shUp').onchange = draw;
   draw();
   const ORD = ['Sun', 'Moon', 'Mercury', 'Mars', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
   const pls = ORD.map(n => c.planets.find(x => x.name === n)).filter(Boolean).concat(c.planets.filter(x => !ORD.includes(x.name)));
@@ -367,14 +416,14 @@ function loadCharts(p) {
       if (sg === undefined) return;
       const am = amsaInfo(n, d1[nm], d1d[nm]);
       if (am && am.dev) anyDev = true;
-      rows.push([nm, SIGNN[sg], dg(deg), ((sg - v.asc + 12) % 12) + 1, d1[nm] !== undefined ? SIGNN[d1[nm]] : '', kind, am ? am.no : '', am ? (am.ruler || SIGN_LORDS[sg]) : SIGN_LORDS[sg], am ? am.dev : '']);
+      rows.push([nm, SIGNN[sg], dg(deg), ((sg - v.asc + 12) % 12) + 1, divDig(v, nm), d1[nm] !== undefined ? SIGNN[d1[nm]] : '', kind, am ? am.no : '', am ? (am.ruler || SIGN_LORDS[sg]) : SIGN_LORDS[sg], am ? am.dev : '']);
     };
     add('Lagna', v.asc, v.asc_deg, '');
     ORD.forEach(nm => add(nm, v.planets[nm], v.pos[nm], ''));
     c.lagnas.forEach(x => add(x.name, v.lagnas[x.name], v.lagna_pos[x.name], 'Special lagna'));
     c.upagrahas.forEach(x => add(x.name, v.upa[x.name], v.upa_pos[x.name], 'Upagraha'));
-    $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, 'Rasi (D1) sign', 'Type', `Amsa no. (of ${n})`, 'Amsa ruler', 'Devata'], rows, {num: [3, 6]})
-      + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}). Amsa ruler is the lord of the divisional sign (in D2 and D30 the lord of that part). ${anyDev ? 'Devatas follow the classical Parasara lists.' : 'No standard devata list is used for this chart.'}</p>`;
+    $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, `Dignity / relation in D${n}`, 'Rasi (D1) sign', 'Type', `Amsa no. (of ${n})`, 'Amsa ruler', 'Devata'], rows, {num: [3, 7]})
+      + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}). Amsa ruler is the lord of the divisional sign (in D2 and D30 the lord of that part). ${anyDev ? 'Devatas follow Parasara (BPHS chapter 6), counted from the Rasi sign and degree, in reverse for even signs where the text says so.' : 'No standard devata list is used for this chart.'}</p>`;
   };
   $('#posV').onchange = drawPos;
   drawPos();

@@ -151,6 +151,16 @@ const Home = (() => {
     $h('hmLocName').textContent = p.label;
     H.cache.clear(); H.horaKey = '';
     load(H.live ? nowIn(p.tz) : H.when);
+    if (typeof Extra !== 'undefined' && Extra.calRefresh) Extra.calRefresh();
+  }
+  /* Home as the panchang (default) or as a month calendar; the choice is kept on this device */
+  function applyView() {
+    const cal = typeof Extra !== 'undefined' && Extra.homeMode() === 'calendar';
+    ['hm-hero'].forEach(c => document.querySelectorAll('.' + c).forEach(e => { e.hidden = cal; }));
+    $h('hmCards').hidden = cal; $h('hmMY').hidden = cal; $h('hmMsg').hidden = cal;
+    $h('hmCalView').hidden = !cal;
+    $h('hmView').textContent = cal ? 'Panchang' : 'Calendar';
+    if (cal) Extra.calHome($h('hmCalView'), () => H.place);
   }
 
   /* ---------------------------------------------------------------- data */
@@ -355,10 +365,9 @@ const Home = (() => {
     };
     const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`, `<section class="gcard wide c-cal" id="hmCal"></section>`);
+    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`);
     $h('hmCards').innerHTML = cards.join('');
     if (typeof Mkt !== 'undefined') Mkt.home(document.getElementById('hmMkt'), {date: d.date, place: H.place, open: !!H.sec.mkt, toggle: () => { H.sec.mkt = !H.sec.mkt; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
-    if (typeof Extra !== 'undefined') Extra.home(document.getElementById('hmCal'), {date: d.date, place: H.place, open: H.sec.cal !== false, toggle: () => { H.sec.cal = H.sec.cal === false; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
     if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place, open: !!H.sec.muh, toggle: () => { H.sec.muh = !H.sec.muh; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
     document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg):not(.mk-open):not(.mk-tg):not(.x-open):not(.x-brief):not(.x-alerts)').forEach(b => b.onclick = () => {
       if (b.dataset.s) {
@@ -514,6 +523,9 @@ const Home = (() => {
     wDate = makeWheel($h('wDate')); wHora = makeWheel($h('wHora'));
     wDate.onSettle = onDate; wHora.onSettle = onHora;
     $h('hmApp').onclick = () => { location.hash = '#app'; };
+    $h('hmView').onclick = () => { Extra.lsSet('jt_home_view', Extra.homeMode() === 'calendar' ? 'panchang' : 'calendar'); applyView(); };
+    document.addEventListener('jt-homeview', applyView);
+    applyView();
     $h('hmMY').onclick = openPick; $h('pkGo').onclick = goPick;
     $h('pkNow').onclick = () => { $h('hmPick').hidden = true; goNow(); };
     $h('pkClose').onclick = () => { $h('hmPick').hidden = true; };
