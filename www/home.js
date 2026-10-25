@@ -261,7 +261,6 @@ const Home = (() => {
       const nm = k => k === 'R' ? 'Turns retrograde' : 'Turns direct';
       const srow = (lbl, x, soon) => `<div class="adj"><span class="lbl">${lbl}</span><span class="nm">${nm(x.k)}</span><span class="rg">${fdt(x.s)}${soon ? ` <em>${rel(x.jd)}</em>` : ''}</span></div>`;
       h += `<div class="adjh" style="margin-top:6px">${st.retro ? 'Retrograde now' : 'Direct now'}</div>`;
-      h += `<div class="adj"><span class="lbl">This phase</span><span class="nm">${st.retro ? 'Retrograde' : 'Direct'}</span><span class="rg">${st.prev ? fdt(st.prev.s) : 'earlier'} <i class="ar">→</i> ${st.next ? fdt(st.next.s) : 'later'}${st.next ? ` <em>${rel(st.next.jd)}</em>` : ''}</span></div>`;
       if (st.prev) h += srow('Last', st.prev, false);
       if (st.next) h += srow('Next', st.next, true);
     }
