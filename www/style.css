@@ -115,3 +115,12 @@ tr.mu-sub.shown{display:table-row}
 
 .bdg.marana{background:#7a1b13}.bdg.parivartana{background:#0a7a7a}
 .legend.marks b{display:inline-block;min-width:12px;text-align:center;margin-right:4px;font-size:13px}
+
+/* on Home the sky itself runs under the status bar, so no separate bar (it showed as a coloured band and a line) */
+body.home-on #notchBar{display:none}
+
+/* birth summary above the charts: Lagna, Moon and panchang in one compact block */
+.bc{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:3px 10px;font-size:12px;line-height:1.25;margin:0 0 6px}
+.bc div{min-width:0}
+.bc span{display:block;color:var(--mut);font-size:9.5px;text-transform:uppercase;letter-spacing:.03em}
+@media (max-width:520px){.bc{grid-template-columns:repeat(2,minmax(0,1fr));font-size:11.5px}}

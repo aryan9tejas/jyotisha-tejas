@@ -159,7 +159,7 @@ const Home = (() => {
     ['hm-hero'].forEach(c => document.querySelectorAll('.' + c).forEach(e => { e.hidden = cal; }));
     $h('hmCards').hidden = cal; $h('hmMY').hidden = cal; $h('hmMsg').hidden = cal;
     $h('hmCalView').hidden = !cal;
-    $h('hmView').textContent = cal ? 'Panchang' : 'Calendar';
+    $h('hmView').textContent = cal ? 'Live' : 'Calendar';
     if (cal) Extra.calHome($h('hmCalView'), () => H.place);
   }
 
@@ -167,7 +167,7 @@ const Home = (() => {
   let inflight = false, pendingWhen = null;
   async function load(when) {
     if (inflight) { pendingWhen = when; H.seq++; return; }      // latest wins: skip the calls queued while one is running
-    inflight = true;
+    inflight = true; H.inflightAt = Date.now();
     const my = ++H.seq;
     $h('homeView').classList.add('busy');
     try {
@@ -175,12 +175,12 @@ const Home = (() => {
       const key = JSON.stringify([H.place.lat, H.place.lon, H.place.tz, when, cfg]);
       let data = H.cache.get(key);
       if (!data) {
-        data = await api('/api/home', {lat: H.place.lat, lon: H.place.lon, tz: H.place.tz, when, cfg});
+        data = await Promise.race([api('/api/home', {lat: H.place.lat, lon: H.place.lon, tz: H.place.tz, when, cfg}), new Promise((_, rj) => setTimeout(() => rj(new Error('The calculation engine did not respond')), 30000))]);
         H.cache.set(key, data); if (H.cache.size > 24) H.cache.delete(H.cache.keys().next().value);
       }
       if (my === H.seq) {
         H.cfgKey = JSON.stringify(cfg);
-        H.data = data; H.when = when; H.jd = H.live ? jdNow() : data.jd;
+        H.loadedAt = Date.now(); H.data = data; H.when = when; H.jd = H.live ? jdNow() : data.jd;
         $h('hmMsg').textContent = '';
         render(true);
       }
@@ -261,6 +261,7 @@ const Home = (() => {
       const nm = k => k === 'R' ? 'Turns retrograde' : 'Turns direct';
       const srow = (lbl, x, soon) => `<div class="adj"><span class="lbl">${lbl}</span><span class="nm">${nm(x.k)}</span><span class="rg">${fdt(x.s)}${soon ? ` <em>${rel(x.jd)}</em>` : ''}</span></div>`;
       h += `<div class="adjh" style="margin-top:6px">${st.retro ? 'Retrograde now' : 'Direct now'}</div>`;
+      h += `<div class="adj"><span class="lbl">This phase</span><span class="nm">${st.retro ? 'Retrograde' : 'Direct'}</span><span class="rg">${st.prev ? fdt(st.prev.s) : 'earlier'} <i class="ar">→</i> ${st.next ? fdt(st.next.s) : 'later'}${st.next ? ` <em>${rel(st.next.jd)}</em>` : ''}</span></div>`;
       if (st.prev) h += srow('Last', st.prev, false);
       if (st.next) h += srow('Next', st.next, true);
     }
@@ -392,7 +393,7 @@ const Home = (() => {
     const li = idxAt(d.lagna || [], H.jd), lg = li >= 0 ? d.lagna[li] : null;
     $h('hmLagna').innerHTML = lg ? `<span>Lagna</span><b>${esc(lg.name)}</b><small>${stamp(lg.sa, ref)} <i class="ar">→</i> ${stamp(lg.sb, ref)}</small>` : '';
     const sky = skyOf(d, H.jd), v = $h('homeView');
-    if (v.dataset.sky !== sky) v.dataset.sky = sky;
+    if (v.dataset.sky !== sky) { v.dataset.sky = sky; setTimeout(() => window.dispatchEvent(new Event('jt-view')), 80); }
     const o = orbPos(d, H.jd), orb = $h('hmOrb');
     orb.style.left = o.x + '%'; orb.style.top = o.y + '%'; orb.classList.toggle('moon', o.moon);
   }
@@ -460,7 +461,17 @@ const Home = (() => {
     H.live = true;
     load(nowIn(H.place.tz));
   }
+  /* back from the background: the timer and the engine can both be frozen or killed, so refresh at once and reload the page if nothing comes back */
+  function wake() {
+    if (document.hidden) return;
+    const away = Date.now() - (H.lastSeen || Date.now()); H.lastSeen = Date.now();
+    if (inflight && Date.now() - (H.inflightAt || 0) > 20000) { inflight = false; pendingWhen = null; }
+    if (away < 30000) { tick(); return; }
+    H.cache.clear(); H.lastMin = '';
+    if (H.live) { const t0 = Date.now(); load(nowIn(H.place.tz)); clearTimeout(H.stuckT); H.stuckT = setTimeout(() => { if (!H.loadedAt || H.loadedAt < t0) location.reload(); }, 25000); }
+  }
   function tick() {
+    H.lastSeen = Date.now();
     if (!H.visible || !H.data || !H.live) return;
     const when = nowIn(H.place.tz), jd = jdNow();
     if (when === H.lastMin) return;
@@ -545,8 +556,8 @@ const Home = (() => {
     window.addEventListener('hashchange', route);
     document.addEventListener('muh-person', () => { if (H.data) renderCards(); });
     let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (H.visible) { syncWheels(false); wDate.paint(); wHora.paint(); } }, 150); });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
-    H.timer = setInterval(tick, 15000);
+    document.addEventListener('visibilitychange', wake); window.addEventListener('pageshow', wake); window.addEventListener('focus', wake); window.addEventListener('online', wake);
+    H.timer = setInterval(() => { if (Date.now() - (H.lastSeen || 0) > 45000) wake(); else tick(); }, 15000);
     H.place = await defaultPlace();
     $h('hmLocName').textContent = H.place.label;
     route();

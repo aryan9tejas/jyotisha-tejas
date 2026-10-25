@@ -535,8 +535,8 @@ const Extra = (() => {
     const tg = (k, n, sub, on) => `<label class="xl"><div><b>${n}</b>${sub ? `<small>${sub}</small>` : ''}</div><span class="xsw"><input type="checkbox" data-k="${k}"${on ? ' checked' : ''}><i></i></span></label>`;
     const paint = () => {
       w.innerHTML = `<div class="xbox" role="dialog" aria-label="Home view"><h3>Home view</h3>
-        <h5>Home page</h5><div class="xseg"><button type="button" data-m="panchang" class="${homeMode() === 'panchang' ? 'on' : ''}">Panchang</button><button type="button" data-m="calendar" class="${homeMode() === 'calendar' ? 'on' : ''}">Calendar</button></div>
-        <p class="note">Remembered on this device. Panchang is the default.</p>
+        <h5>Home page</h5><div class="xseg"><button type="button" data-m="panchang" class="${homeMode() === 'panchang' ? 'on' : ''}">Live</button><button type="button" data-m="calendar" class="${homeMode() === 'calendar' ? 'on' : ''}">Calendar</button></div>
+        <p class="note">Live shows the clock, lagna, hora and today's panchang. Remembered on this device. Live is the default.</p>
         <h5>Marks on the month grid</h5>${CATS.map(([k, n]) => tg('f:' + k, n, '', CAL.filt[k])).join('')}${tg('q', 'Day quality bar', 'Green, amber, red for your chart', CAL.q)}
         <h5>Under the grid</h5>${tg('d:pg', 'Tithi, nakshatra, yoga, karana', '', CAL.det.pg)}${tg('d:tm', 'Timings', 'Abhijit, Rahu Kala, Yama Gandam, Gulika', CAL.det.tm)}${tg('d:you', 'Tarabala and Chandrabala', 'Needs a saved profile or a chart', CAL.det.you)}${tg('d:up', 'Coming up list', '', CAL.det.up)}${tg('d:btn', 'Action buttons', 'Full panchanga, My day, Add to calendar', CAL.det.btn)}
         <div class="xbtns"><button type="button" id="xHVok">Done</button></div></div>`;

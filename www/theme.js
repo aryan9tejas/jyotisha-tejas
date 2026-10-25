@@ -22,7 +22,7 @@
     var id=cur(), t=T.filter(function(x){return x.id===id})[0]||T[0];
     if(document.body)document.body.style.backgroundColor=''; document.documentElement.style.backgroundColor='';
     var home=document.body&&document.body.classList.contains('home-on'), col=t.m;
-    if(home){var b=hex(getComputedStyle(document.body).backgroundColor);if(b)col=b;}
+    if(home){var SKY={day:'#1f5f8f',dawn:'#352f6b',dusk:'#272b66',night:'#080c27'},hv=document.getElementById('homeView');col=SKY[hv&&hv.dataset.sky]||'#080c27';}
     var old=document.querySelector('meta[name=theme-color]'), n=document.createElement('meta');
     n.name='theme-color'; n.content=col;
     if(old)old.remove(); document.head.appendChild(n);

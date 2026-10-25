@@ -363,9 +363,12 @@ function loadCharts(p) {
   if (!c) { p.innerHTML = '<p>Enter birth details and press Calculate.</p>'; return; }
   const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('') + '<option value="C">Bhava Chalit (Sripati)</option>';
   const m = c.meta;
-  p.innerHTML = `<div class="kv">
-      <div><span>Lagna</span>${esc(c.asc.sign_name)} ${esc(c.asc.dms)}</div><div><span>Lagna star (nakshatra, pada, lord)</span>${esc(c.asc.nak)}, pada ${c.asc.pada}, ${esc(c.asc.nak_lord)}</div>
-      <div><span>Moon sign</span>${esc(c.planets.find(x => x.name === 'Moon').sign_name)}</div><div><span>Moon star</span>${esc(c.panchanga.nakshatra)} pada ${c.panchanga.pada}</div></div>
+  const bp = c.panchanga, moon = c.planets.find(x => x.name === 'Moon');
+  const bc = [['Lagna', `${c.asc.sign_name} ${c.asc.dms}`], ['Lagna star', `${c.asc.nak}, pada ${c.asc.pada}, ${c.asc.nak_lord}`],
+    ['Moon sign', moon.sign_name], ['Moon star', `${bp.nakshatra}, pada ${bp.pada}, ${bp.nakshatra_lord}`],
+    ['Vara', bp.vara], ['Tithi', `${bp.tithi} (${bp.tithi_elapsed_pct}%)`], ['Yoga', bp.yoga], ['Karana', bp.karana], ['Hora lord', bp.hora_lord],
+    ['Sunrise', String(bp.sunrise).slice(-5)], ['Sunset', String(bp.sunset).slice(-5)], ['Rahu kalam', bp.rahu_kalam], ['Yama gandam', bp.yama_gandam], ['Gulika kalam', bp.gulika_kalam]];
+  p.innerHTML = `<div class="bc">${bc.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('')}</div>
     <div class="row" style="margin-top:12px"><label>Chart 1<select id="vL">${opts(1)}</select></label><label>Chart 2<select id="vR">${opts(9)}</select></label>
       <label class="chk"><input type="checkbox" id="sh3"${S.show.c3 ? ' checked' : ''}> Add Chart 3</label><label id="vMw"${S.show.c3 ? '' : ' hidden'}>Chart 3<select id="vM">${opts(+S.show.v3 || 10)}</select></label>
       <label class="chk"><input type="checkbox" id="shLA"${S.show.la ? ' checked' : ''}> Lagnas &amp; Arudhas</label>
@@ -374,7 +377,6 @@ function loadCharts(p) {
     ${markLegend()}
     <div class="two" id="cRow"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div><div class="chartbox" id="cM" hidden></div></div>
     <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}<option value="C">Bhava Chalit (Sripati)</option></select></label></div><div id="postab"></div>
-    <h3>Panchanga at birth</h3><div id="bp"></div>
     <h3>Divisional positions</h3><div id="vtab"></div>`;
   const draw = () => {
     S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; S.show.c3 = $('#sh3').checked; S.show.v3 = $('#vM').value;
@@ -427,9 +429,6 @@ function loadCharts(p) {
   };
   $('#posV').onchange = drawPos;
   drawPos();
-  const bp = c.panchanga;
-  $('#bp').innerHTML = kv([['Vara', bp.vara], ['Tithi', `${bp.tithi} (${bp.tithi_elapsed_pct}% elapsed)`], ['Nakshatra', `${bp.nakshatra} (${bp.nakshatra_lord}) pada ${bp.pada}`], ['Yoga', bp.yoga], ['Karana', bp.karana], ['Hora lord', bp.hora_lord],
-    ['Sunrise', bp.sunrise], ['Sunset', bp.sunset], ['Rahu kalam', bp.rahu_kalam], ['Yama gandam', bp.yama_gandam], ['Gulika kalam', bp.gulika_kalam]]);
   const bodies = ['Lagna', ...ORD, ...c.lagnas.map(x => x.name), ...UPAS];
   const vr = bodies.map(b => [b, ...VARGAS.map(n => { const v = c.vargas[n]; const s = b === 'Lagna' ? v.asc : (b in v.planets ? v.planets[b] : (b in v.upa ? v.upa[b] : v.lagnas[b])); return SA[s]; })]);
   $('#vtab').innerHTML = tbl(['Body', ...VARGAS.map(n => 'D' + n)], vr);
