@@ -11,6 +11,10 @@ const Cl = (() => {
   const dayDiff = s => Math.round((Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) - Date.UTC(+todayStr().slice(0, 4), +todayStr().slice(5, 7) - 1, +todayStr().slice(8, 10))) / 86400000);
   const fdate = s => `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]} ${s.slice(0, 4)}`;
   const nextFollow = c => (c.follow || []).filter(x => x.on !== false && x.date >= todayStr()).sort((a, b) => a.date < b.date ? -1 : 1)[0] || null;
+  const MAXG = 10;
+  const groups = () => { const g = Extra.lsGet('jt_groups', null); return Array.isArray(g) && g.length ? g : ['Client', 'Family']; };
+  const tagOf = c => c.tag || groups()[0];
+  const gLabel = g => g === 'Client' ? 'Clients' : g;
   const lastBackup = () => Extra.lsGet('jt_last_backup', 0);
 
   async function load(p) {
@@ -28,9 +32,9 @@ const Cl = (() => {
     let rows = st.list.slice();
     const q = st.q.trim().toLowerCase();
     if (q) rows = rows.filter(c => ((c.name || '') + ' ' + (c.place || '') + ' ' + (c.notes || '')).toLowerCase().includes(q));
-    if (st.filter === 'Client' || st.filter === 'Family') rows = rows.filter(c => (c.tag || 'Client') === st.filter);
+    if (st.filter !== 'all' && st.filter !== 'star') rows = rows.filter(c => tagOf(c) === st.filter);
     if (st.filter === 'star') rows = rows.filter(c => c.star);
-    const cnt = t => st.list.filter(c => (c.tag || 'Client') === t).length;
+    const cnt = t => st.list.filter(c => tagOf(c) === t).length;
     if (st.sort === 'follow') rows.sort((a, b) => { const x = nextFollow(a), y = nextFollow(b); if (x && y) return x.date < y.date ? -1 : 1; if (x) return -1; if (y) return 1; return (a.name || '').localeCompare(b.name || ''); });
     else if (st.sort === 'name') rows.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     else rows.sort((a, b) => (b.created || '') < (a.created || '') ? -1 : 1);
@@ -38,18 +42,52 @@ const Cl = (() => {
     const stale = st.list.length > 0 && (days === null || days > 14);
     p.innerHTML = `<div class="xhead"><h3>Clients</h3><span class="note">${st.list.length} ${st.list.length === 1 ? 'person' : 'people'}, stored on this device</span><button type="button" id="cAdd">Add new</button></div>
       <div class="row"><label style="flex:1;min-width:200px">Search<input id="cQ" placeholder="Name, place or note" value="${esc(st.q)}"></label><label>Sort<select id="cSort"><option value="follow"${st.sort === 'follow' ? ' selected' : ''}>Next follow-up</option><option value="name"${st.sort === 'name' ? ' selected' : ''}>Name</option><option value="new"${st.sort === 'new' ? ' selected' : ''}>Newest</option></select></label></div>
-      <div class="xfilt">${[['all', `All ${st.list.length}`], ['Client', `Clients ${cnt('Client')}`], ['Family', `Family ${cnt('Family')}`], ['star', 'Starred']].map(([k, n]) => `<button type="button" class="xchip${st.filter === k ? ' on' : ''}" data-f="${k}">${n}</button>`).join('')}</div>
-      <div class="xlist">${rows.map(c => { const nf = nextFollow(c), d = nf ? dayDiff(nf.date) : null; return `<button type="button" class="xclient" data-id="${c.id}"><span class="xav">${esc(ini(c.name))}</span><span class="xcm"><b>${c.star ? '&#9733; ' : ''}${esc(c.name || '(unnamed)')}</b><small>${esc(birthLine(c))}</small></span><span class="xcr"><span class="xtag2">${esc(c.tag || 'Client')}</span>${nf ? `<span class="xfu${d <= 7 ? ' soon' : ''}">${d === 0 ? 'Follow-up today' : d === 1 ? 'Follow-up tomorrow' : 'Follow-up ' + esc(fdate(nf.date).slice(0, -5))}</span>` : ''}</span></button>`; }).join('') || '<p class="note">No one here yet. Enter birth details above and press Save profile, or use Add new.</p>'}</div>
+      <div class="xfilt">${[['all', `All ${st.list.length}`], ...groups().map(g => [g, `${gLabel(g)} ${cnt(g)}`]), ['star', 'Starred']].map(([k, n]) => `<button type="button" class="xchip${st.filter === k ? ' on' : ''}" data-f="${esc(k)}">${esc(n)}</button>`).join('')}<button type="button" class="xchip" id="cGrp">Manage groups</button></div>
+      <div class="xlist">${rows.map(c => { const nf = nextFollow(c), d = nf ? dayDiff(nf.date) : null; return `<button type="button" class="xclient" data-id="${c.id}"><span class="xav">${esc(ini(c.name))}</span><span class="xcm"><b>${c.star ? '&#9733; ' : ''}${esc(c.name || '(unnamed)')}</b><small>${esc(birthLine(c))}</small></span><span class="xcr"><span class="xtag2">${esc(gLabel(tagOf(c)))}</span>${nf ? `<span class="xfu${d <= 7 ? ' soon' : ''}">${d === 0 ? 'Follow-up today' : d === 1 ? 'Follow-up tomorrow' : 'Follow-up ' + esc(fdate(nf.date).slice(0, -5))}</span>` : ''}</span></button>`; }).join('') || '<p class="note">No one here yet. Enter birth details above and press Save profile, or use Add new.</p>'}</div>
       <div class="xcard2 xbk${stale ? ' stale' : ''}"><div><b>Backup</b><small>${bk ? 'Last backup ' + (days === 0 ? 'today' : days + ' days ago') : 'Not backed up yet'}${stale ? '. Back up now so your notes are safe if the phone is lost.' : ''}</small></div>
         <div class="xbtns"><button type="button" class="sec" id="cBk">Back up now</button><label class="xfile sec">Restore<input type="file" id="cRs" accept="application/json,.json" hidden></label></div></div>
       <p class="note">${esc(Extra.DISC)}</p>`;
     $('#cQ').oninput = e => { st.q = e.target.value; listView(p); const i = $('#cQ'); i.focus(); i.setSelectionRange(st.q.length, st.q.length); };
     $('#cSort').onchange = e => { st.sort = e.target.value; listView(p); };
     $$('[data-f]', p).forEach(b => b.onclick = () => { st.filter = b.dataset.f; listView(p); });
+    $('#cGrp').onclick = () => groupDialog(p);
     $$('.xclient', p).forEach(b => b.onclick = () => { st.sel = +b.dataset.id; st.tab = 'sessions'; paint(p); });
     $('#cAdd').onclick = () => { S.profileId = null; $('#profileSel').value = ''; $('#name').value = ''; const tg = $('#birthTg'); if (tg && tg.getAttribute('aria-expanded') === 'false') tg.click(); window.scrollTo({top: 0, behavior: 'smooth'}); setTimeout(() => $('#name').focus(), 300); };
     $('#cBk').onclick = guard(async () => { await Extra.saveFile('jyotisha-tejas-backup.json', 'application/json', Local.exportAll()); Extra.lsSet('jt_last_backup', Date.now()); listView(p); });
     $('#cRs').onchange = guard(async e => { const fl = e.target.files[0]; if (!fl) return; if (!confirm('Restore replaces everything on this device with the backup file. Continue?')) return; await Local.importAll(await fl.text()); await refreshProfiles(); st.list = await api('/api/profiles'); st.sel = null; listView(p); setStatus('Backup restored'); });
+  }
+
+  /* ---------------------------------------------------------- groups */
+  function groupDialog(p) {
+    const w = document.createElement('div'); w.className = 'xmodal';
+    let g = groups().map(o => ({o, n: gLabel(o)}));
+    const paint = () => {
+      w.innerHTML = `<div class="xbox" role="dialog" aria-label="Manage groups"><h3>Groups</h3>
+        <p class="note">Up to ${MAXG} groups. Open a person to move them to another group. Deleting a group moves its people to the first group.</p>
+        <div id="gList">${g.map((x, i) => `<div class="row"><label style="flex:1">Group ${i + 1}<input data-i="${i}" value="${esc(x.n)}" maxlength="24"></label>${g.length > 1 ? `<button type="button" class="sec xdel" data-x="${i}" aria-label="Delete group">&#10005;</button>` : ''}</div>`).join('')}</div>
+        ${g.length < MAXG ? `<div class="row"><label style="flex:1">New group<input id="gNew" maxlength="24" placeholder="e.g. Friends"></label><button type="button" class="sec" id="gAdd">Add</button></div>` : ''}
+        <p class="note" id="gMsg"></p><div class="xbtns"><button type="button" id="gOk">Save</button><button type="button" class="sec" id="gNo">Cancel</button></div></div>`;
+      $$('[data-x]', w).forEach(b => b.onclick = () => { g.splice(+b.dataset.x, 1); paint(); });
+      $$('[data-i]', w).forEach(i => i.oninput = () => { g[+i.dataset.i].n = i.value; });
+      const add = () => { const v = $('#gNew', w).value.trim(); if (!v) return; if (g.some(x => x.n.trim().toLowerCase() === v.toLowerCase())) { $('#gMsg', w).textContent = 'That group already exists.'; return; } g.push({o: null, n: v}); paint(); };
+      if ($('#gAdd', w)) { $('#gAdd', w).onclick = add; $('#gNew', w).onkeydown = e => { if (e.key === 'Enter') add(); }; }
+      $('#gNo', w).onclick = () => w.remove();
+      $('#gOk', w).onclick = guard(async () => {
+        const fin = g.map(x => ({o: x.o, n: (x.o !== null && x.n.trim() === gLabel(x.o)) ? x.o : x.n.trim()}));
+        if (!fin.length || fin.some(x => !x.n) || new Set(fin.map(x => x.n.toLowerCase())).size !== fin.length) { $('#gMsg', w).textContent = 'Each group needs a different name.'; return; }
+        const first = groups()[0];
+        for (const c of st.list) {
+          const t = c.tag || first, hit = fin.find(x => x.o === t);
+          const nt = hit ? hit.n : fin[0].n;
+          if (nt !== c.tag) await upd(c, {tag: nt});
+        }
+        const names = fin.map(x => x.n);
+        Extra.lsSet('jt_groups', names);
+        if (st.filter !== 'all' && st.filter !== 'star') { const h = fin.find(x => x.o === st.filter); st.filter = h ? h.n : 'all'; }
+        w.remove(); listView(p);
+      });
+    };
+    document.body.appendChild(w); paint();
   }
 
   /* ---------------------------------------------------------- detail */
@@ -66,7 +104,7 @@ const Cl = (() => {
       <p class="note">Reminders arrive through Alerts. Turn on "Client follow-ups" there.</p></div>`;
     p.innerHTML = `<div class="xhead"><button type="button" class="sec" id="dBack" aria-label="Back to clients">&#8249; Clients</button><h3>${esc(c.name || '(unnamed)')}</h3><button type="button" class="sec" id="dStar" aria-label="Star" title="Star">${c.star ? '&#9733;' : '&#9734;'}</button></div>
       <p class="note">${esc(birthLine(c))} &middot; ${esc(c.tz || '')}</p>
-      <div class="row"><label>Group<select id="dTag"><option${(c.tag || 'Client') === 'Client' ? ' selected' : ''}>Client</option><option${c.tag === 'Family' ? ' selected' : ''}>Family</option><option${c.tag === 'Other' ? ' selected' : ''}>Other</option></select></label></div>
+      <div class="row"><label>Group<select id="dTag">${[...new Set([...groups(), tagOf(c)])].map(g => `<option value="${esc(g)}"${tagOf(c) === g ? ' selected' : ''}>${esc(gLabel(g))}</option>`).join('')}</select></label></div>
       <div class="xact"><button type="button" class="sec" id="dChart">Chart</button><button type="button" class="sec" id="dRep">Report</button><button type="button" class="sec" id="dMuh">Muhurta</button></div>
       <div class="mu-nav">${tabs.map(([k, n]) => `<button type="button" data-t="${k}"${st.tab === k ? ' class="on"' : ''}>${n}</button>`).join('')}</div>${body}
       <div class="xbtns"><button type="button" class="sec" id="dDel">Delete this person</button></div>`;
@@ -107,9 +145,10 @@ const Cl = (() => {
 
 /* ============================================================ PDF report */
 const Rp = (() => {
-  const DEF = {paper: 'A4', style: 'classic', by: '', logo: '', footer: '', pages: {birth: 1, charts: 1, chalit: 0, positions: 1, dasa: 1, vargas: 0, strength: 1, notes: 1}};
+  const VSETS = {shadvarga: ['Shadvarga (6): D1, D2, D3, D9, D12, D30', [1, 2, 3, 9, 12, 30]], saptavarga: ['Saptavarga (7): D1, D2, D3, D7, D9, D12, D30', [1, 2, 3, 7, 9, 12, 30]], dashavarga: ['Dashavarga (10): D1, D2, D3, D7, D9, D10, D12, D16, D30, D60', [1, 2, 3, 7, 9, 10, 12, 16, 30, 60]], shodashavarga: ['Shodashavarga (16): all divisional charts', [1, 2, 3, 4, 7, 9, 10, 12, 16, 20, 24, 27, 30, 40, 45, 60]]};
+  const DEF = {vset: 'shodashavarga', paper: 'A4', style: 'classic', by: '', logo: '', footer: '', pages: {birth: 1, charts: 1, chalit: 0, positions: 1, dasa: 1, vargas: 0, strength: 1, notes: 1}};
   const cfg = () => Object.assign({}, DEF, Extra.lsGet('jt_report', {}), {pages: Object.assign({}, DEF.pages, (Extra.lsGet('jt_report', {}) || {}).pages)});
-  const PAGES = [['birth', 'Birth details and Panchanga at birth'], ['charts', 'Rasi and Navamsa charts'], ['chalit', 'Bhava Chalit chart'], ['positions', 'Planet positions and dignity'], ['dasa', 'Vimshottari dasa (running period and the next 20 years)'], ['vargas', 'Divisional chart signs (all vargas)'], ['strength', 'Strengths (Shadbala)'], ['notes', 'Notes about the person']];
+  const PAGES = [['birth', 'Birth details and Panchanga at birth'], ['charts', 'Rasi and Navamsa charts'], ['chalit', 'Bhava Chalit chart'], ['positions', 'Planet positions and dignity'], ['dasa', 'Vimshottari dasa (running period and the next 20 years)'], ['vargas', 'Divisional chart signs'], ['strength', 'Strengths (Shadbala)'], ['notes', 'Notes about the person']];
   let cur = null, dasaData = null;
 
   async function open(client) {
@@ -120,6 +159,7 @@ const Rp = (() => {
     w.innerHTML = `<div class="xbox xwide" role="dialog" aria-label="Create report"><h3>Create report</h3>
       <p class="note">For ${esc(S.chart.meta.name || 'the chart on screen')}, ${esc(S.chart.meta.local)}, ${esc(S.chart.meta.place)}</p>
       <h5>Pages</h5><div class="xchecks" id="rpPages"></div>
+      <div class="row" id="rpVrow"><label style="flex:1;min-width:220px">Divisional charts<select id="rpVset">${Object.keys(VSETS).map(k => `<option value="${k}">${VSETS[k][0]}</option>`).join('')}</select></label></div>
       <h5>Look</h5><div class="row"><label>Paper<select id="rpPaper"><option>A4</option><option>Letter</option></select></label><label>Style<select id="rpStyle"><option value="classic">Classic</option><option value="minimal">Minimal</option></select></label><label>Language<select id="rpLang"><option>English</option></select></label></div>
       <div class="row"><label style="flex:1;min-width:180px">Prepared by<input id="rpBy" placeholder="Your name or practice"></label><label style="flex:1;min-width:180px">Footer line (optional)<input id="rpFoot" placeholder="Phone, email or website"></label></div>
       <div class="row"><label class="xfile sec">Logo<input type="file" id="rpLogo" accept="image/*" hidden></label><img id="rpLogoImg" alt="" class="xlogo" hidden><button type="button" class="sec" id="rpLogoX" hidden>Remove logo</button></div>
@@ -129,10 +169,11 @@ const Rp = (() => {
     document.body.appendChild(w);
     const c = cfg();
     $('#rpPages', w).innerHTML = PAGES.map(([k, n]) => `<label class="chk"><input type="checkbox" data-pg="${k}"${c.pages[k] ? ' checked' : ''}> ${esc(n)}</label>`).join('');
+    $('#rpVset', w).value = VSETS[c.vset] ? c.vset : 'shodashavarga'; const vsync = () => { $('#rpVrow', w).hidden = !$('[data-pg="vargas"]', w).checked; }; $('[data-pg="vargas"]', w).onchange = vsync; vsync();
     $('#rpPaper', w).value = c.paper; $('#rpStyle', w).value = c.style; $('#rpBy', w).value = c.by; $('#rpFoot', w).value = c.footer;
     const showLogo = () => { const im = $('#rpLogoImg', w); im.hidden = !c.logo; im.src = c.logo || ''; $('#rpLogoX', w).hidden = !c.logo; };
     showLogo();
-    const save = () => { c.paper = $('#rpPaper', w).value; c.style = $('#rpStyle', w).value; c.by = $('#rpBy', w).value; c.footer = $('#rpFoot', w).value; $$('[data-pg]', w).forEach(b => c.pages[b.dataset.pg] = b.checked ? 1 : 0); Extra.lsSet('jt_report', c); return c; };
+    const save = () => { c.vset = $('#rpVset', w).value; c.paper = $('#rpPaper', w).value; c.style = $('#rpStyle', w).value; c.by = $('#rpBy', w).value; c.footer = $('#rpFoot', w).value; $$('[data-pg]', w).forEach(b => c.pages[b.dataset.pg] = b.checked ? 1 : 0); Extra.lsSet('jt_report', c); return c; };
     w.onclick = e => { if (e.target === w) { save(); w.remove(); } };
     $('#rpClose', w).onclick = () => { save(); w.remove(); };
     $('#rpLogoX', w).onclick = () => { c.logo = ''; showLogo(); save(); };
@@ -187,8 +228,8 @@ const Rp = (() => {
       out.push(sec('Vimshottari dasa', `<p>Running now: ${dasaData.at.path.map(x => esc(x.lord)).join(' &gt; ')}</p>${t2(['Mahadasa', 'From', 'To'], mah.map(x => [x.lord, x.start, x.end]))}${curM && curM.sub ? `<h3>Antardasas in the running ${esc(curM.lord)} mahadasa</h3>${t2(['Antardasa', 'From', 'To'], curM.sub.map(x => [x.lord, x.start, x.end]))}` : ''}`));
     }
     if (s.pages.vargas) {
-      const V = [1, 2, 3, 4, 7, 9, 10, 12, 16, 20, 24, 27, 30, 40, 45, 60];
-      out.push(sec('Divisional charts', t2(['Body', ...V.map(n => 'D' + n)], [['Lagna', ...V.map(n => SA[c.vargas[n].asc])], ...ORD.map(nm => [nm, ...V.map(n => SA[c.vargas[n].planets[nm]])])])));
+      const V = (VSETS[s.vset] || VSETS.shodashavarga)[1];
+      out.push(sec('Divisional charts: ' + (VSETS[s.vset] || VSETS.shodashavarga)[0].split(' (')[0], t2(['Body', ...V.map(n => 'D' + n)], [['Lagna', ...V.map(n => SA[c.vargas[n].asc])], ...ORD.map(nm => [nm, ...V.map(n => SA[c.vargas[n].planets[nm]])])])));
     }
     if (s.pages.strength && c.shadbala) {
       const PL7 = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];

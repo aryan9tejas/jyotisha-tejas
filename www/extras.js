@@ -170,7 +170,10 @@ const Extra = (() => {
     const nm = m === 12 ? [y + 1, 1] : [y, m + 1];
     getMonth(nm[0], nm[1]).then(() => { if (CAL.y === y && CAL.m === m) calUpcoming(); }).catch(() => {});
   }
-  const dots = (ev) => [...new Set(ev.filter(e => CAL.home || CAL.filt[e.cat]).map(e => e.cat))].map(c => `<i class="xd d-${c}"></i>`).join('');
+  const dots = (ev) => [...new Set(ev.filter(e => (CAL.home || CAL.filt[e.cat]) && e.cat !== 'moon').map(e => e.cat))].map(c => `<i class="xd d-${c}"></i>`).join('');
+  const PUR = new Set(['purnima', 'buddha', 'guru', 'raksha', 'sharad', 'kartikapurnima', 'hanuman', 'datta', 'holika']), AMA = new Set(['amavasya', 'vatsavitri', 'mahalaya', 'diwali', 'ugadi']);
+  const moonSvg = full => `<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4.8" fill="${full ? '#e4e8ee' : '#262a35'}" stroke="#262a35" stroke-width="1.4"/></svg>`;
+  const moonOf = ev => ev.some(e => PUR.has(e.id)) ? `<span class="xmn" title="Purnima">${moonSvg(true)}</span>` : ev.some(e => AMA.has(e.id)) ? `<span class="xmn" title="Amavasya">${moonSvg(false)}</span>` : '';
   function calPaint() {
     const el = CAL.el; if (!el) return;
     const pl = place(), t = today(pl.tz), p = person();
@@ -184,11 +187,11 @@ const Extra = (() => {
       CAL.rows.forEach(r => {
         const q = quality(r, p), dd = +r.date.slice(8);
         const tl = sysOf().sol ? String(r.sol ? r.sol.d : '') : sysOf().era === 'civil' ? String(civilDate(r.date).d) : r.tithi === 15 ? 'Pur' : r.tithi === 30 ? 'Ama' : (r.tithi < 15 ? 'S' : 'K') + (r.tithi % 15);
-        cells.push(`<button type="button" class="xc${r.date === t ? ' today' : ''}${r.date === CAL.sel ? ' sel' : ''}" data-d="${r.date}" aria-label="${esc(fmtDayY(r.date))}"><b>${dd}</b><small>${tl}</small><span class="xds">${dots(r.events)}</span>${q && CAL.q ? `<span class="xq q-${q.level}"></span>` : ''}</button>`);
+        cells.push(`<button type="button" class="xc${r.date === t ? ' today' : ''}${r.date === CAL.sel ? ' sel' : ''}" data-d="${r.date}" aria-label="${esc(fmtDayY(r.date))}"><b>${dd}</b><small>${tl}</small>${moonOf(r.events)}<span class="xds">${dots(r.events)}</span>${q && CAL.q ? `<span class="xq q-${q.level}"></span>` : ''}</button>`);
       });
       const label = (() => { const a = CAL.rows[0], b = CAL.rows[CAL.rows.length - 1]; const x = masaOf(a, CAL.pm), y = masaOf(b, CAL.pm); return x === y ? x : `${x} / ${y}`; })();
       body = `<div class="xdow">${DOWS.map(d => `<span>${d}</span>`).join('')}</div><div class="xgrid">${cells.join('')}</div>
-        <p class="note xlegend"><i class="xd d-fest"></i> Festival <i class="xd d-hol"></i> Holiday <i class="xd d-vrata"></i> Vrata <i class="xd d-moon"></i> Purnima / Amavasya <i class="xd d-sky"></i> Sankranti${p ? ' &middot; bar under the date: <span class="xq q-g inl"></span> good <span class="xq q-m inl"></span> mixed <span class="xq q-r inl"></span> weak for you' : ''}</p>
+        <p class="note xlegend"><i class="xd d-fest"></i> Festival <i class="xd d-hol"></i> Holiday <i class="xd d-vrata"></i> Vrata <span class="xmn inl">${moonSvg(true)}</span> Purnima <span class="xmn inl">${moonSvg(false)}</span> Amavasya <i class="xd d-sky"></i> Sankranti${p ? ' &middot; bar under the date: <span class="xq q-g inl"></span> good <span class="xq q-m inl"></span> mixed <span class="xq q-r inl"></span> weak for you' : ''}</p>
         <p class="note">${esc(eraOf(CAL.rows[0], 1))}${eraOf(CAL.rows[0], 1) !== eraOf(CAL.rows[CAL.rows.length - 1], 1) ? ' / ' + esc(eraOf(CAL.rows[CAL.rows.length - 1], 1)) : ''}${solarDay() ? '' : ' &middot; ' + esc(label)}. ${solarDay() ? 'Dates show the day of the solar month; the lunar tithi is in the day details.' : 'Tithi at sunrise: S = Shukla, K = Krishna.'}</p>`;
     }
     el.innerHTML = `<div class="xcal">
@@ -198,7 +201,7 @@ const Extra = (() => {
         <button type="button" class="sec" id="xNext" aria-label="Next month">&#8250;</button><span class="sp"></span>
         <button type="button" class="sec" id="xToday">Today</button>${CAL.home ? '<button type="button" class="sec" id="xGear" aria-label="Customise Home view" title="Customise">&#9881;</button>' : '<button type="button" class="sec" id="xExport">Export</button>'}</div>
       ${CAL.home ? `<div class="xmeta"><button type="button" class="xme" id="xMe" title="Whose birth star is used for Tarabala and Chandrabala">${p ? 'For you: <b>' + esc(p.name || NAKN[p.nak]) + '</b>' + (p.name ? ' (' + esc(NAKN[p.nak]) + ')' : '') : 'Set birth star'} &#9662;</button><span class="xtype" title="${esc(sysOf().name + '. ' + sysOf().tip)}">${esc(sysOf().short)}</span></div>` : ''}
-      ${CAL.home ? '' : `<div class="xfilt">${CATS.map(([k, n]) => `<button type="button" class="xchip${CAL.filt[k] ? ' on' : ''}" data-f="${k}">${n}</button>`).join('')}<select id="xSys" class="xsel xpm" aria-label="Calendar system">${sysOpts()}</select><select id="xHadj" class="xsel xpm" aria-label="Hijri date adjustment" title="Hijri date adjustment (moon sighting)">${[-1, 0, 1].map(v => `<option value="${v}"${v === CAL.hadj ? ' selected' : ''}>Hijri ${v > 0 ? '+' + v : v}</option>`).join('')}</select></div>`}
+      ${CAL.home ? '' : `<div class="xfilt">${CATS.map(([k, n]) => `<button type="button" class="xchip${CAL.filt[k] ? ' on' : ''}" data-f="${k}">${n}</button>`).join('')}<select id="xSys" class="xsel xpm" aria-label="Calendar system">${sysOpts()}</select><select id="xHadj" class="xsel xpm" aria-label="Islamic holiday adjustment" title="Eid and Muharram dates follow the moon sighting. Shift by a day if needed.">${[-1, 0, 1].map(v => `<option value="${v}"${v === CAL.hadj ? ' selected' : ''}>Eid ${v > 0 ? '+' + v : v === 0 ? 'as calculated' : v}</option>`).join('')}</select></div>`}
       <div class="xbody">${body}</div><div id="xDetail"></div><div id="xUp"></div></div>`;
     $('#xPrev').onclick = () => calStep(-1); $('#xNext').onclick = () => calStep(1);
     $('#xToday').onclick = () => { const q = parse(today(place().tz)); CAL.y = q.y; CAL.m = q.m; CAL.sel = today(place().tz); CAL.rows = null; calPaint(); calLoad(); };
@@ -225,7 +228,7 @@ const Extra = (() => {
     const T = r.times || {};
     const trow = (n, k) => T[k] ? `<div><span>${n}</span><b>${esc(T[k][0])} to ${esc(T[k][1])}</b></div>` : '';
     box.innerHTML = `<div class="xsheet">
-      <div class="xsh1"><h4>${esc(fmtDayY(r.date))}</h4><small>${solarDay() ? esc(eraOf(r)) + ' &middot; ' : ''}${esc(masaOf(r, CAL.pm))} ${esc(r.paksha)} ${esc(TITH[(r.tithi - 1) % 15])}${r.tithi === 30 ? ' (Amavasya)' : ''}${solarDay() ? '' : ' &middot; ' + esc(eraOf(r))}${r.hijri ? ' &middot; Hijri ' + r.hijri.d + ' ' + esc(r.hijri.name) + ' ' + r.hijri.y : ''}</small></div>
+      <div class="xsh1"><div class="xdn"><button type="button" class="sec" id="xDPrev" aria-label="Previous day">&#8249;</button><h4>${esc(fmtDayY(r.date))}</h4><button type="button" class="sec" id="xDNext" aria-label="Next day">&#8250;</button></div><small>${solarDay() ? esc(eraOf(r)) + ' &middot; ' : ''}${esc(masaOf(r, CAL.pm))} ${esc(r.paksha)} ${esc(TITH[(r.tithi - 1) % 15])}${r.tithi === 30 ? ' (Amavasya)' : ''}${solarDay() ? '' : ' &middot; ' + esc(eraOf(r))}</small></div>
       <div class="xevs">${r.events.length ? r.events.map(evChip).join('') : '<span class="note">No festival or vrata today.</span>'}</div>
       ${CAL.det.pg ? `<div class="xpg"><div><span>Tithi</span><b>${esc(r.tithi_name)}</b><small>${until(r.tithi_end, r.tithi_end_date)}</small></div><div><span>Nakshatra</span><b>${esc(r.nak_name)}</b><small>${until(r.nak_end, r.nak_end_date)}</small></div>
         <div><span>Yoga</span><b>${esc(r.yoga)}</b><small>${r.yoga_end ? 'until ' + esc(r.yoga_end) : ''}</small></div><div><span>Karana</span><b>${esc(r.karana)}</b></div>
@@ -233,6 +236,12 @@ const Extra = (() => {
       ${CAL.det.tm ? `<div class="xtm"><h5>Timings</h5>${trow('Abhijit', 'Abhijit')}${trow('Vijaya', 'Vijaya Muhurta')}${trow('Brahma', 'Brahma Muhurta')}${trow('Rahu Kala', 'Rahu Kalam')}${trow('Yama Gandam', 'Yama Gandam')}${trow('Gulika Kala', 'Gulika Kalam')}</div>` : ''}
       ${!CAL.det.you ? '' : q ? `<div class="xyou q-${q.level}"><h5>For you${p.name ? ' (' + esc(p.name) + ')' : ''}</h5><span>Tarabala <b>${esc(q.tara)}</b> ${q.tg ? 'good' : 'weak'}</span><span>Chandrabala <b>${ord(q.ch)} from your Moon</b> ${q.cg ? 'good' : 'weak'}</span></div>` : '<p class="note">Add your birth star under Muhurta finder, or calculate a chart, to see Tarabala and Chandrabala for each day.</p>'}
       ${CAL.det.btn ? '<div class="xbtns"><button type="button" class="sec" id="xFull">Full panchanga</button><button type="button" class="sec" id="xBrief">My day</button><button type="button" class="sec" id="xAdd">Add this day to my calendar</button></div>' : ''}</div>`;
+    const dayStep = n => {
+      const y0 = window.scrollY, nd = addDays(CAL.sel, n), p2 = parse(nd);
+      if (p2.y !== CAL.y || p2.m !== CAL.m) { CAL.y = p2.y; CAL.m = p2.m; CAL.rows = null; CAL.sel = nd; calPaint(); calLoad(); } else { CAL.sel = nd; calPaint(); }
+      window.scrollTo(0, y0);
+    };
+    $('#xDPrev').onclick = () => dayStep(-1); $('#xDNext').onclick = () => dayStep(1);
     if (!CAL.det.btn) return;
     $('#xFull').onclick = () => gotoSub('panchanga', () => { $('#pnDate').value = r.date; $('#pnDay').click(); });
     $('#xBrief').onclick = () => gotoSub('brief', () => { BR.date = r.date; const b = document.querySelector('#pnSub button[data-s="brief"]'); if (b) b.click(); });
@@ -255,7 +264,7 @@ const Extra = (() => {
     const nm = CAL.m === 12 ? [CAL.y + 1, 1] : [CAL.y, CAL.m + 1];
     try { rows = rows.concat(await getMonth(nm[0], nm[1])); } catch (e) { /* ignore */ }
     const list = upcomingFrom(rows, from, 9);
-    box.innerHTML = list.length ? `<h4 class="xh4">Coming up</h4><div class="xlist">${list.map(x => { const dd = utcDay(x.date) - utcDay(today(tz)); return `<button type="button" class="xrow" data-d="${x.date}"><span class="xdt">${esc(fmtDay(x.date))}</span><span class="xn"><i class="xd d-${x.e.cat}"></i> ${esc(x.e.name)}</span><span class="xin">${dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : dd > 0 ? 'in ' + dd + ' days' : ''}</span></button>`; }).join('')}</div><p class="note">${esc(DISC)}</p>` : `<p class="note">${esc(DISC)}</p>`;
+    box.innerHTML = list.length ? `<h4 class="xh4">Coming up</h4><div class="xlist">${list.map(x => { const dd = utcDay(x.date) - utcDay(today(tz)); return `<button type="button" class="xrow" data-d="${x.date}"><span class="xdt">${esc(fmtDay(x.date))}</span><span class="xn">${x.e.cat === 'moon' ? `<span class="xmn inl" style="margin:0">${moonSvg(PUR.has(x.e.id) || x.e.id === 'purnima')}</span>` : `<i class="xd d-${x.e.cat}"></i>`} ${esc(x.e.name)}</span><span class="xin">${dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : dd > 0 ? 'in ' + dd + ' days' : ''}</span></button>`; }).join('')}</div><p class="note">${esc(DISC)}</p>` : `<p class="note">${esc(DISC)}</p>`;
     $$('.xrow', box).forEach(b => b.onclick = () => { const d = b.dataset.d, p = parse(d); if (p.y !== CAL.y || p.m !== CAL.m) { CAL.y = p.y; CAL.m = p.m; CAL.rows = null; CAL.sel = d; calPaint(); calLoad(); } else { CAL.sel = d; calPaint(); } });
   }
 
@@ -608,8 +617,8 @@ const Extra = (() => {
         <p class="note">Live shows the clock, lagna, hora and today's panchang. Remembered on this device. Live is the default.</p>
         <h5>Calendar system</h5><select id="xSysD" class="xsel" style="width:100%">${sysOpts()}</select><p class="note" id="xSysTip">${esc(sysOf().tip)}</p>
         <h5>State holidays</h5><select id="xStD" class="xsel" style="width:100%"><option value=""${CAL.state === '' ? ' selected' : ''}>National holidays only</option><option value="all"${CAL.state === 'all' ? ' selected' : ''}>All states</option>${STATES.map(n => `<option${CAL.state === n ? ' selected' : ''}>${n}</option>`).join('')}</select>
-        <h5>Hijri dates</h5><select id="xHD" class="xsel" style="width:100%">${[-1, 0, 1].map(v => `<option value="${v}"${v === CAL.hadj ? ' selected' : ''}>${v === 0 ? 'Calculated (India sighting)' : v > 0 ? 'A day later (+1)' : 'A day earlier (-1)'}</option>`).join('')}</select>
-        <p class="note">Eid, Muharram and other Islamic dates follow the moon sighting, so they can differ by a day. Adjust here. Every festival, vrata, moon day and holiday is listed for the selected date.</p>
+        <h5>Islamic holidays</h5><select id="xHD" class="xsel" style="width:100%">${[-1, 0, 1].map(v => `<option value="${v}"${v === CAL.hadj ? ' selected' : ''}>${v === 0 ? 'Calculated (India sighting)' : v > 0 ? 'A day later (+1)' : 'A day earlier (-1)'}</option>`).join('')}</select>
+        <p class="note">Eid, Muharram and other Islamic holidays follow the moon sighting, so they can differ by a day. Adjust here. Every festival, vrata, moon day and holiday is listed for the selected date.</p>
         <h5>On the month grid</h5>${tg('q', 'Day quality bar', 'Green, amber, red for your chart', CAL.q)}
         <h5>Under the grid</h5>${tg('d:pg', 'Tithi, nakshatra, yoga, karana', '', CAL.det.pg)}${tg('d:tm', 'Timings', 'Abhijit, Rahu Kala, Yama Gandam, Gulika', CAL.det.tm)}${tg('d:you', 'Tarabala and Chandrabala', 'Needs a saved profile or a chart', CAL.det.you)}${tg('d:up', 'Coming up list', '', CAL.det.up)}${tg('d:btn', 'Action buttons', 'Full panchanga, My day, Add to calendar', CAL.det.btn)}
         <div class="xbtns"><button type="button" id="xHVok">Done</button></div></div>`;

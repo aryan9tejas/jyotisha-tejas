@@ -62,11 +62,12 @@ const Local = (() => {
     throw new Error('Unknown local route ' + path);
   }
   const isLocal = url => /^\/api\/(places|tz|profiles|saved)/.test(url);
-  const exportAll = () => JSON.stringify({app: 'Jyotisha Tejas', version: 1, state}, null, 1);
+  const exportAll = () => JSON.stringify({app: 'Jyotisha Tejas', version: 1, state, groups: (() => { try { return JSON.parse(localStorage.getItem('jt_groups') || 'null'); } catch (e) { return null; } })()}, null, 1);
   async function importAll(text) {
     const j = JSON.parse(text);
     if (!j || !j.state || !Array.isArray(j.state.profiles)) throw new Error('Not a Jyotisha Tejas backup file');
     state = j.state; await persist();
+    try { if (Array.isArray(j.groups)) localStorage.setItem('jt_groups', JSON.stringify(j.groups)); } catch (e) { /* ignore */ }
   }
   return {init, handle, isLocal, exportAll, importAll};
 })();

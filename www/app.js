@@ -369,7 +369,7 @@ function amsaInfo(n, sign, deg) {
 function loadCharts(p) {
   const c = S.chart;
   if (!c) { p.innerHTML = '<p>Enter birth details and press Calculate.</p>'; return; }
-  const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('') + '<option value="C">Bhava Chalit (Sripati)</option>';
+  const opts = n => VARGAS.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>D${v} ${esc(c.vargas[v].name)}</option>`).join('') + '<option value="C">Bhava Chalit</option>';
   const m = c.meta;
   const bp = c.panchanga, moon = c.planets.find(x => x.name === 'Moon');
   const bc = [['Lagna', `${c.asc.sign_name} ${c.asc.dms}`], ['Lagna star', `${c.asc.nak}, pada ${c.asc.pada}, ${c.asc.nak_lord}`],
@@ -385,7 +385,7 @@ function loadCharts(p) {
     ${legend([[COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
     ${markLegend()}
     <div class="two" id="cRow"><div class="chartbox" id="cL"></div><div class="chartbox" id="cR"></div><div class="chartbox" id="cM" hidden></div></div>
-    <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}<option value="C">Bhava Chalit (Sripati)</option></select></label></div><div id="postab"></div>
+    <h3>Positions (sidereal)</h3><div class="row"><label>Chart<select id="posV">${VARGAS.map(v => `<option value="${v}"${v === 1 ? ' selected' : ''}>D${v} ${v === 1 ? 'Rasi' : esc(c.vargas[v].name)}</option>`).join('')}<option value="C">Bhava Chalit</option></select></label></div><div id="postab"></div>
     <h3>Divisional positions</h3><div id="vtab"></div>`;
   const draw = () => {
     S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; S.show.c3 = $('#sh3').checked; S.show.v3 = $('#vM').value;
@@ -892,6 +892,7 @@ async function refreshProfiles(selectId) {
   const list = await api('/api/profiles');
   window._profiles = list;
   S.loaded.clients = -1;
+  if (S.tab === 'clients' && typeof Cl !== 'undefined' && $('#p-clients')) Cl.load($('#p-clients'));
   $('#profileSel').innerHTML = '<option value="">Saved profiles...</option>' + list.map(x => `<option value="${x.id}"${x.id === selectId ? ' selected' : ''}>${esc(x.name || '(unnamed)')} - ${x.year}-${String(x.month).padStart(2, '0')}-${String(x.day).padStart(2, '0')}</option>`).join('');
 }
 function profileToForm(x) {
