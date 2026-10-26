@@ -173,19 +173,73 @@ def _varga_view(x):
             'upa': x['upa'], 'upa_pos': r4(x['upa_pos']), 'lagnas': x['lagnas'], 'lagna_pos': r4(x['lagna_pos'])}
 
 
-def chalit_view(c):
-    """Bhava Chalit (Sripati): bhava madhyas by trisecting the quadrants between Asc, IC, Desc and MC;
-    each bhava runs from the midpoint with the previous madhya to the midpoint with the next."""
-    asc, mc = float(c['asc']['lon']) % 360, float(c['mc']) % 360
+CHALIT_METHODS = [
+    ('equal_madhya', 'Equal, Lagna degree as the centre of bhava 1'),
+    ('equal_start', 'Equal, Lagna degree as the start of bhava 1'),
+    ('sripati', 'Sripati (Porphyry-based, midpoints between centres)'),
+    ('porphyry', 'Porphyry (quadrants trisected, cusps are starts)'),
+    ('placidus', 'Placidus (KP)'),
+    ('koch', 'Koch'),
+    ('whole_sign', 'Whole sign (same as Rasi)'),
+]
+
+
+def _sripati_mid(asc, mc):
     q = [asc, (mc + 180) % 360, (asc + 180) % 360, mc]   # H1, H4, H7, H10
     h = {1: q[0], 4: q[1], 7: q[2], 10: q[3]}
-    for a_h, b_h, n in ((1, 4, 3), (4, 7, 3), (7, 10, 3), (10, 1, 3)):
+    for a_h, b_h in ((1, 4), (4, 7), (7, 10), (10, 1)):
         a, b = h[a_h], h[b_h]
         span = (b - a) % 360
         for j in range(1, 3):
             h[(a_h + j - 1) % 12 + 1] = (a + span * j / 3.0) % 360
-    mid = [h[i] for i in range(1, 13)]
-    beg = [(mid[i - 1] + ((mid[i] - mid[i - 1]) % 360) / 2.0) % 360 for i in range(12)]
+    return [h[i] for i in range(1, 13)]
+
+
+def _mid_between(beg):
+    return [(beg[i] + ((beg[(i + 1) % 12] - beg[i]) % 360) / 2.0) % 360 for i in range(12)]
+
+
+def chalit_view(c, method='equal_madhya'):
+    """Bhava Chalit for one method. beg[i] is where bhava i+1 starts, mid[i] its centre."""
+    asc, mc = float(c['asc']['lon']) % 360, float(c['mc']) % 360
+    note = ''
+    used = method
+
+    def swe_cusps(code):
+        m = c['meta']
+        try:
+            core.set_ayanamsa(m['cfg'].get('ayanamsa'))
+        except Exception:
+            pass
+        cu, _a = core.swe.houses_ex(float(m['jd']), float(m['lat']), float(m['lon']), code, core.swe.FLG_SIDEREAL)
+        return [float(x) % 360 for x in cu[:12]]
+
+    if method == 'equal_madhya':
+        mid = [(asc + 30 * i) % 360 for i in range(12)]
+        beg = [(x - 15) % 360 for x in mid]
+    elif method == 'equal_start':
+        beg = [(asc + 30 * i) % 360 for i in range(12)]
+        mid = [(x + 15) % 360 for x in beg]
+    elif method == 'whole_sign':
+        s0 = int(asc // 30) * 30
+        beg = [(s0 + 30 * i) % 360 for i in range(12)]
+        mid = [(x + 15) % 360 for x in beg]
+    elif method == 'sripati':
+        mid = _sripati_mid(asc, mc)
+        beg = [(mid[i - 1] + ((mid[i] - mid[i - 1]) % 360) / 2.0) % 360 for i in range(12)]
+    else:   # porphyry, placidus, koch: the cusps are the starts
+        code = {'porphyry': b'O', 'placidus': b'P', 'koch': b'K'}.get(method, b'O')
+        try:
+            beg = swe_cusps(code)
+        except Exception:
+            used = 'porphyry'
+            note = 'Placidus and Koch cannot be worked out this far from the equator, so Porphyry is shown.'
+            try:
+                beg = swe_cusps(b'O')
+            except Exception:
+                q = _sripati_mid(asc, mc)
+                beg = q
+        mid = _mid_between(beg)
     rows = []
     for i in range(12):
         rows.append({'house': i + 1, 'begin': core.dms(beg[i] % 30), 'begin_sign': int(beg[i] // 30), 'madhya': core.dms(mid[i] % 30),
@@ -197,7 +251,7 @@ def chalit_view(c):
             if (lon - beg[i]) % 360 < (beg[(i + 1) % 12] - beg[i]) % 360:
                 planets[p['name']] = i + 1
                 break
-    return {'rows': rows, 'planets': planets, 'asc_sign': c['asc']['sign']}
+    return {'method': used, 'asked': method, 'note': note, 'rows': rows, 'planets': planets, 'asc_sign': c['asc']['sign']}
 
 
 def chart_view(c, with_strength=True):
@@ -225,7 +279,9 @@ def chart_view(c, with_strength=True):
         _m = v['vargas']['1']['marks'].get(pv['name'], {})
         pv['marana'] = bool(_m.get('mk'))
         pv['parivartana'] = _m.get('pv')
-    v['chalit'] = chalit_view(c)
+    v['chalit_all'] = {m: chalit_view(c, m) for m, _l in CHALIT_METHODS}
+    v['chalit'] = v['chalit_all']['equal_madhya']
+    v['chalit_methods'] = [[m, l] for m, l in CHALIT_METHODS]
     if with_strength:
         sb = strength.shadbala(c)
         v['shadbala'] = {p: {k: fnum(x, 2) if isinstance(x, float) else x for k, x in r.items()} for p, r in sb['planets'].items()}
@@ -292,7 +348,7 @@ def api_calmonth():
         d = request.get_json()
         lat, lon = float(d['lat']), float(d['lon'])
         tz = d.get('tz') or places.tz_for(lat, lon)
-        return jsonify({'days': cal.month(int(d['year']), int(d['month']), lat, lon, tz, parse_cfg(d.get('cfg')))})
+        return jsonify({'days': cal.month(int(d['year']), int(d['month']), lat, lon, tz, parse_cfg(d.get('cfg')), d.get('state') or None, d.get('solar') or None, int(d.get('hadj') or 0))})
     except Exception as e:
         return err(e)
 

@@ -113,3 +113,15 @@ textarea{font:inherit;padding:8px;border:1px solid #cfc8b8;border-radius:6px;wid
 @media (min-width:900px){.hm-calpanel .xcal{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0 18px;align-items:start}.hm-calpanel .xcal>.xhead,.hm-calpanel .xcal>.xfilt{grid-column:1/-1}.hm-calpanel .xbody{grid-column:1;grid-row:3/span 2}.hm-calpanel .xcal>#xDetail,.hm-calpanel .xcal>#xUp{grid-column:2}.hm-calpanel .xcal>#xDetail{grid-row:3}.hm-calpanel .xcal>#xUp{grid-row:4}.hm-calpanel .xsheet{margin-top:0}}
 label.xl{display:flex;flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:12px}
 label.xl>div{flex:1;text-align:left}
+
+.xmeta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+.xme{min-height:34px;padding:0 10px;font-size:13px;border-radius:16px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--sec-bg);color:var(--acc);border:1px solid var(--sec-line)}
+.xtype{font-size:11px;color:var(--mut);white-space:nowrap}
+@media (max-width:520px){
+ .hm-calpanel .xhead{flex-wrap:nowrap;gap:4px;margin-bottom:8px}
+ .hm-calpanel .xhead button{padding:0 7px;min-width:34px;min-height:38px;font-size:14px}
+ .hm-calpanel .xhead .xsel{padding:0 3px;font-size:14px;min-height:38px;min-width:0}
+ .hm-calpanel #xMon{flex:1 1 0;max-width:72px}.hm-calpanel #xYear{flex:1 1 0;max-width:74px}
+ .hm-calpanel .xhead .sp{display:none}
+ .hm-calpanel #xToday{margin-left:auto}
+}

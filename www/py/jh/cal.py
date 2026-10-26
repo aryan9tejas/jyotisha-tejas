@@ -8,6 +8,7 @@ import swisseph as swe
 from .consts import *
 from . import core
 from .core import LOCK, DEFAULT_CFG, norm, sid_lon, day_bounds, fmt_local, tz_offset_hours
+from . import cal_ext
 from .panchanga import _f_tithi, _f_moon, _f_yoga, segments_fast, hora_table, kalams, tithi_name, karana_name, MASAS
 
 MASA_FROM_SIGN = lambda s: (s + 1) % 12          # Sun in Pisces at the new moon starts Chaitra
@@ -68,6 +69,32 @@ VRATA = [  # monthly observances: (id, name, tithi, time, category)
 ]
 HOLIDAYS = {(1, 1): 'New Year\'s Day', (1, 26): 'Republic Day (India)', (4, 14): 'Ambedkar Jayanti', (5, 1): 'Labour Day',
             (8, 15): 'Independence Day (India)', (10, 2): 'Gandhi Jayanti', (12, 25): 'Christmas'}
+PUBLIC = {(1, 26), (4, 14), (8, 15), (10, 2), (12, 25)}     # gazetted national holidays that fall on a fixed date
+OBSERVE = {(1, 24): 'National Girl Child Day', (9, 5): 'Teachers\' Day', (10, 31): 'National Unity Day', (11, 14): 'Children\'s Day', (11, 26): 'Constitution Day'}
+# state days with a fixed date: state -> {(month, day): name}
+STATE_DAYS = {
+    'Karnataka': {(11, 1): 'Karnataka Rajyotsava'}, 'Maharashtra': {(5, 1): 'Maharashtra Day'}, 'Gujarat': {(5, 1): 'Gujarat Day'},
+    'Telangana': {(6, 2): 'Telangana Formation Day'}, 'Andhra Pradesh': {(11, 1): 'Andhra Pradesh Formation Day'}, 'Kerala': {(11, 1): 'Kerala Piravi'},
+    'Tamil Nadu': {(7, 18): 'Tamil Nadu Day'}, 'Odisha': {(4, 1): 'Utkal Divas'}, 'West Bengal': {(6, 20): 'Paschimbanga Dibas'},
+    'Punjab': {(11, 1): 'Punjab Day'}, 'Haryana': {(11, 1): 'Haryana Day'}, 'Madhya Pradesh': {(11, 1): 'Madhya Pradesh Foundation Day'},
+    'Chhattisgarh': {(11, 1): 'Chhattisgarh Foundation Day'}, 'Rajasthan': {(3, 30): 'Rajasthan Day'}, 'Uttar Pradesh': {(1, 24): 'Uttar Pradesh Diwas'},
+    'Bihar': {(3, 22): 'Bihar Diwas'}, 'Jharkhand': {(11, 15): 'Jharkhand Foundation Day'}, 'Uttarakhand': {(11, 9): 'Uttarakhand Foundation Day'},
+    'Himachal Pradesh': {(1, 25): 'Himachal Statehood Day'}, 'Assam': {(12, 2): 'Asom Divas'}, 'Goa': {(5, 30): 'Goa Statehood Day', (12, 19): 'Goa Liberation Day'},
+    'Delhi': {(2, 2): 'Delhi Statehood Day'},
+}
+
+
+def _easter(y):
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = b // 4, b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    mo = (h + l - 7 * m + 114) // 31
+    return date(y, mo, (h + l - 7 * m + 114) % 31 + 1)
 WD3 = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 TARA = ['Janma', 'Sampat', 'Vipat', 'Kshema', 'Pratyak', 'Sadhana', 'Naidhana', 'Mitra', 'Parama Mitra']
 TARA_GOOD = [False, True, False, True, False, True, False, True, True]
@@ -152,7 +179,7 @@ def _rt(day, kind):
             'mnt': ss + (nsr - ss) * 0.5, 'mrise': ss + 0.1}[kind]
 
 
-def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
+def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None, solar=None, hadj=0):
     """Calendar rows for `days` days from y-m-d."""
     cfg = {**DEFAULT_CFG, **(cfg or {})}
     with LOCK:
@@ -194,7 +221,7 @@ def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
         ev = {i: [] for i in range(len(dl))}
         for (eid, name, month, tnum, tk, cat, hol) in FEST:
             for i in matches(tk, tnum, month):
-                ev[i].append({'id': eid, 'name': name, 'cat': 'hol' if hol else 'fest', 'fest': 1})
+                ev[i].append({'id': eid, 'name': name, 'cat': 'hol' if hol else 'fest', 'fest': 1, 'pub': 1 if hol else 0})
         for (eid, name, tnum, tk, cat) in VRATA:
             for i in matches(tk, tnum):
                 nm = name
@@ -206,6 +233,10 @@ def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
                 elif eid == 'sankashti' and dl[i]['vara'] == 2:
                     nm = 'Angaraki Sankashti Chaturthi'
                 ev[i].append({'id': eid, 'name': nm, 'cat': cat})
+        sols = None
+        if solar and solar in cal_ext.SOLAR:
+            nk_all = [int(fm(_rt(x, 'sr')) // NAK_SPAN) for x in dl]
+            sols = cal_ext.solar_rows(solar, [x['date'] for x in dl], [x['off'] for x in dl], lat, lon, cfg, nk_all)
         rows = []
         for i in range(1, len(dl) - 1):
             dy = dl[i]
@@ -224,9 +255,26 @@ def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
                     if fmt_local(tt, off, False)[:10] == dy['date'].isoformat():
                         sg = s2 % 12
                         e.append({'id': 'sankranti', 'name': SANK.get(sg, SKR[sg] + ' Sankranti'), 'cat': 'sky', 'time': F(tt), 'sign': sg})
-            hl = HOLIDAYS.get((dy['date'].month, dy['date'].day))
+            md = (dy['date'].month, dy['date'].day)
+            hl = HOLIDAYS.get(md)
             if hl:
-                e.append({'id': 'civil', 'name': hl, 'cat': 'hol', 'civil': 1})
+                e.append({'id': 'civil', 'name': hl, 'cat': 'hol' if md in PUBLIC else 'fest', 'civil': 1, 'pub': 1 if md in PUBLIC else 0})
+            if OBSERVE.get(md):
+                e.append({'id': 'obs', 'name': OBSERVE[md], 'cat': 'fest', 'civil': 1})
+            es = _easter(dy['date'].year)
+            if dy['date'] == es - timedelta(days=2):
+                e.append({'id': 'goodfriday', 'name': 'Good Friday', 'cat': 'hol', 'civil': 1, 'pub': 1})
+            elif dy['date'] == es:
+                e.append({'id': 'easter', 'name': 'Easter Sunday', 'cat': 'fest', 'civil': 1})
+            for st in ([region] if region and region != 'all' else (list(STATE_DAYS) if region == 'all' else [])):
+                sn = STATE_DAYS.get(st, {}).get(md)
+                if sn:
+                    e.append({'id': 'state-' + st.lower().replace(' ', ''), 'name': sn + ('' if region != 'all' else f' ({st})'), 'cat': 'hol', 'state': st})
+            hj, hev = cal_ext.hijri_events(dy['date'], off, hadj, dy['vara'])
+            e.extend(hev)
+            sol = sols[i] if sols else None
+            if sol:
+                e.extend(sol['ev'])
             ids = {x['id'] for x in e}
             if ids & {'buddha', 'guru', 'raksha', 'sharad', 'kartikapurnima', 'hanuman', 'datta', 'holika'}:
                 e = [x for x in e if x['id'] != 'purnima']
@@ -247,7 +295,9 @@ def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
                    'nak': tmoon, 'nak_name': NAKSHATRAS[tmoon], 'moon_sign': int(fm(sr) // 30), 'sun_sign': int(sun_sr // 30),
                    'masa': mo['masa'] if mo else None, 'adhika': bool(mo and mo['adhika']),
                    'masa_p': (nxt['masa'] if nxt else None) if ti > 15 and mo else (mo['masa'] if mo else None),
-                   'events': e}
+                   'events': e, 'hijri': hj}
+            if sol:
+                row['sol'] = {k: sol[k] for k in ('d', 'm', 'name', 'era')}
             if not light:
                 te = _next_change(ft, 12, sr)
                 ne = _next_change(fm, NAK_SPAN, sr)
@@ -263,9 +313,9 @@ def build(y, m, d, days, lat, lon, tz, cfg=None, light=False, region=None):
         return rows
 
 
-def month(year, month_, lat, lon, tz, cfg=None):
+def month(year, month_, lat, lon, tz, cfg=None, region=None, solar=None, hadj=0):
     n = (date(year + (month_ == 12), month_ % 12 + 1, 1) - date(year, month_, 1)).days
-    return build(year, month_, 1, n, lat, lon, tz, cfg)
+    return build(year, month_, 1, n, lat, lon, tz, cfg, region=region, solar=solar, hadj=hadj)
 
 
 def range_(y, m, d, days, lat, lon, tz, cfg=None):

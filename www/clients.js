@@ -174,7 +174,7 @@ const Rp = (() => {
     if (s.pages.chalit && c.chalit) {
       const ch = c.chalit, SIGNN = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
       const inB = {}; Object.keys(ch.planets).forEach(n => (inB[ch.planets[n]] = inB[ch.planets[n]] || []).push(n));
-      out.push(sec('Bhava Chalit (Sripati)', `<div class="one"><figure>${svg('C', 'Bhava Chalit')}</figure></div>${t2(['Bhava', 'Begins', 'Centre', 'Ends', 'Planets'], ch.rows.map(r => [r.house, `${SIGNN[r.begin_sign]} ${r.begin}`, `${SIGNN[r.madhya_sign]} ${r.madhya}`, `${SIGNN[r.end_sign]} ${r.end}`, (inB[r.house] || []).join(', ')]))}`));
+      out.push(sec(chalitTitle(c), `<div class="one"><figure>${svg('C', 'Bhava Chalit')}</figure></div>${t2(['Bhava', 'Begins', 'Centre', 'Ends', 'Planets'], ch.rows.map(r => [r.house, `${SIGNN[r.begin_sign]} ${r.begin}`, `${SIGNN[r.madhya_sign]} ${r.madhya}`, `${SIGNN[r.end_sign]} ${r.end}`, (inB[r.house] || []).join(', ')]))}`));
     }
     if (s.pages.positions) {
       const flags = x => [x.states && x.states.length ? x.states.join(', ') : '', isPushkara(x.sign, x.deg) ? 'Pushkara navamsa' : '', x.vargottama ? 'Vargottama' : '', x.digbala ? 'Digbala' : '', x.retro && !['Rahu', 'Ketu'].includes(x.name) ? 'Retrograde' : '', x.combust ? 'Combust' : ''].filter(Boolean).join(', ');

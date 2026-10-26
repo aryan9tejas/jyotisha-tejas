@@ -263,3 +263,7 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 #hmCards .pl .pt{float:right;font-style:normal;opacity:.7;font-size:14px;padding-left:8px}
 #hmCards .pl[data-pb]:active{background:rgba(255,255,255,.06)}
 @media (max-width:700px){#hmCards .pl .pt{position:absolute;right:4px;top:10px}}
+
+.ps1 .pdeg{font-size:13px;font-weight:500;opacity:.8;margin-left:4px;font-variant-numeric:tabular-nums}
+.pn1 .gl{line-height:1.5;overflow:visible;padding-bottom:3px;font-family:"Apple Symbols","Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",Arial,sans-serif;font-variant-emoji:text}
+.pn1{overflow:visible;line-height:1.5}

@@ -220,6 +220,14 @@ function chartItems(c, n, show, o = {}) {
 }
 function styleNow() { return $('input[name=style]:checked').value; }
 const vsel = x => x === 'C' ? 'C' : +x;
+/* Bhava Chalit method: chosen on the Charts tab and kept on this device */
+const CH_LABEL = {equal_madhya: 'Equal, Lagna as centre', equal_start: 'Equal, Lagna as start', sripati: 'Sripati', porphyry: 'Porphyry', placidus: 'Placidus (KP)', koch: 'Koch', whole_sign: 'Whole sign'};
+const CH_NOTE = {equal_madhya: 'Each bhava is 30 degrees, centred on the Lagna degree (the Lagna degree is the middle of bhava 1).', equal_start: 'Each bhava is 30 degrees and bhava 1 starts at the Lagna degree.',
+  sripati: 'The centre of each bhava is found by dividing the arcs between Lagna, IC, Descendant and MC into thirds; a bhava runs from the midpoint with the previous centre to the midpoint with the next.',
+  porphyry: 'The arcs between Lagna, IC, Descendant and MC are divided into thirds; each division point starts a bhava.', placidus: 'Time-based division, as used in KP astrology; each cusp starts a bhava.', koch: 'Time-based division by the birthplace method of Koch; each cusp starts a bhava.', whole_sign: 'Each sign is one bhava, so this is the Rasi chart.'};
+function chalitMethod() { try { const m = localStorage.getItem('jt_chalit'); if (m && CH_LABEL[m]) return m; } catch (e) { /* ignore */ } return 'equal_madhya'; }
+function applyChalit(c) { if (c && c.chalit_all) c.chalit = c.chalit_all[chalitMethod()] || c.chalit_all.equal_madhya; return c; }
+const chalitTitle = c => 'Bhava Chalit (' + (CH_LABEL[c.chalit && c.chalit.method] || 'Sripati') + ')';
 function chalitItems(c) {
   const ch = c.chalit, d1 = c.vargas['1'], out = [];
   for (const name of PL9) {
@@ -231,7 +239,7 @@ function chalitItems(c) {
   return out;
 }
 function drawChart(el, chart, n, title, show) {
-  if (n === 'C') { el.innerHTML = chartSVG({style: styleNow(), asc: chart.chalit.asc_sign, items: chalitItems(chart), title: title || 'Bhava Chalit (Sripati)'}); return; }
+  if (n === 'C') { el.innerHTML = chartSVG({style: styleNow(), asc: chart.chalit.asc_sign, items: chalitItems(chart), title: title || chalitTitle(chart)}); return; }
   const v = chart.vargas[String(n)];
   el.innerHTML = chartSVG({style: styleNow(), asc: v.asc, items: chartItems(chart, n, show || S.show), title: title || `D${n} ${v.name}`});
 }
@@ -371,6 +379,7 @@ function loadCharts(p) {
   p.innerHTML = `<div class="bc">${bc.map(([k, v]) => `<div><span>${esc(k)}</span>${esc(v)}</div>`).join('')}</div>
     <div class="row" style="margin-top:12px"><label>Chart 1<select id="vL">${opts(1)}</select></label><label>Chart 2<select id="vR">${opts(9)}</select></label>
       <label class="chk"><input type="checkbox" id="sh3"${S.show.c3 ? ' checked' : ''}> Add Chart 3</label><label id="vMw"${S.show.c3 ? '' : ' hidden'}>Chart 3<select id="vM">${opts(+S.show.v3 || 10)}</select></label>
+      <label id="chMw" hidden>Bhava Chalit method<select id="chM">${Object.keys(CH_LABEL).map(k => `<option value="${k}"${k === chalitMethod() ? ' selected' : ''}>${CH_LABEL[k]}</option>`).join('')}</select></label>
       <label class="chk"><input type="checkbox" id="shLA"${S.show.la ? ' checked' : ''}> Lagnas &amp; Arudhas</label>
       <label class="chk"><input type="checkbox" id="shUp"${S.show.up ? ' checked' : ''}> Upagrahas (Gulika, Mandi and others)</label></div>
     ${legend([[COL.lagna, 'Special lagnas'], [COL.aru, 'Arudha padas'], [COL.upa, 'Upagrahas']])}
@@ -380,6 +389,7 @@ function loadCharts(p) {
     <h3>Divisional positions</h3><div id="vtab"></div>`;
   const draw = () => {
     S.show.la = $('#shLA').checked; S.show.up = $('#shUp').checked; S.show.c3 = $('#sh3').checked; S.show.v3 = $('#vM').value;
+    $('#chMw').hidden = ![$('#vL').value, $('#vR').value, S.show.c3 ? $('#vM').value : '', $('#posV') ? $('#posV').value : ''].includes('C');
     $('#vMw').hidden = !S.show.c3; $('#cM').hidden = !S.show.c3; $('#cRow').classList.toggle('three', S.show.c3);
     drawChart($('#cL'), c, vsel($('#vL').value)); drawChart($('#cR'), c, vsel($('#vR').value));
     if (S.show.c3) drawChart($('#cM'), c, vsel($('#vM').value));
@@ -396,7 +406,7 @@ function loadCharts(p) {
       Object.keys(ch.planets).forEach(nm => (inB[ch.planets[nm]] = inB[ch.planets[nm]] || []).push(nm));
       const mv = c.planets.filter(x => ch.planets[x.name] && ch.planets[x.name] !== x.house).map(x => `${x.name} (house ${x.house} in Rasi, bhava ${ch.planets[x.name]})`);
       $('#postab').innerHTML = tbl(['Bhava', 'Begins', 'Madhya (centre)', 'Ends', 'Planets'], ch.rows.map(r => [r.house, `${SIGNN[r.begin_sign]} ${r.begin}`, `${SIGNN[r.madhya_sign]} ${r.madhya}`, `${SIGNN[r.end_sign]} ${r.end}`, (inB[r.house] || []).join(', ')]), {num: [0]})
-        + `<p class="note">Sripati bhavas: the centre of each bhava is found by dividing the arcs between Lagna, IC, Descendant and MC into thirds; a bhava runs from the midpoint with the previous centre to the midpoint with the next. ${mv.length ? 'Planets that change house: ' + esc(mv.join('; ')) + '.' : 'No planet changes house from the Rasi chart.'}</p>`;
+        + `<p class="note">${esc(chalitTitle(c))}: ${esc(CH_NOTE[ch.method] || '')} ${ch.note ? esc(ch.note) + ' ' : ''}${mv.length ? 'Planets that change house: ' + esc(mv.join('; ')) + '.' : 'No planet changes house from the Rasi chart.'}</p>`;
       return;
     }
     const n = +$('#posV').value;
@@ -427,7 +437,8 @@ function loadCharts(p) {
     $('#postab').innerHTML = tbl([`Body (D${n} ${v.name})`, `Sign in D${n}`, 'Degree', `House in D${n}`, `Dignity / relation in D${n}`, 'Rasi (D1) sign', 'Type', `Amsa no. (of ${n})`, 'Amsa ruler', 'Devata'], rows, {num: [3, 7]})
       + `<p class="note">Houses are counted from the D${n} Lagna (${SIGNN[v.asc]}). Amsa ruler is the lord of the divisional sign (in D2 and D30 the lord of that part). ${anyDev ? 'Devatas follow Parasara (BPHS chapter 6), counted from the Rasi sign and degree, in reverse for even signs where the text says so.' : 'No standard devata list is used for this chart.'}</p>`;
   };
-  $('#posV').onchange = drawPos;
+  $('#posV').onchange = () => { drawPos(); draw(); };
+  $('#chM').onchange = () => { try { localStorage.setItem('jt_chalit', $('#chM').value); } catch (e) { /* ignore */ } applyChalit(c); draw(); drawPos(); };
   drawPos();
   const bodies = ['Lagna', ...ORD, ...c.lagnas.map(x => x.name), ...UPAS];
   const vr = bodies.map(b => [b, ...VARGAS.map(n => { const v = c.vargas[n]; const s = b === 'Lagna' ? v.asc : (b in v.planets ? v.planets[b] : (b in v.upa ? v.upa[b] : v.lagnas[b])); return SA[s]; })]);
@@ -872,7 +883,7 @@ async function openSaved(id) {
 
 /* ---------------------------------------------------------------- main actions */
 const calc = guard(async () => {
-  S.chart = await api('/api/chart', payload());
+  S.chart = applyChalit(await api('/api/chart', payload()));
   S.version++;
   S.loaded = {};
   showTab(S.tab === 'saved' ? 'charts' : S.tab);

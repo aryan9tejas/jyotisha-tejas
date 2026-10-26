@@ -500,7 +500,9 @@ def home_snapshot(when, lat, lon, tz, cfg=None):
                         r.update(extra(s_['index']))
                     out_.append(r)
                 return out_
-            pl.append({'body': body, 'retro': sp < 0 or body in ('Rahu', 'Ketu'),
+            n_s = int((nsr + 0.1 - (sr - 0.1)) * 24) + 2
+            trk = [round(lon_of(sr - 0.1 + i / 24.0), 4) for i in range(n_s)]
+            pl.append({'body': body, 'retro': sp < 0 or body in ('Rahu', 'Ketu'), 'trk': {'t0': sr - 0.1, 'dt': 1 / 24.0, 'lon': trk},
                        'sign': prow(30, lambda i: SIGNS[i]),
                        'nak': prow(NAK_SPAN, lambda i: NAKSHATRAS[i], lambda i: {'lord': NAK_LORD[i]}),
                        'pada': prow(NAK_SPAN / 4, lambda i: f'{NAKSHATRAS[i // 4]} {i % 4 + 1}', lambda i: {'pada': i % 4 + 1})})
