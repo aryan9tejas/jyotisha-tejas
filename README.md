@@ -22,7 +22,7 @@ Needs `npm install` once (Node 18+). Native projects are in `ios/` and `android/
 If a native build shows "Engine failed", tell me the message: the engine normally runs in a web worker and falls back to the main thread by itself, but that fallback has not been tried inside the native shells.
 
 ## Files
-- `www/` the app: `index.html`, `app.js` (screens), `store.js` (profiles, saved views, backup), `engine.js` (talks to the engine), `engine/worker.js` (bundled engine host), `py/` (Python engine: `jh/` plus `api.py`, `swisseph.py` shim), `data/places.json` (34,000 places with time zones), `vendor/` (Pyodide, Swiss Ephemeris wasm, tzdata), `sw.js` (generated offline cache).
+- `www/` the app: `index.html`, `app.js` (screens), `store.js` (profiles, saved views, backup), `engine.js` (talks to the engine), `engine/worker.js` (bundled engine host), `gochara.js` (first-page Transit reading card), `py/` (Python engine: `jh/` plus `api.py`, `swisseph.py` shim), `data/places.json` (34,000 places with time zones), `vendor/` (Pyodide, Swiss Ephemeris wasm, tzdata), `sw.js` (generated offline cache).
 - `engine-src.mjs` and `vendor-src/` source for `engine/worker.js`. After editing either: `npm run bundle`. After editing anything in `www/`: `python3 build.py` (refreshes the offline cache list).
 - Time zone from coordinates alone uses the nearest bundled place, so it can be wrong close to a border. Pick a place from the list or type the time zone.
 

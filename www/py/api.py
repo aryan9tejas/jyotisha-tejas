@@ -22,9 +22,9 @@ class _Lazy:
         return getattr(importlib.import_module('jh.' + self._n), a)
 
 
-strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market, cal = (
-    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market', 'cal'))
-_PRELOAD = ['cal', 'muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'movetools']
+strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market, cal, gochara = (
+    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market', 'cal', 'gochara'))
+_PRELOAD = ['cal', 'muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'gochara', 'movetools']
 
 
 def preload_step(i):
@@ -677,5 +677,23 @@ def api_market_view():
         mi = {'id': mk.get('id'), 'name': mk.get('name'), 'note': mk.get('note', '')} if mk else None
         return jsonify(market.evaluate(d['date'], float(d['lat']), float(d['lon']), d.get('tz') or places.tz_for(float(d['lat']), float(d['lon'])), cfg,
                                        d.get('weights'), d.get('norm'), mi, chart, (mk or {}).get('open') or '09:15', loc))
+    except Exception as e:
+        return err(e)
+
+
+# ---------------------------------------------------------------- transit reading (gochara)
+@route('/api/gochara/guide')
+def api_gochara_guide():
+    return jsonify(gochara.guide())
+
+
+@route('/api/gochara/view')
+def api_gochara_view():
+    try:
+        d = request.get_json()
+        c = get_chart(d)
+        tz = d.get('tz') or c['meta']['input'].get('tz')
+        jd, dt = _now_jd(tz, d.get('when'))
+        return jsonify(gochara.evaluate(c, jd, d.get('params'), dt.strftime('%Y-%m-%d %H:%M'), tz))
     except Exception as e:
         return err(e)

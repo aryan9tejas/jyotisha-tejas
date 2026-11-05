@@ -2271,7 +2271,7 @@ function post(m) {
 }
 async function init() {
   post({ type: "status", msg: "Starting engine..." });
-  placesP = load(ROOT + "data/places.json").catch(() => null);   // background: only the timezone lookup needs it
+  placesP = load(ROOT + "data/places.json").catch(() => null);
   const sweP = A.init(ROOT + "vendor/sweph/swisseph.wasm");
   const pyP = (async () => {
     const { loadPyodide } = await import(
@@ -2282,7 +2282,7 @@ async function init() {
   })();
   const wheelP = fetch(ROOT + "vendor/tzdata.whl").then((r2) => r2.arrayBuffer());
   const filesP = fetch(ROOT + "py/manifest.json").then((r2) => r2.json()).then((list) => Promise.all(list.map(
-    (f) => fetch(ROOT + "py/" + f).then((r2) => r2.arrayBuffer()).then((b2) => [f, new Uint8Array(b2)])
+    (f) => fetch(ROOT + "py/" + f).then((r2) => r2.arrayBuffer()).then((b) => [f, new Uint8Array(b)])
   )));
   const [swe, py, wheel, files] = await Promise.all([sweP, pyP, wheelP, filesP]);
   py.registerJsModule("_swe_js", {
@@ -2320,7 +2320,7 @@ var ready = init().catch((e3) => {
 async function handle({ id, path, body }) {
   try {
     await ready;
-    if (!/^\/api\/(home|muhurta|market|calendar|alerts)/.test(path) && placesP) await placesP;
+    if (!/^\/api\/(home|muhurta|market|gochara|calendar|alerts)/.test(path) && placesP) await placesP;
     const res = api.dispatch(path, body);
     post({ type: "result", id, result: res });
   } catch (e3) {
