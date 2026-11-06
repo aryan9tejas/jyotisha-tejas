@@ -12,6 +12,7 @@ const Home = (() => {
     dbase: null, horaKey: '', cfgKey: '', lastMin: '', started: false, visible: false,
     sec: {kalas: false, planets: false, muh: false, goc: false, mkt: false}, ing: {key: '', data: null, busy: false}};
   try { Object.assign(H.sec, JSON.parse(localStorage.getItem('jt_home_sec2') || '{}')); } catch (e) { /* ignore */ }
+  try { if (!localStorage.getItem('jt_goc_v2')) { H.sec.goc = false; localStorage.setItem('jt_goc_v2', '1'); } } catch (e) { /* ignore */ }      // Transits and Dasa starts collapsed
   let wDate = null, wHora = null;
 
   /* ---------------------------------------------------------------- date helpers (civil dates as 'YYYY-MM-DD') */
@@ -280,7 +281,7 @@ const Home = (() => {
     if (!ch) return;
     const own = e.target.closest('button,a,input,select');
     if (own && ch.contains(own)) return;
-    const tg = ch.querySelector('.xp[data-s], .mu-tg, .mk-tg, .xp[data-k]');
+    const tg = ch.querySelector('.xp[data-s], .mu-tg, .mk-tg, .gc-tgl, .xp[data-k]');
     if (tg) tg.click();
   });
   function secBtns(k) {
@@ -367,12 +368,12 @@ const Home = (() => {
     };
     const plCard = `<section class="gcard wide c-planets"><div class="ch"><h2>Transiting planets</h2><div class="btns">${secBtns('planets')}</div></div>${H.sec.planets ? `<div class="plg">${(d.planets || []).map(prow).join('')}</div>` : ''}</section>`;
     cards.push(`<div class="pair">${cardHTML('yoga', 'Yoga', [block('Yoga', d.yoga, jd, ref, r => r.name)])}${cardHTML('karana', 'Karana', [block('Karana', d.karana, jd, ref, r => r.name)])}</div>`);
-    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, plCard, `<section class="gcard wide c-goc" id="hmGoc"></section>`, `<section class="gcard wide c-mkt" id="hmMkt"></section>`);
+    cards.push(kalasCard, `<section class="gcard wide c-muh" id="hmMuh"></section>`, `<section class="gcard wide c-goc" id="hmGoc"></section>`, plCard, `<section class="gcard wide c-mkt" id="hmMkt"></section>`);
     $h('hmCards').innerHTML = cards.join('');
     if (typeof Goc !== 'undefined') Goc.home(document.getElementById('hmGoc'), {date: d.date, when: H.when, place: H.place, open: !!H.sec.goc, toggle: () => { H.sec.goc = !H.sec.goc; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
     if (typeof Mkt !== 'undefined') Mkt.home(document.getElementById('hmMkt'), {date: d.date, place: H.place, open: !!H.sec.mkt, toggle: () => { H.sec.mkt = !H.sec.mkt; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
     if (typeof Muh !== 'undefined') Muh.home(document.getElementById('hmMuh'), {date: d.date, when: H.when, jd, place: H.place, open: !!H.sec.muh, toggle: () => { H.sec.muh = !H.sec.muh; try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ } renderCards(); }});
-    document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg):not(.mk-open):not(.mk-tg):not(.gc-tg):not(.x-open):not(.x-brief):not(.x-alerts)').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#hmCards .xp:not(.mu-set):not(.mu-tg):not(.mk-open):not(.mk-tg):not(.gc-tgl):not(.gc-set):not(.x-open):not(.x-brief):not(.x-alerts)').forEach(b => b.onclick = () => {
       if (b.dataset.s) {
         H.sec[b.dataset.s] = !H.sec[b.dataset.s];
         try { localStorage.setItem('jt_home_sec2', JSON.stringify(H.sec)); } catch (e) { /* ignore */ }

@@ -44,7 +44,7 @@ const Muh = (() => {
   async function personUI(el, which, onChange) {
     let profiles = [];
     const cur = M.people[which];
-    const label = which === 'me' ? 'Whose birth star?' : 'Partner\'s birth star';
+    const label = which === 'me' ? 'Whose chart?' : 'Partner\'s birth star';
     el.innerHTML = `<div class="mu-person"><label>${label}<select class="mu-psel">
       <option value="">${which === 'me' ? 'No birth details (general timing)' : 'Not adding a partner'}</option>
       <optgroup label="Saved profiles" class="mu-prof"></optgroup>
@@ -327,7 +327,7 @@ const Muh = (() => {
   /* ------------------------------------------------------------ first-page card */
   function homeHead(ctx) {
     const me = M.people.me, open = ctx.open;
-    return `<div class="ch"><h2>Muhurta ${me ? 'for you' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" type="button" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set birth star'}</button>`
+    return `<div class="ch"><h2>Muhurta ${me ? '' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" type="button" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set birth star'}</button>`
       + `<button class="xp ic mu-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
   }
   function homeBody(d, ctx) {
@@ -393,7 +393,7 @@ const Muh = (() => {
     let m = document.getElementById('muPM');
     if (!m) {
       m = document.createElement('div'); m.id = 'muPM'; m.className = 'mu-sheet'; m.hidden = true;
-      m.innerHTML = '<div class="mu-sheet-in small"><button class="mu-x" aria-label="Close">&times;</button><h3 class="mu-h">Whose birth star?</h3><div id="muPMb"></div><p class="note">Stored only on this device. Used for Tarabala and Chandrabala.</p><button class="run" id="muPMok">Done</button></div>';
+      m.innerHTML = '<div class="mu-sheet-in small"><button class="mu-x" aria-label="Close">&times;</button><h3 class="mu-h">Whose chart?</h3><div id="muPMb"></div><p class="note">Stored only on this device. Shared by Muhurta, the Calendar and Transits and Dasa.</p><button class="run" id="muPMok">Done</button></div>';
       document.body.appendChild(m);
       m.addEventListener('click', e => { if (e.target === m || e.target.classList.contains('mu-x')) m.hidden = true; });
       $('#muPMok', m).onclick = () => { m.hidden = true; M.home.key = ''; document.dispatchEvent(new CustomEvent('muh-person')); };

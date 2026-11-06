@@ -16,6 +16,7 @@ from .consts import *
 from . import core, transit
 from . import dasa as DS
 from .core import LOCK
+from . import gochara_text as GT
 
 FAV = transit.FAVORABLE_FROM_MOON
 BODIES = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
@@ -447,12 +448,25 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     day_label = 'Supportive' if tot >= 2 else 'Mixed to supportive' if tot >= 1 else 'Mixed' if tot > -1 else 'Mixed to difficult' if tot > -2 else 'Difficult'
     today = {'sign': mo['sign'], 'deg': mo['deg'], 'nak': mo['nakshatra'], 'pada': mo['pada'], 'house_moon': mo['house_moon'], 'house_lagna': mo['house_lagna'],
              'area': HOUSE_AREA[mo['house_lagna'] - 1], 'fav': moon_o['fav'], 'blocked': moon_o['blocked'], 'tara_no': ti + 1, 'tara': TARA[ti], 'tara_count': cnt,
-             'tara_good': TARA_PTS[ti] > 0, 'tara_mean': TARA_MEAN[ti], 'birth_nak': NAKSHATRAS[birth_nak], 'bindus': mo['bindus'], 'sav': mo['sav'], 'conj': conj, 'aspects': asp,
+             'nak_idx': now_nak, 'tara_good': TARA_PTS[ti] > 0, 'tara_mean': TARA_MEAN[ti], 'birth_nak': NAKSHATRAS[birth_nak], 'bindus': mo['bindus'], 'sav': mo['sav'], 'conj': conj, 'aspects': asp,
              'score': round(tot, 2), 'label': day_label, 'tone': 'bu2' if tot >= 2 else 'bu1' if tot >= 1 else 'mx' if tot > -1 else 'be1' if tot > -2 else 'be2', 'reasons': reasons}
 
     # ---- summary
     ranked = sorted(dom_out, key=lambda d: d['dasa']['pct'])
     summary = {'best': [d['name'] for d in ranked[::-1][:2] if d['dasa']['pct'] >= 12], 'worst': [d['name'] for d in ranked[:2] if d['dasa']['pct'] <= -12]}
+    # ---- long-form interpretations (shown when a box is opened)
+    names = lambda i: (next((d['name'] for d in DOMAINS if d['id'] == i), i))
+    lagna_name = SIGNS[asc]
+    for o in out:
+        o['detail'] = GT.planet_detail(o, lagna_name, L, None)
+    sat_o = next(o for o in out if o['planet'] == 'Saturn'); jup_o = next(o for o in out if o['planet'] == 'Jupiter')
+    fctx = {'sat': sat_o, 'jup': jup_o, 'L': L, 'lagna': lagna_name}
+    for f in flags:
+        f['detail'] = GT.flag_detail(f, fctx)
+    for l in lords:
+        l['detail'] = GT.lord_detail(l, lagna_name)
+    lens['detail'] = GT.lens_detail(lens, names, L)
+    today['detail'] = GT.today_details(today, {'lagna': lagna_name})
     return {'when': when_label, 'tz': tz_label, 'lagna': SIGNS[asc], 'moon_sign': SIGNS[moon_sign], 'moon_nak': chart['pmap']['Moon']['nak'], 'name': chart['meta'].get('name', ''),
             'today': today, 'planets': out, 'flags': flags, 'lens': lens, 'domains': dom_out, 'summary': summary}
 
