@@ -151,14 +151,15 @@ const Mkt = (() => {
 
   /* ---------------------------------------------------------------- first-page card */
   function homeHead(open) {
-    return `<div class="ch"><h2>Market view <span class="hint">benefic and malefic transits</span></h2><div class="btns"><button class="xp mk-open" type="button">Open</button><button class="xp ic mk-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
+    return `<div class="ch"><h2>Market view <span class="hint">benefic and malefic transits</span></h2><div class="btns"><button class="xp ic mk-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
   }
   function homeBody(r) {
     const b = r.bias, up = r.sectors.filter(s => s.tag === 'Favoured').slice(0, 6), dn = r.sectors.filter(s => s.tag === 'Pressured').slice(-6).reverse();
     return `<div class="mk-head ${toneCls(b.score)}"><div><small>${esc(r.market ? r.market.name : 'Global transits')} &middot; ${fmtDate(r.date)}</small><h3>${b.label} <span>${sgn(b.score)}</span></h3></div>${gauge(b)}</div>
       <div class="mk-two"><div><h5>Benefic</h5><ul class="mk-dr">${r.top_bull.map(driverLine).join('') || '<li>none</li>'}</ul></div><div><h5>Malefic</h5><ul class="mk-dr">${r.top_bear.map(driverLine).join('') || '<li>none</li>'}</ul></div></div>
       <div class="mk-two"><div><h5>Favoured sectors</h5><div class="mk-chips">${chips(up, 'ok')}</div></div><div><h5>Pressured sectors</h5><div class="mk-chips">${chips(dn, 'no')}</div></div></div>
-      <p class="mu-note">Traditional rules, not tested against price history. Astrological only, not advice; may not apply to the real world. Moon left out. Tap Open for the full reasons.</p>`;
+      <p class="mu-note">Traditional rules, not tested against price history. Astrological only, not advice; may not apply to the real world. Moon left out. Tap Open for the full reasons.</p>
+      <div class="mk-act"><button class="xp mk-open" type="button">Open</button></div>`;
   }
   function paint() {
     const host = document.getElementById('hmMkt'), ctx = S.ctx; if (!host || !ctx) return;
