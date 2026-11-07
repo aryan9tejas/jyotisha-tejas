@@ -1,0 +1,33 @@
+/* World outlook: card on the first page and Panchanga sub-tab. Inherits colours so it works on the dark card and the light tab. */
+.c-wor .xp{background:rgba(128,128,128,.2);color:inherit;border:1px solid rgba(128,128,128,.35)}
+.c-wor summary,.wo-tab summary{cursor:pointer;font-size:12px}
+.wo-meta{font-size:12px;opacity:.75;margin:2px 0 6px}
+.wo-note{font-size:11.5px;opacity:.7;margin:6px 0;line-height:1.4}
+.wo-h{margin:14px 0 6px;font-size:14px;opacity:.9}.wo-h small{font-weight:400;opacity:.65;margin-left:6px;font-size:11px}
+.wo-s{margin:8px 0 2px;font-size:12px;opacity:.85}.wo-s.up{color:#6fd08c}.wo-s.dn{color:#ff8a80}
+.wo-dt{padding:4px 2px 2px;border-top:1px dashed rgba(128,128,128,.35);margin-top:6px}
+.wo-dt p,.wo-pd p{font-size:12px;line-height:1.5;margin:6px 0}
+.wo-th,.wo-ev,.wo-na,.wo-sl,.wo-q>details{border-bottom:1px solid rgba(128,128,128,.22);padding:6px 4px;border-left:4px solid transparent}
+.wo-th.bu2{border-left-color:#1f9d55}.wo-th.bu1{border-left-color:#6fb43f}.wo-th.mx{border-left-color:#e2b53a}.wo-th.be1{border-left-color:#e0833a}.wo-th.be2{border-left-color:#cf4a42}
+.wo-th>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;list-style:none}
+.wo-th>summary::-webkit-details-marker,.wo-ev>summary::-webkit-details-marker,.wo-na>summary::-webkit-details-marker,.wo-sl>summary::-webkit-details-marker,.wo-sec>summary::-webkit-details-marker{display:none}
+.wo-tn{font-size:13px;font-weight:600}.wo-hl{grid-column:1/-1;font-size:11.5px;opacity:.75}
+.wo-vol{font-style:normal;color:#e2b53a}
+.wo-lv{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;border:1px solid rgba(128,128,128,.35);white-space:nowrap}
+.wo-lv.bu2{background:rgba(31,157,85,.38)}.wo-lv.bu1{background:rgba(111,180,63,.28)}.wo-lv.mx{background:rgba(226,181,58,.22)}.wo-lv.be1{background:rgba(224,131,58,.3)}.wo-lv.be2{background:rgba(207,74,66,.38)}
+.wo-q>summary,.wo-sec>summary{font-weight:600;padding:6px 2px}
+.wo-sec{border-top:1px solid rgba(128,128,128,.3);margin-top:6px}.wo-in{padding:2px 0 6px}
+.wo-int{padding:5px 2px;border-bottom:1px solid rgba(128,128,128,.22);font-size:12px}.wo-int .wo-ip{display:block;font-size:11px;opacity:.7}.wo-int small{display:block;font-size:11.5px;opacity:.8;line-height:1.4}
+.wo-ind{padding:4px 2px;font-size:12px;line-height:1.4}.wo-ind small{display:block;font-size:11px;opacity:.65}
+.wo-sl>summary,.wo-na>summary{list-style:none;font-size:12px}.wo-sl>summary small,.wo-na>summary small{display:block;font-size:11px;opacity:.7}
+.wo-na>summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center}.wo-na>summary small{grid-column:1/-1}
+.wo-ev>summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 8px;align-items:baseline;list-style:none;font-size:12px}
+.wo-d{font-size:11px;opacity:.7;white-space:nowrap}.wo-ev>summary small{font-size:11px;opacity:.6;white-space:nowrap}
+.wo-ec{grid-column:2;font-style:normal;font-size:11px;opacity:.75}
+.wo-ev.eclipse{border-left-color:#e2b53a}.wo-ev.ingress{border-left-color:rgba(128,160,255,.6)}.wo-ev.station{border-left-color:rgba(200,120,255,.55)}.wo-ev.conjunction{border-left-color:#cf4a42}
+.wo-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.wo-chip{background:rgba(128,128,128,.2);color:inherit;border:1px solid rgba(128,128,128,.35);border-radius:14px;padding:3px 10px;font-size:11.5px;cursor:pointer}.wo-chip.on{background:rgba(226,181,58,.3);border-color:rgba(226,181,58,.8)}
+.wo-pd{margin-top:6px;padding:6px 8px;border-radius:10px;background:rgba(128,128,128,.14);cursor:default}
+.wo-pc{display:flex;flex-wrap:wrap;gap:4px}.wo-pc span{font-size:11px;padding:1px 8px;border-radius:10px;background:rgba(128,128,128,.25)}
+.c-wor .rx,.wo-sl .rx{font-size:10px;font-style:normal;background:rgba(207,74,66,.5);border-radius:3px;padding:0 3px}
+.wo-tab{margin-top:10px}

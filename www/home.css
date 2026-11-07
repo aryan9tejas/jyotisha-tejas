@@ -162,7 +162,8 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
   .cards .c-muh{grid-row:4}
   .cards .c-goc{grid-row:5}
   .cards .c-planets{grid-row:6}
-  .cards .c-mkt{grid-row:7}
+  .cards .c-wor{grid-row:7}
+  .cards .c-mkt{grid-row:8}
 }
 @media (max-width:760px){
   .cards{gap:10px}.pair{gap:10px}
@@ -255,7 +256,7 @@ header .ttl{display:flex;align-items:center;gap:0;flex-wrap:wrap}
 
 /* header toggles: triangle only, no box; the whole header is the tap target */
 #hmCards .ch{cursor:pointer;-webkit-tap-highlight-color:transparent}
-#hmCards .xp.ic,#hmCards .xp[data-k],#hmCards .xp.mu-tg,#hmCards .xp.mk-tg,#hmCards .xp.gc-tgl{background:none!important;border:0!important;box-shadow:none!important;padding:6px 8px!important;font-size:17px;line-height:1;min-width:0}
+#hmCards .xp.ic,#hmCards .xp[data-k],#hmCards .xp.mu-tg,#hmCards .xp.mk-tg,#hmCards .xp.gc-tgl,#hmCards .xp.wo-tg{background:none!important;border:0!important;box-shadow:none!important;padding:6px 8px!important;font-size:17px;line-height:1;min-width:0}
 #hmCards .xp[data-k] .xt{display:none}
 #hmCards .xp.ic:hover,#hmCards .xp[data-k]:hover{background:none!important}
 

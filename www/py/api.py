@@ -22,9 +22,9 @@ class _Lazy:
         return getattr(importlib.import_module('jh.' + self._n), a)
 
 
-strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market, cal, gochara = (
-    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market', 'cal', 'gochara'))
-_PRELOAD = ['cal', 'muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'gochara', 'movetools']
+strength, dasa, transit, kp, tajaka, prasna, movetools, muhurta, market, cal, gochara, world = (
+    _Lazy(n) for n in ('strength', 'dasa', 'transit', 'kp', 'tajaka', 'prasna', 'movetools', 'muhurta', 'market', 'cal', 'gochara', 'world'))
+_PRELOAD = ['cal', 'muhurta', 'market', 'tajaka', 'kp', 'prasna', 'strength', 'dasa', 'transit', 'gochara', 'world', 'movetools']
 
 
 def preload_step(i):
@@ -695,5 +695,42 @@ def api_gochara_view():
         tz = d.get('tz') or c['meta']['input'].get('tz')
         jd, dt = _now_jd(tz, d.get('when'))
         return jsonify(gochara.evaluate(c, jd, d.get('params'), dt.strftime('%Y-%m-%d %H:%M'), tz))
+    except Exception as e:
+        return err(e)
+
+
+# ---------------------------------------------------------------- world outlook (mundane)
+@route('/api/world/view')
+def api_world_view():
+    try:
+        d = request.get_json() or {}
+        tz = d.get('tz') or 'UTC'
+        jd, dt = _now_jd(tz, d.get('when'))
+        v = world.view(jd, tz, dt.strftime('%Y-%m-%d %H:%M'))
+        P = world.state(jd)
+        v['slow'] = world.slow(jd, tz, P)
+        return jsonify(v)
+    except Exception as e:
+        return err(e)
+
+
+@route('/api/world/calendar')
+def api_world_calendar():
+    try:
+        d = request.get_json() or {}
+        tz = d.get('tz') or 'UTC'
+        jd, dt = _now_jd(tz, d.get('when'))
+        return jsonify({'events': world.calendar(jd, tz, int(d.get('days', 366)))})
+    except Exception as e:
+        return err(e)
+
+
+@route('/api/world/nations')
+def api_world_nations():
+    try:
+        d = request.get_json() or {}
+        tz = d.get('tz') or 'UTC'
+        jd, dt = _now_jd(tz, d.get('when'))
+        return jsonify({'nations': world.nations(jd, tz, get_chart, gochara, dasa)})
     except Exception as e:
         return err(e)

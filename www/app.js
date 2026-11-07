@@ -490,21 +490,22 @@ function loadStrength(p) {
 const kt = (s, day) => s.slice(0, 10) === day ? s.slice(11) : s.slice(5, 16);   // time, with the date when it is on another day
 function loadPanchanga(p) {
   const d = defaultPlace();
-  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button><button data-s="market">Market view</button><button data-s="calendar">Calendar</button><button data-s="brief">My day</button><button data-s="alerts">Alerts</button></div>
+  p.innerHTML = `<div class="mu-nav" id="pnSub"><button data-s="panchanga" class="on">Panchanga</button><button data-s="muhurta">Muhurta finder</button><button data-s="market">Market view</button><button data-s="world">World outlook</button><button data-s="calendar">Calendar</button><button data-s="brief">My day</button><button data-s="alerts">Alerts</button></div>
     <div id="pnMain"><div class="row">${placeField('pn', d)}<label>Date<input type="date" id="pnDate" value="${todayStr()}"></label>
     <button class="run" id="pnDay">Day panchanga</button>
     <label>Month<input type="month" id="pnMonth" value="${todayStr().slice(0, 7)}"></label><button class="sec" id="pnMon">Monthly panchanga</button></div><div id="pnOut"></div></div>
-    <div id="pnMuh" hidden></div><div id="pnMkt" hidden></div><div id="pnCal" hidden></div><div id="pnBrief" hidden></div><div id="pnAlerts" hidden></div>`;
-  let muMounted = false, mkMounted = false, calMounted = false;
+    <div id="pnMuh" hidden></div><div id="pnMkt" hidden></div><div id="pnWor" hidden></div><div id="pnCal" hidden></div><div id="pnBrief" hidden></div><div id="pnAlerts" hidden></div>`;
+  let muMounted = false, mkMounted = false, calMounted = false, woMounted = false;
   $$('#pnSub button').forEach(b => b.onclick = () => {
     $$('#pnSub button').forEach(x => x.classList.toggle('on', x === b));
     const k = b.dataset.s;
-    $('#pnMain').hidden = k !== 'panchanga'; $('#pnMuh').hidden = k !== 'muhurta'; $('#pnMkt').hidden = k !== 'market';
+    $('#pnMain').hidden = k !== 'panchanga'; $('#pnMuh').hidden = k !== 'muhurta'; $('#pnMkt').hidden = k !== 'market'; $('#pnWor').hidden = k !== 'world';
     $('#pnCal').hidden = k !== 'calendar'; $('#pnBrief').hidden = k !== 'brief'; $('#pnAlerts').hidden = k !== 'alerts';
     if (k === 'calendar') { if (!calMounted) { calMounted = true; Extra.calMount($('#pnCal')); } }
     if (k === 'brief') Extra.briefMount($('#pnBrief'));
     if (k === 'alerts') Extra.alMount($('#pnAlerts'));
     if (k === 'muhurta' && typeof Muh !== 'undefined') { if (!muMounted) { muMounted = true; Muh.mount($('#pnMuh')); } else Muh.applyPending(); }
+    if (k === 'world' && typeof Wor !== 'undefined' && !woMounted) { woMounted = true; Wor.mount($('#pnWor')); }
     if (k === 'market' && typeof Mkt !== 'undefined' && !mkMounted) { mkMounted = true; Mkt.mount($('#pnMkt')); }
   });
   bindPlaceField('pn');

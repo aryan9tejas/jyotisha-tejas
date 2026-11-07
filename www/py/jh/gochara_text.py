@@ -393,6 +393,8 @@ def lord_detail(l, lagna):
 
 def lens_detail(lens, names, L):
     path = lens['path']
+    if not path:
+        return {}
     md, ad = path[0], path[1] if len(path) > 1 else None
     out = {}
     if L > 0.4:
@@ -411,3 +413,38 @@ def lens_detail(lens, names, L):
     out['trig'] = ['A transit is a trigger when the planet is itself the running Mahadasa or Antardasa lord, or when it crosses the natal sign of one of them.',
                    'Triggers count more because they connect the slow background of dasa with the day-to-day weather of gochara. Major events tend to happen when a trigger planet crosses a sensitive point.']
     return out
+
+
+# ------------------------------------------------------------------ relation of a sub-lord to its main lord
+REL_H = {1: ('mixed', 'in the same sign as', 'the two lords share a sign, so their results are fused and intensified. The period carries the main lord\'s themes with the sub-lord\'s flavour mixed in.'),
+         2: ('mixed', '2nd from', 'a moderately supportive relation. Money, speech and family matters are the link between the two periods; results are ordinary and steady.'),
+         3: ('mixed', '3rd from', 'a mildly good relation that rewards effort. Gains come through initiative, communication and courage rather than by themselves.'),
+         4: ('good', '4th from', 'a kendra relation. The sub-period stands on firm ground, supports the main theme and tends to bring stability, property or settled progress.'),
+         5: ('good', '5th from', 'a trine relation. The sub-period carries the main theme with grace: favourable results, good judgement, support from others and often a visible step forward.'),
+         6: ('bad', '6th from', 'a shadashtaka relation, among the harder ones. The sub-period works against the main theme: friction, disputes, health or debt pressure and obstacles. Results improve only by facing the work directly.'),
+         7: ('mixed', '7th from', 'an opposition relation. Active and eventful, with partnerships, travel and public dealings in play. Results are strong but often come with tension.'),
+         8: ('bad', '8th from', 'a shadashtaka relation, the most difficult. The sub-period can bring sudden reversals, hidden problems, delays and a sense of obstruction to the main theme. Patience and care are needed.'),
+         9: ('good', '9th from', 'a trine relation, the best kind. Luck, mentors and support arrive, and the sub-period lifts the main theme with grace.'),
+         10: ('good', '10th from', 'a kendra relation. Action-oriented and visible: career, status and responsibility advance, and results are seen in public.'),
+         11: ('good', '11th from', 'a gain relation. Income, contacts and the fulfilment of earlier plans come through this sub-period.'),
+         12: ('bad', '12th from', 'a dwirdwadasha relation. Outflow, expense, withdrawal and distance: energy is drained from the main theme, though it can favour travel abroad, retreat or spiritual work.')}
+
+
+def relation(a, b, lagna):
+    """a: main lord dict, b: sub lord dict (from evaluate's lords). House of b counted from a, by natal sign."""
+    h = (b['sign_idx'] - a['sign_idx']) % 12 + 1
+    nature, label, text = REL_H[h]
+    fr = 'neutral'
+    from .consts import NAT_FRIENDS, NAT_ENEMIES
+    if a['lord'] in NAT_FRIENDS and b['lord'] in NAT_FRIENDS[a['lord']]:
+        fr = 'friend'
+    elif a['lord'] in NAT_ENEMIES and b['lord'] in NAT_ENEMIES[a['lord']]:
+        fr = 'enemy'
+    paras = [f"Relation. {b['lord']} ({b['level']}) sits {label} {a['lord']} ({a['level']}) in the natal chart: {text}",
+             {'friend': f"Friendship. {b['lord']} is a natural friend of {a['lord']}, which softens friction and strengthens support between the two periods.",
+              'enemy': f"Friendship. {b['lord']} is a natural enemy of {a['lord']}, which sharpens friction and weakens support between the two periods.",
+              'neutral': f"Friendship. {b['lord']} and {a['lord']} are neutral toward each other, so the house relation decides the result."}[fr],
+             f"Placement. {a['lord']} is in {a['sign']} (the {ordn(a['house_lagna'])} house) and {b['lord']} is in {b['sign']} (the {ordn(b['house_lagna'])} house), so the main theme works through {HL[a['house_lagna']]} and the sub-period through {HL[b['house_lagna']]}.",
+             'Use. This is shown for interpretation and is not added to the score. A hard relation does not cancel good transits; it means the period asks for more effort. A good relation makes the period easier to use.']
+    key = {'good': 'supportive', 'bad': 'friction', 'mixed': 'mixed'}[nature] + (', friends' if fr == 'friend' else ', enemies' if fr == 'enemy' else '')
+    return {'from': a['lord'], 'to': b['lord'], 'levels': f"{b['level']} from {a['level']}", 'house': h, 'nature': nature, 'friend': fr, 'keyword': f"{ordn(h)} from, {key}", 'paras': paras}

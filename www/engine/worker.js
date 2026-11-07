@@ -2320,7 +2320,7 @@ var ready = init().catch((e3) => {
 async function handle({ id, path, body }) {
   try {
     await ready;
-    if (!/^\/api\/(home|muhurta|market|gochara|calendar|alerts)/.test(path) && placesP) await placesP;
+    if (!/^\/api\/(home|muhurta|market|gochara|world|calendar|alerts)/.test(path) && placesP) await placesP;
     const res = api.dispatch(path, body);
     post({ type: "result", id, result: res });
   } catch (e3) {

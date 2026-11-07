@@ -89,3 +89,6 @@
 .gc-pl>summary{grid-template-columns:auto minmax(0,1fr)}
 .gc-lay table td:first-child{width:auto}
 .gc-lord span b{font-size:inherit}
+.gc-rels{margin:4px 0 6px}.gc-rel{border-bottom:1px solid rgba(128,128,128,.22);padding:6px 4px;border-left:4px solid #888}
+.gc-rel.r-good{border-left-color:#1f9d55}.gc-rel.r-bad{border-left-color:#cf4a42}.gc-rel.r-mixed{border-left-color:#e2b53a}
+.gc-rel>summary b{display:block;font-size:12.5px}.gc-rel>summary small{display:block;font-size:11px;opacity:.75}

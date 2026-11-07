@@ -240,6 +240,24 @@ def strength_word(s):
 
 
 # ---------------------------------------------------------------- the reading
+def dasa_path(chart, jd):
+    """Vimshottari path at jd. The cycle repeats every 120 years, so charts older than that (national charts) are shifted back
+    by whole cycles and the printed years are moved forward again."""
+    path = DS.dasa_at(chart, jd, 3)
+    if path:
+        return path
+    mds, _, _ = DS.vimsottari_mds(chart)
+    cyc = 120 * chart['meta']['cfg'].get('year_days', 365.2425)
+    n = int((jd - mds[0]['start']) // cyc)
+    if n <= 0:
+        return path
+    path = DS.dasa_at(chart, jd - n * cyc, 3)
+    for lv in path:
+        for k in ('start', 'end'):
+            lv[k] = f"{int(lv[k][:4]) + 120 * n}{lv[k][4:]}"
+    return path
+
+
 def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     P = params_from(params)
     asc = chart['asc']['sign']
@@ -249,7 +267,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     moon_sign = chart['pmap']['Moon']['sign']
 
     # ---- dasa lens
-    path = DS.dasa_at(chart, jd, 3)
+    path = dasa_path(chart, jd)
     lords = []
     for lv in path[:3]:
         pl = lv['lord']
@@ -466,6 +484,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     for l in lords:
         l['detail'] = GT.lord_detail(l, lagna_name)
     lens['detail'] = GT.lens_detail(lens, names, L)
+    lens['rel'] = [GT.relation(lords[i], lords[i + 1], lagna_name) for i in range(len(lords) - 1)]
     today['detail'] = GT.today_details(today, {'lagna': lagna_name})
     return {'when': when_label, 'tz': tz_label, 'lagna': SIGNS[asc], 'moon_sign': SIGNS[moon_sign], 'moon_nak': chart['pmap']['Moon']['nak'], 'name': chart['meta'].get('name', ''),
             'today': today, 'planets': out, 'flags': flags, 'lens': lens, 'domains': dom_out, 'summary': summary}

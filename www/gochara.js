@@ -100,11 +100,12 @@ const Goc = (() => {
     const D = L.detail || {};
     const trig = L.triggers.length ? L.triggers.map(t => `<li><b>${GL[t.planet]} ${esc(t.planet)}</b> x${t.mult}<small>${esc(t.why)}</small></li>`).join('') : '<li>No transit is a trigger today.</li>';
     const xi = (k, head, body) => `<details class="gc-xi"${op('lx:' + k)}><summary>${head}</summary>${detail(body)}</details>`;
-    return `<h4 class="gc-h">Dasa lens</h4><div class="gc-lords">${cards}</div>
+    const relx = (L.rel || []).map((x, i) => `<details class="gc-xi gc-rel r-${x.nature}"${op('rel:' + i)}><summary><b>${GL[x.from]} ${esc(x.from)} &#8594; ${GL[x.to]} ${esc(x.to)}</b><small>${esc(x.levels)}: ${esc(x.keyword)}</small></summary>${detail(x.paras)}</details>`).join('');
+    return `<h4 class="gc-h">Dasa lens</h4><div class="gc-lords">${cards}</div>${relx ? `<h5 class="gc-sub">Dasa lord relationships</h5><div class="gc-rels">${relx}</div>` : ''}
       <div class="gc-two"><div><h5>How the dasa changes the reading</h5><div class="gc-dr"><div class="gc-li">${xi('L', `Combined dasa strength <b class="${L.L > 0 ? 'up' : L.L < 0 ? 'dn' : ''}">${sgn(L.L)}</b> of 2<small>${L.L > 0 ? 'Good transits deliver more fully and bad ones are softened.' : L.L < 0 ? 'Good transits under-deliver and bad ones sharpen.' : 'Neutral: the dasa neither lifts nor mutes transit results.'}</small>`, D.L)}</div>
         <div class="gc-li">${xi('md', `Mahadasa focus: ${L.md_domains.map(i => esc(names(i))).join(', ') || 'none'}<small>Areas tied to the lord's house and the houses it rules, emphasised in the With dasa column.</small>`, D.md)}</div>
         <div class="gc-li">${xi('ad', `Antardasa focus: ${L.ad_domains.map(i => esc(names(i))).join(', ') || 'none'}`, D.ad)}</div></div></div>
-      <div><h5>Triggers (count more)</h5><ul class="gc-dr">${trig}</ul>${L.triggers.length ? detail(D.trig) : ''}</div></div><p class="gc-hint">Tap a lord or a line for the detailed reading.</p>`;
+      <div><h5>Triggers (count more)</h5><ul class="gc-dr">${trig}</ul>${L.triggers.length ? detail(D.trig) : ''}</div></div><p class="gc-hint">Tap a lord, a relationship or a line for the detailed reading.</p>`;
   }
 
   function planetsHTML(r) {
