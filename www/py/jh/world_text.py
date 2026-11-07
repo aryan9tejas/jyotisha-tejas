@@ -39,7 +39,20 @@ RETRO = {'Mercury': 'contracts, communications and technology glitch; deals are 
          'Rahu': 'always moving backward: the theme is a slow, repeating one, not a single event.', 'Ketu': 'always moving backward: the theme is a slow, repeating one, not a single event.'}
 
 # ------------------------------------------------------------------ planet in sign
+NODE_FRIEND = {'Rahu': ['Mercury', 'Venus', 'Saturn'], 'Ketu': ['Mars', 'Venus', 'Saturn']}
+NODE_ENEMY = {'Rahu': ['Sun', 'Moon', 'Mars'], 'Ketu': ['Sun', 'Moon']}
+NODE_EX = {'Rahu': 1, 'Ketu': 7}
+NODE_DEB = {'Rahu': 7, 'Ketu': 1}
+
+
 def dignity(p, s):
+    if p in NODE_EX:
+        if s == NODE_EX[p]:
+            return 'exalted'
+        if s == NODE_DEB[p]:
+            return 'debilitated'
+        lord = SIGN_LORD[s]
+        return 'friend' if lord in NODE_FRIEND[p] else 'enemy' if lord in NODE_ENEMY[p] else 'neutral'
     if p in EXALT and EXALT[p] == s:
         return 'exalted'
     if p in DEBIL and DEBIL[p] == s:
@@ -60,7 +73,7 @@ def sign_meaning(p, s):
     nm = SIGNS[s]
     out = [f"{p} in {nm} ({SIGN_EL[s]}, ruled by {SIGN_LORD[s]}) works on {PLANET_M[p]} through the arena of {SIGN_M[s]}."]
     if p in ('Rahu', 'Ketu'):
-        out.append(('Rahu amplifies and distorts ' if p == 'Rahu' else 'Ketu strips and detaches from ') + f"the {SIGN_EL[s]} themes of {nm}. Its result is coloured by {SIGN_LORD[s]}, the sign lord.")
+        out.append(('Rahu amplifies and distorts ' if p == 'Rahu' else 'Ketu strips and detaches from ') + f"the {SIGN_EL[s]} themes of {nm}. Its result is coloured by {SIGN_LORD[s]}, the sign lord." + {'exalted': ' Exalted here, so its themes surge and succeed visibly.', 'debilitated': ' Debilitated here, so its themes misfire, overheat or collapse.', 'friend': ' This sign lord is friendly to the node, so it runs with less resistance.', 'enemy': ' This sign lord is hostile to the node, so results come with friction and backlash.', 'neutral': ''}[d])
     else:
         out.append({'exalted': f"Exalted: its significations are at full strength and tend to work constructively and visibly.",
                     'debilitated': f"Debilitated: its significations are strained and tend to disappoint, break down or turn corrupt. A strong {SIGN_LORD[s]} softens this.",

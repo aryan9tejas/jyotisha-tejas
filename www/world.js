@@ -52,12 +52,12 @@ const Wor = (() => {
     return `<details class="wo-th ${t.tone}"${op('th:' + t.id)}><summary><span class="wo-tn">${esc(t.name)}${t.volatile ? ' <i class="wo-vol" title="Volatile: swings and reversals are likelier">&#8645;</i>' : ''}</span><span class="wo-lv ${t.tone}">${esc(t.level)}</span><small class="wo-hl">${esc(t.headline)}</small></summary>${detail(t.paras)}</details>`;
   }
   function themesHTML(v) {
-    const shown = v.themes.filter(t => t.shown), quiet = v.themes.filter(t => !t.shown);
-    return `<h4 class="wo-h">Themes in focus <small>tap a theme for the reading</small></h4>${shown.map(themeRow).join('') || '<p class="wo-note">No theme stands out today.</p>'}
-      ${quiet.length ? `<details class="wo-q"${op('quiet')}><summary>Quiet themes (${quiet.length})</summary>${quiet.map(themeRow).join('')}</details>` : ''}`;
+    const good = t => t.kind === 'risk' ? -t.pct : t.pct;
+    const all = [...v.themes].sort((a, b) => (Math.abs(good(b)) + (b.volatile ? 8 : 0)) - (Math.abs(good(a)) + (a.volatile ? 8 : 0)));
+    return `<h4 class="wo-h">Themes <small>strongest signals first; tap a theme for the reading</small></h4>${all.map(themeRow).join('')}`;
   }
   function interestsHTML(v) {
-    return `<h4 class="wo-h">World interests and trend</h4>` + v.interests.map(i => `<div class="wo-int"><span class="wo-ip">${GL[i.planet]} ${esc(i.planet)} in ${esc(i.sign)}</span><b>${esc(i.head)}</b><small>${esc(i.text)}</small></div>`).join('');
+    return `<h4 class="wo-h">World interests and trend <small>tap for what comes next</small></h4>` + v.interests.map(i => `<details class="wo-int"${op('int:' + i.planet)}><summary><span class="wo-ip">${GL[i.planet]} ${esc(i.planet)} in ${esc(i.sign)}</span><b>${esc(i.head)}</b><small>${esc(i.text)}</small><small class="wo-nx">Next: ${esc(i.next_sign)} from ${esc(fdt(i.change))}</small></summary>${detail(i.paras)}</details>`).join('');
   }
   function indHTML(v) {
     const I = v.industries;
@@ -121,7 +121,7 @@ const Wor = (() => {
 
   /* ---------------------------------------------------------------- the card */
   function head(open) {
-    return `<div class="ch"><h2>World outlook <span class="hint">sky, markets and nations</span></h2><div class="btns"><button class="xp ic wo-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
+    return `<div class="ch"><h2>World outlook</h2><div class="btns"><button class="xp ic wo-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
   }
   function paint() {
     const c = W.ctx, h = document.querySelector(hostSel);

@@ -707,8 +707,6 @@ def api_world_view():
         tz = d.get('tz') or 'UTC'
         jd, dt = _now_jd(tz, d.get('when'))
         v = world.view(jd, tz, dt.strftime('%Y-%m-%d %H:%M'))
-        P = world.state(jd)
-        v['slow'] = world.slow(jd, tz, P)
         return jsonify(v)
     except Exception as e:
         return err(e)

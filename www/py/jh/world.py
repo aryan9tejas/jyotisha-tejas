@@ -43,7 +43,7 @@ def state(jd):
             s = sign_of(lon)
             ni, pada = nak_info(lon)
             P[p] = {'planet': p, 'lon': lon, 'sign_idx': s, 'sign': SIGNS[s], 'deg': dms(lon % 30), 'nak': NAKSHATRAS[ni], 'nak_idx': ni, 'pada': pada,
-                    'retro': bool(spd < 0) or p in ('Rahu', 'Ketu'), 'speed': spd, 'dignity': T.dignity(p, s) if p not in ('Rahu', 'Ketu') else 'node'}
+                    'retro': bool(spd < 0) or p in ('Rahu', 'Ketu'), 'speed': spd, 'dignity': T.dignity(p, s)}
     sun = P['Sun']['lon']
     for p in BODIES:
         o = P[p]
@@ -112,7 +112,6 @@ def planet_view(o):
     if o['yuddha']:
         paras.append(f"Planetary war. {p} and {o['yuddha']} are within one degree. Their themes are contested and the result is uncertain until they separate.")
         flags.append('planetary war')
-    paras.append('Vedha. Vedha is a personal rule counted from a native\'s Moon, so it is shown in Transits and Dasa. For the world, conjunctions, aspects and planetary war do the same work.')
     return {'planet': p, 'sign': o['sign'], 'deg': o['deg'], 'nak': o['nak'], 'pada': o['pada'], 'retro': o['retro'], 'combust': o['combust'], 'dignity': o['dignity'],
             'strength': o['strength'], 'flags': flags, 'paras': paras}
 
@@ -200,14 +199,28 @@ def industries(P):
     return {'up': up, 'down': dn, 'volatile': vol}
 
 
-def interests(P):
+def _first(sign_idx, n=3):
+    return ', '.join(T.SIGN_M[sign_idx].split(', ')[:n])
+
+
+ADJ = {'exalted': 'exalted', 'own': 'in its own sign', 'debilitated': 'debilitated', 'friend': 'in a friendly sign', 'enemy': 'in an unfriendly sign', 'neutral': 'in a neutral sign'}
+
+
+def interests(P, slow_planets):
+    sp = {x['planet']: x for x in slow_planets}
     out = []
     for p, head, lead in (('Jupiter', 'Where the world expands', 'Growth, optimism and investment flow toward'),
                           ('Saturn', 'Where the world is tested', 'Restructuring, austerity and hard reckoning fall on'),
                           ('Rahu', 'Where the world is obsessed', 'Collective fascination, disruption and boom-and-bust gather around'),
                           ('Ketu', 'What is fading or dissolving', 'Withdrawal, separation and loss of interest touch')):
         o = P[p]
-        out.append({'planet': p, 'head': head, 'sign': o['sign'], 'text': f"{lead} {T.SIGN_M[o['sign_idx']]}."})
+        nx = sp[p]['next_sign_idx']
+        paras = [f"Now. {lead} {T.SIGN_M[o['sign_idx']]}. {p} is in {o['sign']} until {sp[p]['leaves']}.",
+                 f"Next. From {sp[p]['leaves']}, {p} moves into {SIGNS[nx]}: {lead.lower()} {T.SIGN_M[nx]}.",
+                 f"Trend change. The focus shifts from {_first(o['sign_idx'])} toward {_first(nx)}. " + (T.sign_meaning(p, nx)[1] if p not in ('Rahu', 'Ketu') else T.sign_meaning(p, nx)[1])]
+        if True:
+            paras.append(f"Note. In {SIGNS[nx]} {p} will be {ADJ[T.dignity(p, nx)]}, so its results there are {'stronger' if T.dignity(p, nx) in ('exalted', 'own', 'friend') else 'weaker' if T.dignity(p, nx) in ('debilitated', 'enemy') else 'ordinary'} than the planet's average.")
+        out.append({'planet': p, 'head': head, 'sign': o['sign'], 'text': f"{lead} {_first(o['sign_idx'], 2)}.", 'next_sign': SIGNS[nx], 'change': sp[p]['leaves'], 'paras': paras})
     return out
 
 
@@ -271,12 +284,19 @@ def _conjunctions(jd):
     return last, nxt
 
 
+def _next_sign(t, p):
+    with LOCK:
+        core.set_ayanamsa(CFG['ayanamsa'])
+        return sign_of(_lon(t + 1.0, p)[0])
+
+
 def slow(jd, tz, P):
     out = {'planets': [], 'js': {}, 'nodes': {}}
     for p in ('Jupiter', 'Saturn', 'Rahu', 'Ketu'):
         a, b = _span(p, jd)
         o = P[p]
-        out['planets'].append({'planet': p, 'sign': o['sign'], 'entered': loc(a, tz)[:10] if a else '', 'leaves': loc(b, tz)[:10] if b else '', 'retro': o['retro'],
+        nxt_idx = _next_sign(b, p) if b else (o['sign_idx'] + (11 if p in ('Rahu', 'Ketu') else 1)) % 12
+        out['planets'].append({'planet': p, 'sign': o['sign'], 'next_sign_idx': nxt_idx, 'entered': loc(a, tz)[:10] if a else '', 'leaves': loc(b, tz)[:10] if b else '', 'retro': o['retro'],
                                'frac': round((jd - a) / (b - a), 2) if a and b else None,
                                'text': f"{p} is in {o['sign']} ({o['dignity']}). " + T.sign_meaning(p, o['sign_idx'])[0]})
     last, nxt = _conjunctions(jd)
@@ -455,4 +475,5 @@ def view(jd, tz, when_label=''):
     P = state(jd)
     pv = {p: planet_view(P[p]) for p in BODIES}
     th = themes(P)
-    return {'when': when_label, 'planets': pv, 'themes': th, 'industries': industries(P), 'interests': interests(P)}
+    sl = slow(jd, tz, P)
+    return {'when': when_label, 'planets': pv, 'themes': th, 'industries': industries(P), 'interests': interests(P, sl['planets']), 'slow': sl}

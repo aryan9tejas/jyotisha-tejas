@@ -151,7 +151,7 @@ const Mkt = (() => {
 
   /* ---------------------------------------------------------------- first-page card */
   function homeHead(open) {
-    return `<div class="ch"><h2>Market view <span class="hint">benefic and malefic transits</span></h2><div class="btns"><button class="xp ic mk-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
+    return `<div class="ch"><h2>Market view</h2><div class="btns"><button class="xp ic mk-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
   }
   function homeBody(r) {
     const b = r.bias, up = r.sectors.filter(s => s.tag === 'Favoured').slice(0, 6), dn = r.sectors.filter(s => s.tag === 'Pressured').slice(-6).reverse();
