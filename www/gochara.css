@@ -11,7 +11,7 @@
 .c-goc input[type=number]{width:84px}
 /* pills and labels */
 .gc-pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11.5px;background:rgba(128,128,128,.25);margin-top:3px}
-.gc-pill.ok{background:rgba(31,157,85,.3)}.gc-pill.no{background:rgba(207,74,66,.3)}.gc-pill.mx{background:rgba(226,181,58,.3)}
+.gc-pill.ok{background:rgba(31,157,85,.3)}.gc-pill.no{background:rgba(226,140,58,.3)}.gc-pill.mx{background:rgba(226,181,58,.3)}
 .gc-lab{display:inline-block;padding:2px 9px;border-radius:12px;font-size:12px;border:1px solid rgba(128,128,128,.35)}
 .gc-lab.bu2{background:rgba(31,157,85,.38)}.gc-lab.bu1{background:rgba(111,180,63,.28)}.gc-lab.mx{background:rgba(226,181,58,.22)}.gc-lab.be1{background:rgba(224,131,58,.3)}.gc-lab.be2{background:rgba(207,74,66,.38)}
 .gc-lab b{margin-left:3px;font-weight:600}
@@ -92,3 +92,5 @@
 .gc-rels{margin:4px 0 6px}.gc-rel{border-bottom:1px solid rgba(128,128,128,.22);padding:6px 4px;border-left:4px solid #888}
 .gc-rel.r-good{border-left-color:#1f9d55}.gc-rel.r-bad{border-left-color:#cf4a42}.gc-rel.r-mixed{border-left-color:#e2b53a}
 .gc-rel>summary b{display:block;font-size:12.5px}.gc-rel>summary small{display:block;font-size:11px;opacity:.75}
+
+.gc-disc{margin:.35rem 0 .5rem;padding:.45rem .6rem;border-left:3px solid currentColor;border-radius:4px;font-size:.78rem;line-height:1.4;opacity:.85;background:rgba(127,127,127,.08)}

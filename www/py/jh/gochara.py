@@ -53,46 +53,46 @@ BASE_MEAN = {p: sum(v) / 12 for p, v in BASE.items()}
 
 # result of each planet in each house from the natal Moon (index 0 = 1st house). Paraphrased from the classical gochara results.
 EFFECT = {
-    'Sun': ['Heat, fatigue and health strain; ego clashes', 'Money leakage, eye or speech trouble, family friction', 'Courage, gains and victory over rivals; good health',
-            'Domestic unease, chest or stomach complaints', 'Mental worry, concern for children, fear of rivals', 'Wins over enemies, better health, relief from debts',
-            'Travel, friction with spouse or partners, digestive upset', 'Illness risk, setbacks with seniors, loss of standing', 'Obstacles in luck, delays, clashes with father or elders',
-            'Success at work, recognition, rise in status', 'Gains, honour, good health, goals met', 'Expenses, low energy, isolation, eye strain'],
-    'Moon': ['Comfort, good food, a steady pleasant mood', 'Spending rises, tension in speech or family', 'Small gains, courage; messages and short trips go well',
-             'Restless at home, mental unease', 'Anxious thinking, worry over children or plans', 'Overcomes rivals, health improves, debts ease',
-             'Gains through others, social ease, good company', 'Fear, low mood, health caution, hurdles', 'Delays, tiredness, obstacles in plans',
-             'Work goes well, tasks completed, recognition', 'Gains, happy news, wishes fulfilled', 'Expenses, poor sleep, withdrawn mood'],
-    'Mars': ['Fever, injury risk, short temper', 'Money loss, harsh speech, family quarrels', 'Courage, energy, wins in competition, gains',
-             'Fever, stomach upset, quarrels at home', 'Anger, children\'s troubles, rash decisions', 'Defeats rivals, strong health, gains',
-             'Disputes with spouse, bile and eye complaints', 'Injury or surgery risk, blood issues, losses', 'Setbacks in fortune, conflict with elders, accidents',
-             'Pressure at work, obstacles; rash moves hurt standing', 'Gains, property or income success, recognition', 'Heavy expenses, hospital or enemy trouble, lost sleep'],
-    'Mercury': ['Nervous worry, quarrels, loss of money', 'Money comes in, comfort, good speech', 'Rivals and obstacles, communication hiccups',
-                'Comfort, gains, friends; property matters help', 'Quarrels over children or study, confusion', 'Victory, income, problems solved by wit',
-                'Disputes, sorrow in partnerships, travel strain', 'Sudden gains, honour, happiness through children', 'Obstacles, mistakes in documents or decisions',
-                'Success, progress, deals go through', 'Gains in all forms, happy news, support from friends', 'Losses, quarrels, careless spending'],
-    'Jupiter': ['Drift, loss of position, anxiety', 'Wealth, family harmony, good speech', 'Displacement, minor illness, effort without return',
-                'Mental unease, domestic losses', 'Children, learning and honour; wisdom and prosperity', 'Enemies and disease gain ground, setbacks',
-                'Gains through spouse and partners, travel, fortune', 'Sorrow, obstacles, losses', 'Good fortune, faith, success and happiness',
-                'Loss of position, work pressure, trouble from seniors', 'Gains of every kind, good health, happiness', 'Expenses, restlessness, loss of peace'],
+    'Sun': ['Energy runs warm: pace yourself, mind the ego', 'Watch spending and speech; family needs patience', 'Courage, gains and the upper hand over rivals; good health',
+            'Home life needs calm; look after digestion', 'Thoughtful, a little anxious about children or rivals; stay steady', 'Rivals ease, health improves, debts reduce',
+            'Travel and partnerships need tact; go easy on food', 'Take care of health; seniors need diplomacy', 'Luck comes slower; be patient with father or elders',
+            'Success at work, recognition, rise in status', 'Gains, honour, good health, goals met', 'Spending rises; rest, and ease eye strain'],
+    'Moon': ['Comfort, good food, a steady pleasant mood', 'Spending rises; keep speech and family talk gentle', 'Small gains, courage; messages and short trips go well',
+             'Home feels restless; give the mind some quiet', 'Thoughts run fast; keep plans simple', 'Overcomes rivals, health improves, debts ease',
+             'Gains through others, social ease, good company', 'Mood is sensitive; rest and go gently', 'Plans move slowly; patience pays',
+             'Work goes well, tasks completed, recognition', 'Gains, happy news, wishes fulfilled', 'Spending rises; protect sleep, a reflective mood'],
+    'Mars': ['Strong drive; channel the heat into exercise', 'Guard money and speech; family talks need calm', 'Courage, energy, wins in competition, gains',
+             'Keep home peaceful; watch heat in the body', 'Energy is high; think before acting', 'Rivals are overcome, strong health, gains',
+             'Partnerships need patience; look after eyes and digestion', 'Take care physically; a time for caution and research', 'Fortune needs effort; respect elders and drive carefully',
+             'Pressure at work; steady, planned moves protect your standing', 'Gains, property or income success, recognition', 'Expenses are heavy; rest well and keep outflow deliberate'],
+    'Mercury': ['Mind is busy; slow down and be careful with money', 'Money comes in, comfort, good speech', 'Rivals test you; clear communication wins',
+                'Comfort, gains, friends; property matters help', 'Study and children need patience; clarify before deciding', 'Victory, income, problems solved by wit',
+                'Partnerships need open talk; travel needs planning', 'Sudden gains, honour, happiness through children', 'Check documents and decisions twice',
+                'Success, progress, deals go through', 'Gains in all forms, happy news, support from friends', 'Spending needs a plan; keep communication clear'],
+    'Jupiter': ['Seek direction and keep faith; guard your position', 'Wealth, family harmony, good speech', 'Be ready to move; effort builds slowly',
+                'Peace of mind needs tending; look after the home', 'Children, learning and honour; wisdom and prosperity', 'Rivals and health need attention; steady habits help',
+                'Gains through spouse and partners, travel, fortune', 'Go gently; a time for inner work, study and patience', 'Good fortune, faith, success and happiness',
+                'Work is demanding; stay close to seniors and your skills', 'Gains of every kind, good health, happiness', 'Expenses rise; build quiet, restful routines'],
     'Venus': ['Comfort, pleasure, good food and company', 'Wealth, good fortune, family happiness', 'Success, friends, happiness',
-              'Friends, comforts, property or vehicle gains', 'Children, honour, romance and joy', 'Quarrels and disappointment, health nuisances',
-              'Loss through partners, health or marital strain', 'Gains, comforts, sudden money', 'Fortune, faith, pleasant travel',
-              'Quarrels at work, trouble from authority', 'Gains, friends and comfort; wishes fulfilled', 'Pleasures and luxury; money spent on comfort'],
-    'Saturn': ['Heaviness in body and mind, loss of ease', 'Strain on money and family, harsh speech', 'Gains, steady effort pays, good health',
-               'Domestic unease, loss of comfort', 'Sorrow through children, mental pain, poor judgement', 'Victory over rivals, wealth, good health',
-               'Partnership strain, travel, delays', 'Ill health, obstacles, losses', 'Setbacks in luck, father or elders, hard journeys',
-               'Work obstacles, slow grind, risk to position', 'Gains, honour and prosperity', 'Expenses, isolation, disturbed sleep'],
-    'Rahu': ['Anxiety, health wobble, identity confusion', 'Money loss, family discord, sharp speech', 'Gains, courage, bold moves succeed',
-             'Domestic unrest, mental unease', 'Worry over children, confused thinking', 'Victory over rivals, health and gains',
-             'Marital or partner friction, travel', 'Fear, sudden troubles, health caution', 'Setbacks in luck, mistakes with elders',
-             'Success and rise through unconventional routes', 'Gains, desires fulfilled, network expands', 'Expenses, foreign or hospital matters, lost sleep'],
-    'Ketu': ['Detached and uneasy, health wobble', 'Money slips, family discord', 'Gains, courage, quiet success',
-             'Restlessness at home, mental unease', 'Worry over children, scattered mind', 'Victory over rivals, health and gains',
-             'Partner friction, withdrawal', 'Sudden shocks, fear, health caution', 'Setbacks in luck, break with elders',
-             'Success through focus and detachment', 'Gains and fulfilment, spiritual progress', 'Expenses, retreat, lost sleep; good for spiritual work'],
+              'Friends, comforts, property or vehicle gains', 'Children, honour, romance and joy', 'Small disappointments possible; care for health and talk things through',
+              'Partnerships need warmth; take care of health', 'Gains, comforts, sudden money', 'Fortune, faith, pleasant travel',
+              'Keep work relations smooth; tact with authority', 'Gains, friends and comfort; wishes fulfilled', 'Pleasures and luxury; money spent on comfort'],
+    'Saturn': ['Slow, serious phase; build energy with routine and rest', 'Money and family ask for care; speak with kindness', 'Gains, steady effort pays, good health',
+               'Home asks for patient attention; protect comfort', 'Think carefully about children and decisions; steady judgement', 'Victory over rivals, wealth, good health',
+               'Partnerships and travel move slowly; commit with care', 'A testing, inward period; health care and patience help', 'Fortune arrives slowly; respect elders and plan journeys',
+               'Work is demanding but builds lasting standing', 'Gains, honour and prosperity', 'Expenses rise; quiet routines and good sleep help'],
+    'Rahu': ['Restless mind; ground yourself in routine', 'Watch spending and speech; family needs patience', 'Gains, courage, bold moves succeed',
+             'Home needs calm; give the mind rest', 'Think clearly about children and plans; verify first', 'Victory over rivals, health and gains',
+             'Partnerships need honest talk; plan travel', 'Be steady and well-informed; look after health', 'Luck is slower; listen to elders',
+             'Success and rise through unconventional routes', 'Gains, desires fulfilled, network expands', 'Expenses, foreign matters; protect your sleep'],
+    'Ketu': ['Inward mood; keep company and routine', 'Watch money and family talk; stay gentle', 'Gains, courage, quiet success',
+             'Home needs peace; give the mind rest', 'Keep thoughts clear about children and plans', 'Victory over rivals, health and gains',
+             'Partnerships need space and understanding', 'Go gently; good for research and inner work', 'Luck is slower; stay connected to elders',
+             'Success through focus and detachment', 'Gains and fulfilment, spiritual progress', 'Retreat, expenses; good for spiritual work'],
 }
 HOUSE_AREA = ['body, vitality, self', 'money, family, speech', 'courage, siblings, short travel', 'home, mother, property, peace', 'children, study, creativity',
-              'health issues, debts, rivals, service', 'spouse, partners, business', 'longevity, obstacles, sudden events', 'fortune, father, long travel, dharma',
-              'career and status', 'gains, network, goals', 'expenses, foreign lands, sleep, losses']
+              'health upkeep, debts, rivals, service', 'spouse, partners, business', 'longevity, hidden matters, sudden events', 'fortune, father, long travel, dharma',
+              'career and status', 'gains, network, goals', 'expenses, foreign lands, sleep, retreat']
 
 # domains: houses counted from the natal lagna, and the natural significators (karakas)
 DOMAINS = [
@@ -124,14 +124,14 @@ PARAMS = {
     'trig_sign': (1.3, 'Dasa lens: multiplier when the transiting planet crosses the natal sign of a dasa lord'),
     'dom_md': (1.25, 'Dasa lens: emphasis on domains tied to the Mahadasa lord'),
     'dom_ad': (1.15, 'Dasa lens: emphasis on domains tied to the Antardasa lord'),
-    'centre': (1.0, 'Centering: 1 scores a domain against its typical level (planets sit in unfavourable houses more often than not), 0 turns it off'),
+    'centre': (1.0, 'Centering: 1 scores a domain against its typical level (planets sit in demanding houses more often than not), 0 turns it off'),
     'norm': (10.0, 'Scale: raw points that make a domain score of 100'),
 }
-LABELS = [(35, 'Strong'), (12, 'Supportive'), (-12, 'Mixed'), (-35, 'Caution'), (-1e9, 'Difficult')]
+LABELS = [(35, 'Strong'), (12, 'Supportive'), (-12, 'Mixed'), (-35, 'Go gently'), (-1e9, 'Testing')]
 TARA = ['Janma', 'Sampat', 'Vipat', 'Kshema', 'Pratyari', 'Sadhaka', 'Vadha', 'Mitra', 'Parama Mitra']
 TARA_PTS = [-0.5, 1, -1, 1, -1, 1, -1, 1, 1]
-TARA_MEAN = ['birth star itself, mixed', 'wealth, favourable', 'danger, unfavourable', 'well-being, favourable', 'obstacles, unfavourable',
-             'achievement, favourable', 'harm, unfavourable', 'friend, favourable', 'close friend, favourable']
+TARA_MEAN = ['birth star itself, mixed', 'wealth, favourable', 'care needed, mixed', 'well-being, favourable', 'resistance, take it slow',
+             'achievement, favourable', 'sensitive, take care', 'friend, favourable', 'close friend, favourable']
 ASPECTS = {'Mars': (4, 7, 8), 'Jupiter': (5, 7, 9), 'Saturn': (3, 7, 10)}
 CONJ_PTS = {'Jupiter': 0.5, 'Venus': 0.5, 'Mercury': 0.25, 'Sun': 0.0, 'Mars': -0.5, 'Saturn': -0.5, 'Rahu': -0.5, 'Ketu': -0.5}
 TRIKONA, KENDRA = (1, 5, 9), (4, 7, 10)
@@ -156,7 +156,7 @@ def label(pct):
     for t, name in LABELS:
         if pct >= t:
             return name
-    return 'Difficult'
+    return 'Testing'
 
 
 def tone_of(pct):
@@ -318,7 +318,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
                 steps.append({'layer': 'Vedha', 'text': 'Nodes have no vedha rule in this reading', 'pts': 0})
         else:
             term = base_v
-            steps.append({'layer': 'From Moon', 'text': f"{p} is in the {ordn(hm)} house from natal Moon, a {grade} unfavourable position", 'pts': round(base_v, 2)})
+            steps.append({'layer': 'From Moon', 'text': f"{p} is in the {ordn(hm)} house from natal Moon, a {grade} demanding position", 'pts': round(base_v, 2)})
         sgn = 1 if base_v > 0 else -1
         blocked = fav and by is not None
         fnp, fnl, owns, fnnote = functional(p, asc)
@@ -378,9 +378,9 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
               2: ('last phase', 'Saturn in the 2nd from Moon: strain on money, family and speech')}[sat['house_moon']]
         flags.append({'id': 'sade', 'level': 'major', 'title': 'Sade Sati ' + ph[0], 'text': ph[1]})
     if sat['house_moon'] == 8:
-        flags.append({'id': 'ashtama', 'level': 'major', 'title': 'Ashtama Shani', 'text': 'Saturn in the 8th from Moon: health, obstacles and sudden setbacks need care'})
+        flags.append({'id': 'ashtama', 'level': 'major', 'title': 'Ashtama Shani', 'text': 'Saturn in the 8th from Moon: a testing, inward period; health care, patience and sound planning help'})
     if jup['house_moon'] == 1:
-        flags.append({'id': 'janma_guru', 'level': 'moderate', 'title': 'Janma Guru', 'text': 'Jupiter over natal Moon: its usual protection is weak here; drift and anxiety are common'})
+        flags.append({'id': 'janma_guru', 'level': 'moderate', 'title': 'Janma Guru', 'text': 'Jupiter over natal Moon: a time to set realistic goals and avoid over-commitment; support comes through its aspects'})
     lag_sign = asc
     protect, press = [], []
     for pl, houses in (('Jupiter', (5, 7, 9)), ('Saturn', (3, 7, 10))):
@@ -412,7 +412,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
                     why.append(f"in the {ordn(o['house_lagna'])} from lagna")
                 if o['planet'] in d['karakas']:
                     why.append('natural significator')
-                drv.append({'planet': o['planet'], 'pts': round(v, 2), 'why': ', '.join(why) + f"; {ordn(o['house_moon'])} from Moon is {'favourable' if o['fav'] else 'not favourable'}" + (' (vedha)' if o['blocked'] else '')})
+                drv.append({'planet': o['planet'], 'pts': round(v, 2), 'why': ', '.join(why) + f"; {ordn(o['house_moon'])} from Moon is {'supportive' if o['fav'] else 'demanding'}" + (' (vedha)' if o['blocked'] else '')})
             emph = 1.0
             if key == 'dasa':
                 if d['id'] in md_dom:
@@ -439,7 +439,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     tot = 0.0
     mt = 1 if moon_o['state'] == 'good' else 0 if moon_o['state'] == 'blocked' else -1
     tot += mt
-    reasons.append({'k': 'Moon from natal Moon', 'text': f"{ordn(mo['house_moon'])} house, {'favourable' if moon_o['fav'] else 'not favourable'}" + (f"; blocked by {moon_o['vedha_by']}" if moon_o['blocked'] else ''), 'pts': mt})
+    reasons.append({'k': 'Moon from natal Moon', 'text': f"{ordn(mo['house_moon'])} house, {'supportive' if moon_o['fav'] else 'demanding'}" + (f"; blocked by {moon_o['vedha_by']}" if moon_o['blocked'] else ''), 'pts': mt})
     tp = TARA_PTS[ti]
     tot += tp
     reasons.append({'k': 'Tara bala', 'text': f"{TARA[ti]} tara (count {cnt} from birth star {NAKSHATRAS[birth_nak]}): {TARA_MEAN[ti]}", 'pts': tp})
@@ -463,7 +463,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
                 v = CONJ_PTS[pl] * 0.5
                 tot += v
                 reasons.append({'k': f"{pl} aspects Moon", 'text': f"{ordn(dist)} aspect", 'pts': v})
-    day_label = 'Supportive' if tot >= 2 else 'Mixed to supportive' if tot >= 1 else 'Mixed' if tot > -1 else 'Mixed to difficult' if tot > -2 else 'Difficult'
+    day_label = 'Supportive' if tot >= 2 else 'Mixed to supportive' if tot >= 1 else 'Mixed' if tot > -1 else 'Mixed, go gently' if tot > -2 else 'Testing'
     today = {'sign': mo['sign'], 'deg': mo['deg'], 'nak': mo['nakshatra'], 'pada': mo['pada'], 'house_moon': mo['house_moon'], 'house_lagna': mo['house_lagna'],
              'area': HOUSE_AREA[mo['house_lagna'] - 1], 'fav': moon_o['fav'], 'blocked': moon_o['blocked'], 'tara_no': ti + 1, 'tara': TARA[ti], 'tara_count': cnt,
              'nak_idx': now_nak, 'tara_good': TARA_PTS[ti] > 0, 'tara_mean': TARA_MEAN[ti], 'birth_nak': NAKSHATRAS[birth_nak], 'bindus': mo['bindus'], 'sav': mo['sav'], 'conj': conj, 'aspects': asp,
@@ -518,10 +518,10 @@ def guide():
         'method': [
             'Planet score = weight x (Moon term x lagna-lordship factor + lagna agreement). The Moon term is the strength of that house for that planet (about +1.5 to -2, graded from the classical results; Ashtama Shani and Sade Sati houses are the heaviest) and it drops to 0 when vedha cancels a good result.',
             'Each planet\'s score is routed to the domains whose houses (counted from lagna) hold the planet, plus a smaller share to domains it naturally signifies.',
-            'Domain score = routed total, measured against that domain\'s typical level (planets sit in unfavourable houses more often than not, so this keeps Difficult and Strong for real extremes), divided by the scale, shown from -100 to +100. Labels: Strong 35 and above, Supportive 12 to 35, Mixed within 12, Caution -12 to -35, Difficult below -35.',
+            'Domain score = routed total, measured against that domain\'s typical level (planets sit in demanding houses more often than not, so this keeps Testing and Strong for real extremes), divided by the scale, shown from -100 to +100. Labels: Strong 35 and above, Supportive 12 to 35, Mixed within 12, Go gently -12 to -35, Testing below -35.',
             'With dasa: the same sum after the dasa strength factor, trigger multipliers and domain emphasis. Both columns are shown.',
             'Today strip: Moon from natal Moon, Tara bala from the birth star, Moon from lagna, and Moon\'s conjunctions and aspects. Chandra bindus are information only.',
             'Open items to verify against Raman: which planets can give vedha (nodes are excluded as givers and have no vedha table), and the exact lagna agreement rule.',
-            'Traditional rules, not tested. Astrological only; may not apply to the real world.',
+            'Traditional rules, not tested. These are indicative tendencies from classical texts, given to help you prepare rather than to alarm. Your effort and choices change outcomes, and a professional astrologer who studies the whole chart gives the most reliable reading. Astrological only; may not apply to the real world.',
         ],
     }

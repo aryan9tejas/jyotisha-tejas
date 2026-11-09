@@ -48,11 +48,11 @@ const Goc = (() => {
 
   /* ---------------------------------------------------------------- pieces */
   const pill = (t, c) => `<span class="gc-pill ${c || ''}">${esc(t)}</span>`;
-  const toneCls = {Strong: 'bu2', Supportive: 'bu1', Mixed: 'mx', Caution: 'be1', Difficult: 'be2'};
+  const toneCls = {Strong: 'bu2', Supportive: 'bu1', Mixed: 'mx', 'Go gently': 'be1', Testing: 'be2'};
   const lab = d => `<span class="gc-lab ${toneCls[d.label]}">${esc(d.label)} <b>${sgn0(d.pct)}</b></span>`;
 
   function todayHTML(t) {
-    const fav = t.blocked ? pill('blocked by vedha', 'mx') : pill(t.fav ? 'favourable' : 'not favourable', t.fav ? 'ok' : 'no');
+    const fav = t.blocked ? pill('held back by vedha', 'mx') : pill(t.fav ? 'supportive' : 'demanding', t.fav ? 'ok' : 'no');
     const tara = pill(`${t.tara} (${t.tara_no})`, t.tara_no === 1 ? 'mx' : t.tara_good ? 'ok' : 'no');
     const bind = t.bindus === null ? '' : `<div class="gc-tile" data-tile="bindus" role="button" tabindex="0"><span>Chandra bindus</span><b>${t.bindus} of 8</b><small>info only, sign total ${t.sav}</small></div>`;
     const others = [...t.conj.map(p => `${GL[p]} ${p} conjunct`), ...t.aspects.map(p => `${GL[p]} ${p} aspect`)];
@@ -110,7 +110,7 @@ const Goc = (() => {
 
   function planetsHTML(r) {
     const rows = r.planets.map(p => {
-      const st = p.blocked ? pill('blocked', 'mx') : pill(p.fav ? 'favourable' : 'unfavourable', p.fav ? 'ok' : 'no');
+      const st = p.blocked ? pill('blocked', 'mx') : pill(p.fav ? 'supportive' : 'demanding', p.fav ? 'ok' : 'no');
       const bd = p.bindus === null ? '' : `<span class="gc-bd ${p.bindus_tone}" title="Ashtakavarga bindus of ${esc(p.planet)} in this sign (information only)">${p.bindus} bindus</span>`;
       const nt = p.notes.map(n => `<span class="gc-n ${n.t}">${esc(n.text)}</span>`).join('');
       const steps = p.steps.map(s => `<tr><td><b>${esc(s.layer)}</b></td><td>${esc(s.text)}</td><td class="n ${s.pts > 0 ? 'up' : s.pts < 0 ? 'dn' : ''}">${sgn(s.pts)}</td></tr>`).join('');
@@ -138,8 +138,8 @@ const Goc = (() => {
 
   function mainHTML(r) {
     return `<div class="gc-meta"><b>${esc(r.name || 'Chart')}</b> &middot; Lagna ${esc(r.lagna)} &middot; Moon ${esc(r.moon_sign)}, ${esc(r.moon_nak)} &middot; ${esc(r.when)}</div>
-      ${todayHTML(r.today)}${flagsHTML(r.flags)}${domainsHTML(r)}${lensHTML(r)}${planetsHTML(r)}<div id="gcHow"></div>
-      <p class="gc-note">Traditional gochara rules, not tested against outcomes. Astrological only; predictive insights may not apply to the real world. Created by Aryan Sankara Tejasvi.</p>`;
+      <p class="gc-disc">These readings are indicative tendencies from classical Vedic texts for specific planetary placements. They are shared to help you prepare and take care, not to worry you. Your effort and choices change outcomes, and astrology only shows tendencies. For a reliable overall view, consult a professional astrologer who studies the whole pattern of your chart.</p>${todayHTML(r.today)}${flagsHTML(r.flags)}${domainsHTML(r)}${lensHTML(r)}${planetsHTML(r)}<div id="gcHow"></div>
+      <p class="gc-note">Traditional gochara rules, not tested against outcomes. Astrological only; predictive insights are indicative and may not apply to the real world. Created by Aryan Sankara Tejasvi.</p>`;
   }
 
   /* ---------------------------------------------------------------- card */
