@@ -134,3 +134,14 @@ label.xl>div{flex:1;text-align:left}
 .xdn h4{flex:1;text-align:center}
 .xdn button{min-width:40px;min-height:40px;padding:0;font-size:22px;line-height:1}
 .xsh1{display:block}
+
+/* security: app lock, privacy cover, dialog fields */
+.sec-lock{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg,#1d1740);color:var(--ink,#eee);padding:20px}
+.sec-box{width:100%;max-width:320px;text-align:center}
+.sec-box h2{margin:0 0 6px;color:var(--acc)}
+.sec-box input{width:100%;text-align:center;font-size:22px;letter-spacing:.35em;margin:10px 0}
+.sec-box .xbtns{justify-content:center}.sec-forgot{margin-top:14px;font-size:12px}
+.sec-cover{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;background:var(--bg,#1d1740);color:var(--acc);font-weight:600}
+.sec-cover.on{display:flex}
+.sec-f{display:block;margin:8px 0}.sec-f input,.sec-f select{width:100%;margin-top:4px}
+.sec-err{color:#d9534f;min-height:1.2em;margin:4px 0}

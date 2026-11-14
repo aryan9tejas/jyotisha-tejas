@@ -138,25 +138,108 @@ def _pace(p, retro):
     return ''
 
 
+# ------------------------------------------------------------------ combined lagna + Moon reading
+HL_SHORT = {1: 'self and health', 2: 'money and family', 3: 'effort and communication', 4: 'home and peace', 5: 'children and learning', 6: 'work and health upkeep',
+            7: 'partnerships', 8: 'hidden matters', 9: 'travel, beliefs and mentors', 10: 'career and status', 11: 'gains and networks', 12: 'expenses and rest'}
+FIELDS = {
+    1: [('Body and energy', 'your health, vitality and physical comfort'), ('Self-image', 'how you present yourself and how others see you'), ('Fresh starts', 'personal initiatives and a new way of living')],
+    2: [('Money and savings', 'income, savings and how you spend'), ('Speech and family', 'what you say and the family table'), ('Values and food', 'what you value and what you eat')],
+    3: [('Effort and courage', 'your drive, initiative and self-made progress'), ('Communication', 'calls, writing, negotiations and short travel'), ('Siblings and neighbours', 'brothers, sisters and close contacts')],
+    4: [('Home and property', 'home, land, vehicles and domestic comfort'), ('Mother and family peace', 'your mother and emotional security at home'), ('Inner peace', 'contentment, rest and a settled mind')],
+    5: [('Children and creativity', 'children, creative work and what you enjoy making'), ('Learning and judgement', 'study, intelligence and the quality of your decisions'), ('Romance and speculation', 'romance, play and risk-taking')],
+    6: [('Health routines', 'daily health upkeep and discipline'), ('Work and service', 'daily work, colleagues and service'), ('Debts and rivals', 'loans, disputes and competitors')],
+    7: [('Marriage and partnership', 'your spouse or partner'), ('Business and clients', 'contracts, clients and public dealings'), ('Travel and the public', 'journeys and dealing with many people')],
+    8: [('Hidden matters', 'secrets, research and what lies beneath the surface'), ('Shared money', 'insurance, inheritance and joint finances'), ('Health and change', 'health checks and sudden turns of plan')],
+    9: [('Travel and relocation', 'long journeys, moves and people from other cultures'), ('Beliefs and mentors', 'philosophy, teachers, higher learning and faith'), ('Father figures and authority', 'your father, mentors and those you look up to')],
+    10: [('Career and status', 'your profession and standing'), ('Authority and bosses', 'seniors, responsibility and public judgement'), ('Visible results', 'recognition for work already done')],
+    11: [('Income and gains', 'earnings and the fruit of past effort'), ('Friends and networks', 'friends, groups and elder siblings'), ('Goals and wishes', 'long-held plans coming within reach')],
+    12: [('Expenses and outflow', 'spending and what leaves your hands'), ('Sleep and retreat', 'rest, solitude and inner work'), ('Foreign places', 'distance, travel abroad and unfamiliar settings')]}
+FEEL = {
+    1: [('Emotional footing', 'your own mood and sense of self'), ('Body and mind', 'how you feel in your own skin')],
+    2: [('Family and money', 'family conversations and savings'), ('Speech', 'what you say and how it lands')],
+    3: [('Initiative', 'your drive to act and communicate'), ('Close contacts', 'siblings and neighbours')],
+    4: [('Inner peace', 'home and emotional security'), ('Mother and home', 'family comfort')],
+    5: [('Creative flow', 'ideas, children and romance'), ('Judgement', 'how clearly you decide')],
+    6: [('Daily pressures', 'work, health upkeep and rivals'), ('Debts', 'money you owe or are owed')],
+    7: [('Partnerships', 'your spouse, partner and business associates'), ('Closeness', 'dealings where another person is involved')],
+    8: [('Hidden concerns', 'what is private, shared or uncertain'), ('Change', 'sudden turns and deep matters')],
+    9: [('Faith and fortune', 'belief, luck and guidance'), ('Teachers and elders', 'father figures and mentors')],
+    10: [('Career mind', 'work, reputation and responsibility'), ('Authority', 'bosses and public expectations')],
+    11: [('Hopes and gains', 'income, friends and wishes'), ('Social circle', 'groups and networks')],
+    12: [('Rest and outflow', 'sleep, spending and withdrawal'), ('Solitude', 'your inner life and distance from others')]}
+PLENS = {'Sun': ('clearer recognition, confidence and leadership', 'a stronger ego and some friction with authority'),
+         'Moon': ('warmth, comfort and easy flow', 'mood swings and extra sensitivity'),
+         'Mars': ('drive, courage and decisive progress', 'heat, impatience and quick reactions'),
+         'Mercury': ('clever, well-timed communication and useful ideas', 'scattered attention and mix-ups'),
+         'Jupiter': ('growth, guidance and goodwill', 'a tendency to over-expand or over-promise'),
+         'Venus': ('harmony, comfort and pleasant company', 'indulgence and mixed feelings'),
+         'Saturn': ('steady, disciplined progress and lasting results', 'delay, weight and a need for patience'),
+         'Rahu': ('sudden, unconventional openings', 'restless urgency and temptation'),
+         'Ketu': ('quiet insight, detachment and focus', 'withdrawal, distraction or loosening ties')}
+PMIND = {'Sun': ('Your mind feels confident, purposeful and ready to lead', 'Your mind feels proud, pressured or over-focused on itself'),
+         'Moon': ('Your mind feels soothed and receptive', 'Your mind feels sensitive and easily swayed'),
+         'Mars': ('Your mind feels energetic and determined', 'Your mind feels quick to react and impatient'),
+         'Mercury': ('Your mind feels sharp, curious and communicative', 'Your mind feels busy and prone to overthinking'),
+         'Jupiter': ('Your mind feels hopeful, generous and supported', 'Your mind feels over-optimistic or stretched too wide'),
+         'Venus': ('Your mind feels warm, affectionate and appreciative', 'Your mind feels tempted by comfort or unsure of its wishes'),
+         'Saturn': ('Your mind feels steady, serious and mature', 'Your mind feels weighed down and cautious'),
+         'Rahu': ('Your mind feels excited, curious and drawn to the new', 'Your mind feels an urgency and desire that magnify small things'),
+         'Ketu': ('Your mind feels calm, intuitive and inward', 'Your mind feels detached and unsure of its footing')}
+PHEAD = {'Sun': ('Recognition and confidence', 'Strong ego and pace'), 'Moon': ('Ease and comfort', 'Sensitivity'), 'Mars': ('Drive and progress', 'Heat and haste'),
+         'Mercury': ('Smart communication', 'A busy mind'), 'Jupiter': ('Growth and guidance', 'Over-reach to avoid'), 'Venus': ('Harmony and comfort', 'Indulgence to balance'),
+         'Saturn': ('Steady progress', 'Slow, serious demands'), 'Rahu': ('Sudden openings', 'Restless urgency'), 'Ketu': ('Quiet insight', 'Withdrawal')}
+
+
+def combo_head(p, hl, hm, good):
+    """One merged surface line: where life events show (lagna house) and how the mind feels it (Moon house)."""
+    return f"{PHEAD[p][0 if good else 1]} around {HL_SHORT[hl]}; mind turns to {HL_SHORT[hm]}"
+
+
+def combined_paras(o, lagna):
+    p, hl, hm = o['planet'], o['house_lagna'], o['house_moon']
+    good = bool(o['fav'] and not o['blocked'])
+    k = 0 if good else 1
+    info = PL[p]
+    out = [f"Combined reading. {p} {info['role']}. It is in your {ordn(hl)} house from the {lagna} lagna, which shows where events take shape ({HL[hl]}), and in the {ordn(hm)} from your natal Moon, which shows how your mind lives through it ({HM[hm]}). The two are read together below."]
+    for i, (lab, what) in enumerate(FIELDS[hl]):
+        lead = ('You may notice', 'Expect', 'Watch for')[i]
+        out.append(f"{lab}. {lead} {PLENS[p][k]} {('around', 'in', 'in')[i]} {what}.")
+    for lab, what in FEEL[hm]:
+        out.append(f"{lab}, from the Moon. {PMIND[p][k]} when it comes to {what}.")
+    if p in ('Rahu', 'Ketu'):
+        other = 'Ketu' if p == 'Rahu' else 'Rahu'
+        hlo, hmo = (hl + 5) % 12 + 1, (hm + 5) % 12 + 1
+        txt = f"The other end of the axis. {other} sits opposite, in your {ordn(hlo)} house from lagna ({HL_SHORT[hlo]}) and the {ordn(hmo)} from your Moon. "
+        if hmo == 1 or hm == 1:
+            txt += (f"{other} passes over your natal Moon, which can make you feel temporarily detached, introspective or unsure of your emotional footing while attention is on others." if other == 'Ketu'
+                    else f"{other} passes over your natal Moon, which can make you feel restless, eager and pulled by new desires.")
+        else:
+            txt += (f"Ketu brings a quieter, inward pull to {HL_SHORT[hlo]}, so what Rahu amplifies in one area is loosened or simplified in the other." if other == 'Ketu'
+                    else f"Rahu brings appetite and ambition to {HL_SHORT[hlo]}, so what Ketu simplifies in one area is stirred up in the other.")
+        out.append(txt)
+    leanto = ', '.join(l.lower() for l, _ in FIELDS[hl][:2])
+    out.append(f"Navigating the pull. {p} spends {info['dur']}, so over this stay, lean into {leanto}, and give extra thought before big decisions about {FEEL[hm][0][1]}. " + info['tip_g' if good else 'tip_b'])
+    return out
+
+
 def planet_detail(o, lagna, L, dasa_notes):
     """o is one entry of the per-planet list in gochara.evaluate."""
     p, hm, hl = o['planet'], o['house_moon'], o['house_lagna']
     info = PL[p]
     paras = []
-    eff = o['effect']
-    paras.append(f"Headline. {eff}.")
-    paras.append(f"Why. {p} {info['role']}. Counted from your natal Moon it is in the {ordn(hm)} house, which speaks of {HM[hm]}. That is the part of life where the mind feels this transit first.")
+    paras.append(f"Headline. {o['effect']}.")
+    paras.extend(combined_paras(o, lagna))
     if o['blocked']:
-        paras.append(f"Obstruction. The {ordn(hm)} from the Moon is normally a house where {p} gives good results, but {o['vedha_by']} is sitting in the vedha house ({ordn(o['vedha_house'])}) and cuts that promise off. The benefit may come later or in a smaller form until {o['vedha_by']} or {p} changes sign, so patience and steady effort help.")
+        paras.append(f"Classical rating. The {ordn(hm)} from the Moon is normally a house where {p} gives good results, but {o['vedha_by']} is sitting in the vedha house ({ordn(o['vedha_house'])}) and cuts that promise off. The benefit may come later or in a smaller form until {o['vedha_by']} or {p} changes sign, so patience and steady effort help.")
     elif o['fav']:
-        paras.append(f"Quality. This is a favourable house for {p}, and no planet obstructs it, so {lc(info['good'])}")
+        paras.append(f"Classical rating. This is a favourable house for {p}, and no planet obstructs it, so {lc(info['good'])}")
     else:
-        paras.append(f"Quality. This is a house where {p} gives a more demanding result by the classical texts, so {lc(info['bad'])}")
+        paras.append(f"Classical rating. Counted from the Moon, this is a house where {p} gives a more demanding result by the classical texts, so {lc(info['bad'])}")
     fn = o['fn_label']
     fnl = {'strong benefic': 'a strong functional benefic', 'benefic': 'a functional benefic', 'mixed': 'a mixed-nature planet',
            'malefic': 'a functional malefic', 'strong malefic': 'a strong functional malefic', 'neutral': 'neutral'}.get(fn, fn)
     if p in ('Rahu', 'Ketu'):
-        lag = f"From your {lagna} lagna it falls in the {ordn(hl)} house, the field of {HL[hl]}. The nodes carry the colour of their sign lord and of whatever they conjoin, so the result here is read through those rather than through ownership."
+        lag = f"The nodes carry the colour of their sign lord and of whatever they conjoin, so the result here is read through those rather than through ownership."
     else:
         own = ' and '.join(ordn(h) for h in o['owns'])
         if o['fav'] and not o['blocked']:
@@ -167,8 +250,8 @@ def planet_detail(o, lagna, L, dasa_notes):
             adj = {'strong benefic': 'Because it is a strong benefic for your lagna, the demand is cushioned and something constructive is left behind.', 'benefic': 'Because it is a benefic for your lagna, the demand is cushioned.',
                    'mixed': 'Its lordship is mixed for your lagna, so it neither cushions nor adds to the demand.', 'malefic': 'As a malefic lord for your lagna, the demand is a little stronger than usual, so steady effort matters more.',
                    'strong malefic': 'As a strong malefic lord for your lagna, the demand is more persistent, so disciplined effort and patience carry you through.'}.get(fn, '')
-        lag = f"From your {lagna} lagna it falls in the {ordn(hl)} house, the field of {HL[hl]}. For {lagna} it rules the {own} {'houses' if len(o['owns']) > 1 else 'house'} and is {fnl}. {adj} {HL_ACT[hl]}"
-    paras.append("Lagna layer. " + ' '.join(lag.split()))
+        lag = f"For {lagna} it rules the {own} {'houses' if len(o['owns']) > 1 else 'house'} and is {fnl}. {adj}"
+    paras.append("Lagna lordship. " + ' '.join(lag.split()))
     dg = _dignity(p, o['sign_idx'])
     bits = []
     if dg == 'exalted':

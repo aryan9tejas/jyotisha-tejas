@@ -350,9 +350,9 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
             steps.append({'layer': 'Dasa lens', 'text': f"Dasa strength {L:+.2f} {dword}" + (f"; {trig_why} (x{trig:g})" if trig_why else ''), 'pts': round((base_d - base) , 3)})
         elif trig_why:
             steps.append({'layer': 'Dasa lens', 'text': f"{trig_why} (x{trig:g})", 'pts': 0})
-        eff = EFFECT[p][hm - 1]
+        eff = GT.combo_head(p, hl, hm, bool(fav and not blocked))
         if blocked:
-            eff = f"Good result blocked by {by}. Normally: {eff[0].lower() + eff[1:]}"
+            eff = f"Good result held back by {by}. Normally: {eff[0].lower() + eff[1:]}"
         notes = []
         if p == 'Saturn':
             if hm in (12, 1, 2):
@@ -520,7 +520,7 @@ def guide():
             'Each planet\'s score is routed to the domains whose houses (counted from lagna) hold the planet, plus a smaller share to domains it naturally signifies.',
             'Domain score = routed total, measured against that domain\'s typical level (planets sit in demanding houses more often than not, so this keeps Testing and Strong for real extremes), divided by the scale, shown from -100 to +100. Labels: Strong 35 and above, Supportive 12 to 35, Mixed within 12, Go gently -12 to -35, Testing below -35.',
             'With dasa: the same sum after the dasa strength factor, trigger multipliers and domain emphasis. Both columns are shown.',
-            'Today strip: Moon from natal Moon, Tara bala from the birth star, Moon from lagna, and Moon\'s conjunctions and aspects. Chandra bindus are information only.',
+            'Today strip: Moon from natal Moon, Tara bala from the birth star, Moon from lagna, and Moon\'s conjunctions and aspects. Chandra bindus are information only. Rahu and Ketu are counted only by conjunction, never as aspecting planets.',
             'Open items to verify against Raman: which planets can give vedha (nodes are excluded as givers and have no vedha table), and the exact lagna agreement rule.',
             'Traditional rules, not tested. These are indicative tendencies from classical texts, given to help you prepare rather than to alarm. Your effort and choices change outcomes, and a professional astrologer who studies the whole chart gives the most reliable reading. Astrological only; may not apply to the real world.',
         ],

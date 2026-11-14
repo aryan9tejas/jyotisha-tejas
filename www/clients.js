@@ -46,6 +46,7 @@ const Cl = (() => {
       <div class="xlist">${rows.map(c => { const nf = nextFollow(c), d = nf ? dayDiff(nf.date) : null; return `<button type="button" class="xclient" data-id="${c.id}"><span class="xav">${esc(ini(c.name))}</span><span class="xcm"><b>${c.star ? '&#9733; ' : ''}${esc(c.name || '(unnamed)')}</b><small>${esc(birthLine(c))}</small></span><span class="xcr"><span class="xtag2">${esc(gLabel(tagOf(c)))}</span>${nf ? `<span class="xfu${d <= 7 ? ' soon' : ''}">${d === 0 ? 'Follow-up today' : d === 1 ? 'Follow-up tomorrow' : 'Follow-up ' + esc(fdate(nf.date).slice(0, -5))}</span>` : ''}</span></button>`; }).join('') || '<p class="note">No one here yet. Enter birth details above and press Save profile, or use Add new.</p>'}</div>
       <div class="xcard2 xbk${stale ? ' stale' : ''}"><div><b>Backup</b><small>${bk ? 'Last backup ' + (days === 0 ? 'today' : days + ' days ago') : 'Not backed up yet'}${stale ? '. Back up now so your notes are safe if the phone is lost.' : ''}</small></div>
         <div class="xbtns"><button type="button" class="sec" id="cBk">Back up now</button><label class="xfile sec">Restore<input type="file" id="cRs" accept="application/json,.json" hidden></label></div></div>
+      ${Sec.cardHTML()}
       <p class="note">${esc(Extra.DISC)}</p>`;
     $('#cQ').oninput = e => { st.q = e.target.value; listView(p); const i = $('#cQ'); i.focus(); i.setSelectionRange(st.q.length, st.q.length); };
     $('#cSort').onchange = e => { st.sort = e.target.value; listView(p); };
@@ -53,8 +54,9 @@ const Cl = (() => {
     $('#cGrp').onclick = () => groupDialog(p);
     $$('.xclient', p).forEach(b => b.onclick = () => { st.sel = +b.dataset.id; st.tab = 'sessions'; paint(p); });
     $('#cAdd').onclick = () => { S.profileId = null; $('#profileSel').value = ''; $('#name').value = ''; const tg = $('#birthTg'); if (tg && tg.getAttribute('aria-expanded') === 'false') tg.click(); window.scrollTo({top: 0, behavior: 'smooth'}); setTimeout(() => $('#name').focus(), 300); };
-    $('#cBk').onclick = guard(async () => { await Extra.saveFile('jyotisha-tejas-backup.json', 'application/json', Local.exportAll()); Extra.lsSet('jt_last_backup', Date.now()); listView(p); });
-    $('#cRs').onchange = guard(async e => { const fl = e.target.files[0]; if (!fl) return; if (!confirm('Restore replaces everything on this device with the backup file. Continue?')) return; await Local.importAll(await fl.text()); await refreshProfiles(); st.list = await api('/api/profiles'); st.sel = null; listView(p); setStatus('Backup restored'); });
+    $('#cBk').onclick = guard(async () => { const b = await Sec.makeBackup(Local.exportAll()); if (!b) return; await Extra.saveFile(b.name, 'application/json', b.text); Extra.lsSet('jt_last_backup', Date.now()); listView(p); });
+    $('#cRs').onchange = guard(async e => { const fl = e.target.files[0]; e.target.value = ''; if (!fl) return; if (!confirm('Restore replaces everything on this device with the backup file. Continue?')) return; const txt = await Sec.openBackup(await fl.text()); if (txt === null) return; const r = await Local.importAll(txt); await refreshProfiles(); st.list = await api('/api/profiles'); st.sel = null; listView(p); setStatus('Backup restored' + (r.skipped ? ` (${r.skipped} damaged entries skipped)` : '')); });
+    Sec.bindCard(p, () => listView(p));
   }
 
   /* ---------------------------------------------------------- groups */

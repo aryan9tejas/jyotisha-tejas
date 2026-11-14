@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-6sF4jpJPIvmQI6/gBGr/xV/VZMNZzGzMVXmtNX7Yihw=' 'sha256-qFQm1G46PVZ92h0fkg1YbIr8+fJdVTz6YTvKrJh1Qzs='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2b2150">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,6 +23,7 @@
 <script>try{var t=localStorage.getItem("jt_theme");if(t==="marigold")t="lemon";if(t&&/^(indigo|lemon|brown|teal|silver|sky|lavender)$/.test(t)){document.documentElement.setAttribute("data-theme",t);}}catch(e){}</script>
 </head>
 <body>
+<script src="secure.js"></script>
 <div id="notchBar" aria-hidden="true"></div>
 <div id="homeView" class="home" data-sky="night">
   <div class="sky day"></div><div class="sky dawn"></div><div class="sky dusk"></div><div class="sky night"></div>

@@ -1,3 +1,4 @@
+import re
 """Traditional (Brihat Samhita style) mundane text for the World outlook: sign and planet meanings, pair effects, themes, industries,
 eclipse and nation text. Pure data and small composers; the numbers come from world.py. Written as composed principles, not verse quotations."""
 
@@ -112,10 +113,23 @@ PAIRS = {
 }
 
 
+ASPECT_ON_NODE = {
+    ('Jupiter', 'Rahu'): "Jupiter aspecting Rahu is not Guru-Chandala, which needs the two in the same sign. Here Jupiter's wisdom tames, refines and directs Rahu's restless ambition and illusion: innovation with sound advice, bold ideas that find ethical footing, and growth that stays grounded.",
+    ('Jupiter', 'Ketu'): "Jupiter aspecting Ketu deepens its spiritual and research side: faith, study and quiet insight are supported, and withdrawal comes with wisdom.",
+    ('Saturn', 'Rahu'): "Saturn aspecting Rahu slows and disciplines its hunger: ambition meets rules, audits and hard limits, so excess is checked and what survives is more durable.",
+    ('Saturn', 'Ketu'): "Saturn aspecting Ketu adds austerity: quiet declines, simplification and a serious, introspective tone.",
+    ('Mars', 'Rahu'): "Mars aspecting Rahu adds heat to its ambition: sudden clashes and risk-taking are likelier, so caution with fire, machinery and conflict helps.",
+    ('Mars', 'Ketu'): "Mars aspecting Ketu sharpens its cutting edge: abrupt ends to quarrels and focused, surgical action."}
+
+
 def pair_text(a, b, kind):
+    if kind == 'aspect' and (a, b) in ASPECT_ON_NODE:
+        return ASPECT_ON_NODE[(a, b)]
     t = PAIRS.get(frozenset([a, b]))
     if t:
-        return t if kind == 'conjunction' else t.replace(' with ', ' aspecting ', 1)
+        if kind == 'conjunction':
+            return t
+        return re.sub(r' \([^)]*\)', '', t.replace(' with ', ' aspecting ', 1))
     ben = (a in BENEFIC) + (b in BENEFIC)
     tone = 'a mostly constructive' if ben == 2 else 'a mixed' if ben == 1 else 'a pressured'
     return f"{a} {'with' if kind == 'conjunction' else 'aspecting'} {b}: {tone} blend of {PLANET_M[a]} and {PLANET_M[b]}."

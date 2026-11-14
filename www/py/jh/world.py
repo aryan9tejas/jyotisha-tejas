@@ -103,7 +103,11 @@ def planet_view(o):
         flags.append('combust')
     if o['conj']:
         for q in o['conj']:
-            paras.append('Conjunction. ' + T.pair_text(p, q, 'conjunction'))
+            txt = T.pair_text(p, q, 'conjunction')
+            if {p, q} == {'Jupiter', 'Rahu'}:
+                sep = abs(((o['lon'] - P[q]['lon'] + 180) % 360) - 180)
+                txt += f" They are {sep:.1f} degrees apart; the closer the conjunction, the stronger the yoga."
+            paras.append('Conjunction. ' + txt)
         flags.append('conjunct ' + ', '.join(o['conj']))
     for a in o['aspected_by']:
         if a['planet'] in ('Jupiter', 'Saturn', 'Mars'):

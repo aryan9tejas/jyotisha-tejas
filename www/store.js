@@ -64,10 +64,10 @@ const Local = (() => {
   const isLocal = url => /^\/api\/(places|tz|profiles|saved)/.test(url);
   const exportAll = () => JSON.stringify({app: 'Jyotisha Tejas', version: 1, state, groups: (() => { try { return JSON.parse(localStorage.getItem('jt_groups') || 'null'); } catch (e) { return null; } })()}, null, 1);
   async function importAll(text) {
-    const j = JSON.parse(text);
-    if (!j || !j.state || !Array.isArray(j.state.profiles)) throw new Error('Not a Jyotisha Tejas backup file');
-    state = j.state; await persist();
-    try { if (Array.isArray(j.groups)) localStorage.setItem('jt_groups', JSON.stringify(j.groups)); } catch (e) { /* ignore */ }
+    const c = Sec.validate(Sec.safeParse(text));      // coerces numbers, caps text, drops anything unexpected
+    state = c.state; await persist();
+    try { if (c.groups) localStorage.setItem('jt_groups', JSON.stringify(c.groups)); } catch (e) { /* ignore */ }
+    return {profiles: c.state.profiles.length, skipped: c.skipped};
   }
   return {init, handle, isLocal, exportAll, importAll};
 })();
