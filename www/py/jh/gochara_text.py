@@ -239,7 +239,7 @@ def planet_detail(o, lagna, L, dasa_notes):
     fnl = {'strong benefic': 'a strong functional benefic', 'benefic': 'a functional benefic', 'mixed': 'a mixed-nature planet',
            'malefic': 'a functional malefic', 'strong malefic': 'a strong functional malefic', 'neutral': 'neutral'}.get(fn, fn)
     if p in ('Rahu', 'Ketu'):
-        lag = f"The nodes carry the colour of their sign lord and of whatever they conjoin, so the result here is read through those rather than through ownership."
+        lag = ''
     else:
         own = ' and '.join(ordn(h) for h in o['owns'])
         if o['fav'] and not o['blocked']:
@@ -251,7 +251,8 @@ def planet_detail(o, lagna, L, dasa_notes):
                    'mixed': 'Its lordship is mixed for your lagna, so it neither cushions nor adds to the demand.', 'malefic': 'As a malefic lord for your lagna, the demand is a little stronger than usual, so steady effort matters more.',
                    'strong malefic': 'As a strong malefic lord for your lagna, the demand is more persistent, so disciplined effort and patience carry you through.'}.get(fn, '')
         lag = f"For {lagna} it rules the {own} {'houses' if len(o['owns']) > 1 else 'house'} and is {fnl}. {adj}"
-    paras.append("Lagna lordship. " + ' '.join(lag.split()))
+    if lag:
+        paras.append("Lagna lordship. " + ' '.join(lag.split()))
     dg = _dignity(p, o['sign_idx'])
     bits = []
     if dg == 'exalted':
@@ -354,7 +355,7 @@ def today_details(t, native):
     D = {}
     hm, hl = t['house_moon'], t['house_lagna']
     d = []
-    d.append(f"Today the transiting Moon is in {t['sign']}, the {ordn(hm)} house from your natal Moon. This house concerns {HM[hm]}, so the mind and daily mood are drawn to those subjects.")
+    d.append(f"Today the transiting Moon is in {t['sign']}, the {ordn(hm)} house from your natal Moon. This house concerns {HM[hm]}, so the mind and daily mood are drawn to those subjects. From your lagna it is in the {ordn(hl)} house ({HL_SHORT[hl]}), so the day's events lean that way.")
     if t['blocked']:
         d.append("The Moon would normally be at ease here, but its vedha house is occupied, so the comfort is cut off. Expect small hindrances to otherwise smooth plans.")
     elif t['fav']:
@@ -447,6 +448,11 @@ def flag_detail(f, ctx):
             paras.append(f"What it is. {txt}. Saturn's aspect brings slow, steady discipline to the planet or point it falls on, adding duty, patience and the test of time.")
             paras.append('How it can feel. The matters tied to that point become slower and more serious. If the aspect is on the natal Moon, the mind carries more responsibility; if it is on the lagna, energy and self-image feel weightier, so rest and routine help.')
             paras.append('Guidance. Take it as a call for discipline. Keep commitments, work carefully and expect results through patience rather than speed.')
+    if i in ('sade', 'ashtama', 'janma_guru'):
+        po = ctx['jup'] if i == 'janma_guru' else sat
+        hlf = po['house_lagna']
+        gi = max(len(paras) - 1, 0)
+        paras.insert(gi, f"Combined with lagna. {po['planet']} is also in your {ordn(hlf)} house from the {ctx['lagna']} lagna ({HL_SHORT[hlf]}), so besides the mind and mood, the result shows up in those matters.")
     paras.append(NOTE)
     return paras
 
@@ -467,15 +473,46 @@ LEVEL_D = {'Mahadasa': 'the main chapter of life, lasting years. It sets the ove
            'Pratyantardasa': 'the finest layer, lasting weeks to months. It times the actual events within the sub-chapter.'}
 
 
-def lord_detail(l, lagna):
+MOON_GOOD = {1, 4, 5, 7, 9, 10}
+MOON_HARD = {6, 8, 12}
+COMBO_TONE = {2: 'Both lenses agree. Circumstances and inner experience both support this period, so it tends to deliver with relative ease. Use it to build and commit.',
+              1: 'The two lenses lean supportive. Most of the period flows well, and a little conscious effort in the weaker area keeps the balance.',
+              0: 'The two lenses balance each other. Results are ordinary and depend on how well you use the period, so steady effort pays.',
+              -1: 'The two lenses lean demanding, with some support. Progress asks for patience and planning, and the helpful side shows up when you stay consistent.',
+              -2: 'Both lenses ask for effort. The period rewards discipline, preparation and good company, and gains arrive gradually but last.'}
+SPLIT = {(1, -1): 'Circumstances favour you but the mind may feel pressed or restless, so rest and perspective help you use the openings.',
+         (-1, 1): 'Circumstances ask for effort, yet inner steadiness carries you, so patience converts the effort into progress.'}
+
+
+def combo_score(l):
+    a = 1 if l['fn'] > 0 else -1 if l['fn'] < 0 else 0
+    m = 1 if l['house_moon'] in MOON_GOOD else -1 if l['house_moon'] in MOON_HARD else 0
+    return a, m
+
+
+def combo_tone(l):
+    a, m = combo_score(l)
+    return SPLIT.get((a, m)) or COMBO_TONE[a + m]
+
+
+def natal_combo(l, lagna, tr):
+    pl, hl, hm = l['lord'], l['house_lagna'], l['house_moon']
+    paras = [f"Combined reading. In your natal chart {pl} is in {l['sign']}, the {ordn(hl)} from the {lagna} lagna ({HL_SHORT[hl]}) and the {ordn(hm)} from your Moon. From lagna, events and circumstances gather around {HL[hl]}. From the Moon, you live it through {HM[hm]}.",
+             combo_tone(l)]
+    o = (tr or {}).get(pl)
+    if o:
+        e = o['effect'].rstrip('. ')
+        paras.append(f"Right now in gochara {pl} is {ordn(o['house_lagna'])} from lagna and {ordn(o['house_moon'])} from Moon: {e}.")
+    return paras
+
+
+def lord_detail(l, lagna, tr=None):
     pl = l['lord']
     paras = [f"{l['level']} of {pl} ({l['start']} to {l['end']}). This is {LEVEL_D.get(l['level'], 'a layer of the dasa')}",
-             f"General themes of {pl}: {DASA_THEME[pl]}",
-             f"In your natal chart {pl} sits in {l['sign']}, the {ordn(l['house_lagna'])} house from lagna ({HL[l['house_lagna']]}) and the {ordn(l['house_moon'])} from the Moon. Its results are therefore delivered through {HL[l['house_lagna']]}."]
+             f"General themes of {pl}: {DASA_THEME[pl]}"]
+    paras.extend(natal_combo(l, lagna, tr))
     if l['owns']:
         paras.append(f"It rules the {' and '.join(ordn(h) for h in l['owns'])} {'houses' if len(l['owns']) > 1 else 'house'} for {lagna} lagna, so it also activates {'; '.join(HL[h] for h in l['owns'])}. It is {l['fn_label']} for this lagna, {'which tends to support the native during its periods' if l['fn'] > 0 else 'which tends to make its periods more varied and effort-driven' if l['fn'] < 0 else 'so it gives mixed results depending on its placement'}.")
-    else:
-        paras.append(f"{pl} acts through its sign lord and through any planet it joins, so its results are coloured by those.")
     dig = l['dignity']
     sw = l['strength_word']
     paras.append(f"Strength. Dignity: {dig}{', combust' if l['combust'] else ''}. Overall it rates {sw}. " + ('A strong lord delivers its promises with ease.' if l['strength'] > 0 else 'A weaker lord delivers with more effort or time.' if l['strength'] < 0 else 'Results follow the placement and the house it rules.'))
@@ -502,6 +539,10 @@ def lens_detail(lens, names, L):
     if ad:
         out['ad'] = [f"The Antardasa lord {ad['lord']} places its weight on: {', '.join(names(i) for i in lens['ad_domains']) or 'no particular area'}. This is the sub-theme of the present phase and times the events inside the main chapter.",
                      'Watch these areas for the actual outcomes of the Mahadasa promise in the coming months.']
+    out['md'].insert(1, f"Through lagna and Moon together: {md['lord']} is {ordn(md['house_lagna'])} from lagna ({HL_SHORT[md['house_lagna']]}) and {ordn(md['house_moon'])} from your Moon, so the chapter is lived through {HM[md['house_moon']]}. {combo_tone(md)}")
+    if ad:
+        out['ad'].insert(1, f"Through lagna and Moon together: {ad['lord']} is {ordn(ad['house_lagna'])} from lagna ({HL_SHORT[ad['house_lagna']]}) and {ordn(ad['house_moon'])} from your Moon. {combo_tone(ad)}")
+    out['L'].insert(2, 'The strength is judged on each lord\'s dignity and placement, then coloured by both views: its house from lagna shapes the events and its house from the Moon shapes how you experience them. Tap each lord for the combined reading.')
     out['trig'] = ['A transit is a trigger when the planet is itself the running Mahadasa or Antardasa lord, or when it crosses the natal sign of one of them.',
                    'Triggers count more because they connect the slow background of dasa with the day-to-day weather of gochara. Important developments tend to surface when a trigger planet crosses a sensitive point.']
     for k in out:

@@ -328,8 +328,6 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
             word = ('lifts' if d_fn > 0 else 'mutes' if d_fn < 0 else 'leaves unchanged') if sgn > 0 else ('softens' if d_fn > 0 else 'sharpens' if d_fn < 0 else 'leaves unchanged')
             if p in SEVEN:
                 steps.append({'layer': 'Lagna lordship', 'text': f"For this lagna {p} rules the {'/'.join(ordn(h) for h in owns)} ({fnnote}), a {fnl}; this {word} the result", 'pts': d_fn})
-            else:
-                steps.append({'layer': 'Lagna lordship', 'text': f"{p} {fnnote}", 'pts': 0})
         ls = lagna_support(p, hl)
         lag_t = P['lagna_k'] * ls
         kind = 'malefic' if p in NATURAL_MAL else 'benefic'
@@ -412,7 +410,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
                     why.append(f"in the {ordn(o['house_lagna'])} from lagna")
                 if o['planet'] in d['karakas']:
                     why.append('natural significator')
-                drv.append({'planet': o['planet'], 'pts': round(v, 2), 'why': ', '.join(why) + f"; {ordn(o['house_moon'])} from Moon is {'supportive' if o['fav'] else 'demanding'}" + (' (vedha)' if o['blocked'] else '')})
+                drv.append({'planet': o['planet'], 'pts': round(v, 2), 'why': ', '.join(why) + f"; {ordn(o['house_lagna'])} from lagna, {ordn(o['house_moon'])} from Moon is {'supportive' if o['fav'] else 'demanding'}" + (' (vedha)' if o['blocked'] else '')})
             emph = 1.0
             if key == 'dasa':
                 if d['id'] in md_dom:
@@ -439,7 +437,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     tot = 0.0
     mt = 1 if moon_o['state'] == 'good' else 0 if moon_o['state'] == 'blocked' else -1
     tot += mt
-    reasons.append({'k': 'Moon from natal Moon', 'text': f"{ordn(mo['house_moon'])} house, {'supportive' if moon_o['fav'] else 'demanding'}" + (f"; blocked by {moon_o['vedha_by']}" if moon_o['blocked'] else ''), 'pts': mt})
+    reasons.append({'k': 'Moon from natal Moon', 'text': f"{ordn(mo['house_moon'])} house from Moon ({ordn(mo['house_lagna'])} from lagna), {'supportive' if moon_o['fav'] else 'demanding'}" + (f"; blocked by {moon_o['vedha_by']}" if moon_o['blocked'] else ''), 'pts': mt})
     tp = TARA_PTS[ti]
     tot += tp
     reasons.append({'k': 'Tara bala', 'text': f"{TARA[ti]} tara (count {cnt} from birth star {NAKSHATRAS[birth_nak]}): {TARA_MEAN[ti]}", 'pts': tp})
@@ -482,7 +480,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     for f in flags:
         f['detail'] = GT.flag_detail(f, fctx)
     for l in lords:
-        l['detail'] = GT.lord_detail(l, lagna_name)
+        l['detail'] = GT.lord_detail(l, lagna_name, {o['planet']: o for o in out})
     lens['detail'] = GT.lens_detail(lens, names, L)
     lens['rel'] = [GT.relation(lords[i], lords[i + 1], lagna_name) for i in range(len(lords) - 1)]
     today['detail'] = GT.today_details(today, {'lagna': lagna_name})
@@ -520,7 +518,7 @@ def guide():
             'Each planet\'s score is routed to the domains whose houses (counted from lagna) hold the planet, plus a smaller share to domains it naturally signifies.',
             'Domain score = routed total, measured against that domain\'s typical level (planets sit in demanding houses more often than not, so this keeps Testing and Strong for real extremes), divided by the scale, shown from -100 to +100. Labels: Strong 35 and above, Supportive 12 to 35, Mixed within 12, Go gently -12 to -35, Testing below -35.',
             'With dasa: the same sum after the dasa strength factor, trigger multipliers and domain emphasis. Both columns are shown.',
-            'Today strip: Moon from natal Moon, Tara bala from the birth star, Moon from lagna, and Moon\'s conjunctions and aspects. Chandra bindus are information only. Rahu and Ketu are counted only by conjunction, never as aspecting planets.',
+            'Today strip: Moon from natal Moon, Tara bala from the birth star, Moon from lagna, and Moon\'s conjunctions and aspects. Chandra bindus are information only.',
             'Open items to verify against Raman: which planets can give vedha (nodes are excluded as givers and have no vedha table), and the exact lagna agreement rule.',
             'Traditional rules, not tested. These are indicative tendencies from classical texts, given to help you prepare rather than to alarm. Your effort and choices change outcomes, and a professional astrologer who studies the whole chart gives the most reliable reading. Astrological only; may not apply to the real world.',
         ],
