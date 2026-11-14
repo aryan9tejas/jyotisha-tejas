@@ -18,7 +18,11 @@ const S = {chart: null, version: 0, profileId: null, tab: 'charts', loaded: {}, 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function setStatus(msg, bad) { const e = $('#status'); e.textContent = msg || ''; e.className = 'status' + (bad ? ' err' : ''); }
 async function api(url, body, method) {
-  if (Local.isLocal(url)) return Local.handle(url, body, method);
+  if (Local.isLocal(url)) {
+    const r = await Local.handle(url, body, method);
+    if (/^\/api\/profiles/.test(url) && (body !== undefined || method === 'DELETE')) window.JT_PV = (window.JT_PV || 0) + 1;      // saved profiles changed: other screens must reload their copy
+    return r;
+  }
   await Engine.ready;
   return Engine.call(url.split('?')[0], body);
 }
@@ -890,6 +894,11 @@ const calc = guard(async () => {
   S.loaded = {};
   showTab(S.tab === 'saved' ? 'charts' : S.tab);
 });
+function startNewProfile() {      // used by the Set chart pickers: a blank form on the Charts tab
+  S.profileId = null; $('#profileSel').value = ''; $('#name').value = '';
+  location.hash = '#app'; showTab('charts');
+  setTimeout(() => { try { $('#name').focus(); } catch (e) { /* ignore */ } }, 150);
+}
 async function refreshProfiles(selectId) {
   const list = await api('/api/profiles');
   window._profiles = list;

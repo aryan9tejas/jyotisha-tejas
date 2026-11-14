@@ -48,7 +48,7 @@ const Muh = (() => {
     el.innerHTML = `<div class="mu-person"><label>${label}<select class="mu-psel">
       <option value="">${which === 'me' ? 'No birth details (general timing)' : 'Not adding a partner'}</option>
       <optgroup label="Saved profiles" class="mu-prof"></optgroup>
-      <option value="form">Chart currently in the form</option><option value="manual">Enter birth star manually</option></select></label>
+      ${which === 'me' ? '<option value="new">+ Create new profile</option>' : ''}<option value="manual">Enter birth star manually</option></select></label>
       <div class="mu-manual" hidden>
         <label>Birth star<select class="mn-nak">${NAKS.map((n, i) => `<option value="${i}">${i + 1}. ${n}</option>`).join('')}</select></label>
         <label>Pada<select class="mn-pada"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>
@@ -72,6 +72,7 @@ const Muh = (() => {
     })();
     sel.onchange = async () => {
       const v = sel.value; man.hidden = v !== 'manual';
+      if (v === 'new') { sel.value = cur ? (cur.src || '') : ''; const pm = document.getElementById('muPM'); if (pm) pm.hidden = true; if (typeof startNewProfile === 'function') startNewProfile(); return; }
       if (!v) return set(null);
       if (v === 'manual') return;
       try {
@@ -327,7 +328,7 @@ const Muh = (() => {
   /* ------------------------------------------------------------ first-page card */
   function homeHead(ctx) {
     const me = M.people.me, open = ctx.open;
-    return `<div class="ch"><h2>Muhurta ${me ? '' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" type="button" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set birth star'}</button>`
+    return `<div class="ch"><h2>Muhurta ${me ? '' : '<span class="hint">for the day</span>'}</h2><div class="btns"><button class="xp mu-set" type="button" title="Set whose birth star to use">${me ? esc(me.name || 'Change') : 'Set chart'}</button>`
       + `<button class="xp ic mu-tg" type="button" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'}" title="${open ? 'Hide' : 'Show'}"><i>${open ? '▴' : '▾'}</i></button></div></div>`;
   }
   function homeBody(d, ctx) {

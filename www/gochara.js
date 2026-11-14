@@ -15,7 +15,8 @@ const Goc = (() => {
   const op = k => ` data-k="${esc(k)}"${G.open[k] ? ' open' : ''}`;      // the page re-renders every minute: remember which rows are open
 
   async function loadProfiles() {
-    if (G.profiles) return G.profiles;
+    if (G.profiles && G.pv === (window.JT_PV || 0)) return G.profiles;
+    G.pv = window.JT_PV || 0;
     try {
       const r = await Promise.race([api('/api/profiles'), new Promise(res => setTimeout(() => res(null), 4000))]);
       G.profiles = Array.isArray(r) ? r : [];
