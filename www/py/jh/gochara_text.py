@@ -495,6 +495,14 @@ def combo_tone(l):
     return SPLIT.get((a, m)) or COMBO_TONE[a + m]
 
 
+COMBO_SHORT = {2: 'Lagna and Moon both support', 1: 'Lagna and Moon lean supportive', 0: 'Lagna and Moon balanced', -1: 'Lagna and Moon lean demanding', -2: 'Lagna and Moon both ask for effort'}
+
+
+def combo_short(l):
+    a, m = combo_score(l)
+    return COMBO_SHORT[a + m]
+
+
 def natal_combo(l, lagna, tr):
     pl, hl, hm = l['lord'], l['house_lagna'], l['house_moon']
     paras = [f"Combined reading. In your natal chart {pl} is in {l['sign']}, the {ordn(hl)} from the {lagna} lagna ({HL_SHORT[hl]}) and the {ordn(hm)} from your Moon. From lagna, events and circumstances gather around {HL[hl]}. From the Moon, you live it through {HM[hm]}.",

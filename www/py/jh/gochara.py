@@ -480,6 +480,7 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     for f in flags:
         f['detail'] = GT.flag_detail(f, fctx)
     for l in lords:
+        l['combo'] = GT.combo_short(l)
         l['detail'] = GT.lord_detail(l, lagna_name, {o['planet']: o for o in out})
     lens['detail'] = GT.lens_detail(lens, names, L)
     lens['rel'] = [GT.relation(lords[i], lords[i + 1], lagna_name) for i in range(len(lords) - 1)]
