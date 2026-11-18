@@ -473,6 +473,10 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
     # ---- long-form interpretations (shown when a box is opened)
     names = lambda i: (next((d['name'] for d in DOMAINS if d['id'] == i), i))
     lagna_name = SIGNS[asc]
+    for o in out:      # planets sharing a sign (conjunction): wording only, the scores are unchanged
+        o['with'] = [x['planet'] for x in out if x is not o and x['sign_idx'] == o['sign_idx']]
+        if o['with']:
+            o['notes'].append({'t': 'with', 'text': 'with ' + ', '.join(o['with'])})
     for o in out:
         o['detail'] = GT.planet_detail(o, lagna_name, L, None)
     sat_o = next(o for o in out if o['planet'] == 'Saturn'); jup_o = next(o for o in out if o['planet'] == 'Jupiter')

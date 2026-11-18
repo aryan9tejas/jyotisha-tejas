@@ -222,6 +222,27 @@ def combined_paras(o, lagna):
     return out
 
 
+JOIN = {'Sun': 'brings pride, visibility and a push for recognition',
+        'Moon': 'brings feeling and sensitivity, so the mind is more involved',
+        'Mars': 'brings drive, urgency and courage, best channelled into action',
+        'Mercury': 'brings thinking, talking and quick adjustments',
+        'Jupiter': 'brings guidance, optimism and room to grow',
+        'Venus': 'brings charm, harmony and a wish for comfort',
+        'Saturn': 'brings discipline, some delay and seriousness, so steady effort pays',
+        'Rahu': 'brings ambition, novelty and a hunger for more, so verify facts',
+        'Ketu': 'brings detachment, introspection and a pull to simplify'}
+
+
+def join_para(o):
+    w = o.get('with') or []
+    if not w:
+        return None
+    p, hl, hm = o['planet'], o['house_lagna'], o['house_moon']
+    names = ' and '.join(w) if len(w) < 3 else ', '.join(w[:-1]) + ' and ' + w[-1]
+    bits = ' '.join(f"{x} {JOIN[x]}." for x in w)
+    return (f"Joined by {names}. In the same sign, they share the {ordn(hl)} house from lagna ({HL_SHORT[hl]}) and the {ordn(hm)} from your Moon, so the result for {p} is coloured by them. {bits}")
+
+
 def planet_detail(o, lagna, L, dasa_notes):
     """o is one entry of the per-planet list in gochara.evaluate."""
     p, hm, hl = o['planet'], o['house_moon'], o['house_lagna']
@@ -229,6 +250,9 @@ def planet_detail(o, lagna, L, dasa_notes):
     paras = []
     paras.append(f"Headline. {o['effect']}.")
     paras.extend(combined_paras(o, lagna))
+    jp = join_para(o)
+    if jp:
+        paras.append(jp)
     if o['blocked']:
         paras.append(f"Classical rating. The {ordn(hm)} from the Moon is normally a house where {p} gives good results, but {o['vedha_by']} is sitting in the vedha house ({ordn(o['vedha_house'])}) and cuts that promise off. The benefit may come later or in a smaller form until {o['vedha_by']} or {p} changes sign, so patience and steady effort help.")
     elif o['fav']:
