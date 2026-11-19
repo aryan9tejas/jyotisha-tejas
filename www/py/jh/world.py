@@ -8,6 +8,7 @@ from .consts import *
 from . import core
 from .core import LOCK, norm, sign_of, planet_pos, nak_info, dms
 from . import world_text as T
+from . import parivartana as PVm
 
 BODIES = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
 CFG = dict(core.DEFAULT_CFG)
@@ -86,7 +87,7 @@ def state(jd):
     return P
 
 
-def planet_view(o):
+def planet_view(o, P=None):
     """Per planet reading shown under Transiting planets."""
     p = o['planet']
     paras = []
@@ -113,6 +114,11 @@ def planet_view(o):
         if a['planet'] in ('Jupiter', 'Saturn', 'Mars'):
             paras.append(f"Aspect. {a['planet']} aspects {p} from its {ordn(a['house'])} house. " + T.pair_text(a['planet'], p, 'aspect'))
             flags.append(f"{a['planet']} aspect")
+    for q in (PVm.SEVEN if P and p in PVm.SEVEN else []):
+        if q != p and P[p]['sign_idx'] in PVm.OWN[q] and P[q]['sign_idx'] in PVm.OWN[p]:
+            ex = {'a': p, 'b': q, 'sa': P[p]['sign_idx'], 'sb': P[q]['sign_idx']}
+            paras.append(PVm.mundane_para(ex, T.PLANET_M))
+            flags.append('parivartana with ' + q)
     if o['yuddha']:
         paras.append(f"Planetary war. {p} and {o['yuddha']} are within one degree. Their themes are contested and the result is uncertain until they separate.")
         flags.append('planetary war')
@@ -477,7 +483,7 @@ def nations(jd, tz, chart_fn, gochara_mod, dasa_mod):
 
 def view(jd, tz, when_label=''):
     P = state(jd)
-    pv = {p: planet_view(P[p]) for p in BODIES}
+    pv = {p: planet_view(P[p], P) for p in BODIES}
     th = themes(P)
     sl = slow(jd, tz, P)
     return {'when': when_label, 'planets': pv, 'themes': th, 'industries': industries(P), 'interests': interests(P, sl['planets']), 'slow': sl}

@@ -222,25 +222,64 @@ def combined_paras(o, lagna):
     return out
 
 
-JOIN = {'Sun': 'brings pride, visibility and a push for recognition',
-        'Moon': 'brings feeling and sensitivity, so the mind is more involved',
-        'Mars': 'brings drive, urgency and courage, best channelled into action',
-        'Mercury': 'brings thinking, talking and quick adjustments',
-        'Jupiter': 'brings guidance, optimism and room to grow',
-        'Venus': 'brings charm, harmony and a wish for comfort',
-        'Saturn': 'brings discipline, some delay and seriousness, so steady effort pays',
-        'Rahu': 'brings ambition, novelty and a hunger for more, so verify facts',
-        'Ketu': 'brings detachment, introspection and a pull to simplify'}
+PAIR = {
+    ('Sun', 'Moon'): ('', 'New moon phase: energy turns inward and the mind is less outgoing.', 'Good for planning, rest and quiet starts rather than public launches.'),
+    ('Sun', 'Mars'): ('', 'Fire on fire: courage, speed and competitive edge.', 'Use it for decisive action and contests, and keep a check on haste and arguments with seniors.'),
+    ('Sun', 'Mercury'): ('Budhaditya', 'A sharp, authoritative mind that speaks and reasons well.', 'Favours exams, negotiations, presentations and recognition for your ideas.'),
+    ('Sun', 'Jupiter'): ('', 'Confidence backed by good counsel, with support from mentors and officials.', 'Good for approvals, guidance and taking on responsibility.'),
+    ('Sun', 'Venus'): ('', 'Charm meets pride, so creative and social life gets a spotlight.', 'Keep the ego out of relationships and the arts do well.'),
+    ('Sun', 'Saturn'): ('', 'Authority and discipline press together: work with seniors feels slow and serious.', 'Patient, well-documented effort wins respect and the result lasts.'),
+    ('Sun', 'Rahu'): ('Grahana type', 'Hunger for recognition with some haze around status and authority.', 'Verify claims and promises from officials, and avoid exaggerating your own.'),
+    ('Sun', 'Ketu'): ('', 'Interest in status and applause fades and the inner life gains weight.', 'Good for reflection, research and quiet work, while visibility may feel flat.'),
+    ('Moon', 'Mars'): ('Chandra-Mangala', 'Strong drive to earn and act, with emotion running hot.', 'Favours sales, business and physical work, and impulse spending is the thing to watch.'),
+    ('Moon', 'Mercury'): ('', 'A quick, talkative mind that picks up and passes on information fast.', 'Good for writing, trade and learning, and rest keeps the nerves calm.'),
+    ('Moon', 'Jupiter'): ('Gajakesari', 'Goodwill, optimism and the blessing of elders or teachers.', 'A fine window for learning, family matters, gains and starting auspicious work.'),
+    ('Moon', 'Venus'): ('', 'Comfort, affection and social warmth.', 'Good for romance, hospitality and the arts, and spending on pleasures runs high.'),
+    ('Moon', 'Saturn'): ('Punarphoo', 'A heavy, serious mood with some worry and tiredness.', 'Endurance is high, so take on the necessary chores and trim extra commitments.'),
+    ('Moon', 'Rahu'): ('Grahana type', 'A restless, overthinking mind that wants more stimulation.', 'Keep routines, sleep and meals steady and postpone big decisions to a calmer day.'),
+    ('Moon', 'Ketu'): ('', 'Withdrawn, intuitive and less interested in company.', 'Good for meditation, solitude and spiritual study.'),
+    ('Mars', 'Mercury'): ('', 'Sharp speech and technical skill, with a taste for debate.', 'Great for analysis and problem solving, and read emails twice before sending.'),
+    ('Mars', 'Jupiter'): ('Guru-Mangala', 'Bold action with wisdom and backing behind it.', 'Good for property, legal matters, leadership and starting ventures, and overconfidence is the thing to watch.'),
+    ('Mars', 'Venus'): ('', 'Passion and drive in love, creativity and the pursuit of comfort.', 'Productive for creative work and romance, with money easily spent on pleasure.'),
+    ('Mars', 'Saturn'): ('', 'Drive meets restraint, so effort feels pressured and slow.', 'Disciplined execution of hard tasks pays, and care with machinery, vehicles and tempers is wise.'),
+    ('Mars', 'Rahu'): ('Angarak', 'Intense, impulsive energy with a taste for risk.', 'Channel it into sport, technology and bold projects, and avoid speed and confrontation.'),
+    ('Mars', 'Ketu'): ('', 'A sharp, cutting energy that wants to remove what is not working.', 'Good for decisive clean-ups, and acting in anger or haste is what to avoid.'),
+    ('Mercury', 'Jupiter'): ('', 'Wise, expansive thinking that teaches and advises well.', 'Good for study, contracts, counselling and publishing.'),
+    ('Mercury', 'Venus'): ('', 'Charming speech and an eye for design and value.', 'Favours creative business, partnerships and writing.'),
+    ('Mercury', 'Saturn'): ('', 'Methodical, careful thinking that decides slowly.', 'Good for accounts, audits and detailed planning, and the slow pace is thoroughness.'),
+    ('Mercury', 'Rahu'): ('', 'Clever, unconventional ideas and a flair for technology.', 'Verify documents and facts, because exaggeration and misinformation slip in easily.'),
+    ('Mercury', 'Ketu'): ('', 'Analytical and research minded, with quieter speech.', 'Good for deep study and debugging, and say important things plainly to avoid gaps in communication.'),
+    ('Jupiter', 'Venus'): ('', 'Abundance and goodwill, with luxury and happy relationships in focus.', 'Favours marriage, finance and celebrations, and moderation keeps the benefits.'),
+    ('Jupiter', 'Saturn'): ('', 'Wisdom and discipline together build slowly but durably.', 'Good for long-term planning, careers and structure, and delays are part of the process.'),
+    ('Jupiter', 'Rahu'): ('Guru-Chandala', 'Big expansion, foreign links and unconventional beliefs.', 'Good for bold learning and travel, and weigh advisers and promises carefully.'),
+    ('Jupiter', 'Ketu'): ('', 'Spiritual depth and a philosophical, detached outlook.', 'Good for study, practice and teachers, while material expansion feels slower.'),
+    ('Venus', 'Saturn'): ('', 'Serious, steady love and money matters.', 'Commitments that start now tend to last, and romance moves slowly.'),
+    ('Venus', 'Rahu'): ('', 'Strong attraction, luxury and a taste for the foreign or unusual.', 'Enjoy it with a clear head, because indulgence and glamour can mislead.'),
+    ('Venus', 'Ketu'): ('', 'Detachment from luxury and a quieter view of relationships.', 'Good for simplifying spending and for sincere, low-drama bonds.'),
+    ('Saturn', 'Rahu'): ('', 'Heavy pressure with worry about the future.', 'Hard, honest work and structure pay off here, and shortcuts do not.'),
+    ('Saturn', 'Ketu'): ('', 'Austere and karmic, closing out old duties.', 'Good for clearing clutter and finishing pending obligations.'),
+}
 
 
 def join_para(o):
     w = o.get('with') or []
     if not w:
         return None
-    p, hl, hm = o['planet'], o['house_lagna'], o['house_moon']
-    names = ' and '.join(w) if len(w) < 3 else ', '.join(w[:-1]) + ' and ' + w[-1]
-    bits = ' '.join(f"{x} {JOIN[x]}." for x in w)
-    return (f"Joined by {names}. In the same sign, they share the {ordn(hl)} house from lagna ({HL_SHORT[hl]}) and the {ordn(hm)} from your Moon, so the result for {p} is coloured by them. {bits}")
+    p = o['planet']
+    lines = []
+    for x in w:
+        t, gives, use = PAIR.get((p, x)) or PAIR.get((x, p)) or ('', '', '')
+        if not gives:
+            continue
+        lines.append(f"{p} with {x}{' (' + t + ')' if t else ''}: {gives} {use}")
+    return ' '.join(lines) if lines else None
+
+
+def natal_pv(ex, hl_of, hm_of, lord):
+    from . import parivartana as PV
+    a, b = ex['a'], ex['b']
+    note = f"The dasa of either {a} or {b} delivers both houses together, so through {lord}'s period the {ordn(hl_of[a])} and {ordn(hl_of[b])} house matters tend to move as one."
+    return PV.natal_paras(ex, hl_of, hm_of, HM, note)
 
 
 def planet_detail(o, lagna, L, dasa_notes):
@@ -253,6 +292,7 @@ def planet_detail(o, lagna, L, dasa_notes):
     jp = join_para(o)
     if jp:
         paras.append(jp)
+    paras.extend(o.get('pv') or [])
     if o['blocked']:
         paras.append(f"Classical rating. The {ordn(hm)} from the Moon is normally a house where {p} gives good results, but {o['vedha_by']} is sitting in the vedha house ({ordn(o['vedha_house'])}) and cuts that promise off. The benefit may come later or in a smaller form until {o['vedha_by']} or {p} changes sign, so patience and steady effort help.")
     elif o['fav']:
@@ -543,6 +583,7 @@ def lord_detail(l, lagna, tr=None):
     paras = [f"{l['level']} of {pl} ({l['start']} to {l['end']}). This is {LEVEL_D.get(l['level'], 'a layer of the dasa')}",
              f"General themes of {pl}: {DASA_THEME[pl]}"]
     paras.extend(natal_combo(l, lagna, tr))
+    paras.extend(l.get('pariv') or [])
     if l['owns']:
         paras.append(f"It rules the {' and '.join(ordn(h) for h in l['owns'])} {'houses' if len(l['owns']) > 1 else 'house'} for {lagna} lagna, so it also activates {'; '.join(HL[h] for h in l['owns'])}. It is {l['fn_label']} for this lagna, {'which tends to support the native during its periods' if l['fn'] > 0 else 'which tends to make its periods more varied and effort-driven' if l['fn'] < 0 else 'so it gives mixed results depending on its placement'}.")
     dig = l['dignity']

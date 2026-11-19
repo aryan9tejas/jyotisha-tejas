@@ -17,6 +17,7 @@ from . import core, transit
 from . import dasa as DS
 from .core import LOCK
 from . import gochara_text as GT
+from . import parivartana as PV
 
 FAV = transit.FAVORABLE_FROM_MOON
 BODIES = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
@@ -277,6 +278,11 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
         lords.append({'level': lv['level'], 'lord': pl, 'start': lv['start'][:10], 'end': lv['end'][:10], 'sign': SIGNS[np_['sign']], 'sign_idx': np_['sign'],
                       'house_lagna': np_['house'], 'house_moon': house_of(np_['sign'], moon_sign), 'dignity': np_.get('dignity', '-') if pl in SEVEN else dlab,
                       'owns': owns, 'fn': fnp, 'fn_label': fnl, 'strength': s, 'strength_word': strength_word(s), 'combust': bool(np_.get('combust'))})
+    nat_hl = {p: chart['pmap'][p]['house'] for p in PV.SEVEN}
+    nat_hm = {p: house_of(chart['pmap'][p]['sign'], moon_sign) for p in PV.SEVEN}
+    nat_ex = PV.exchanges({p: chart['pmap'][p]['sign'] for p in PV.SEVEN})
+    for l in lords:
+        l['pariv'] = [GT.natal_pv(ex, nat_hl, nat_hm, l['lord']) for ex in nat_ex if l['lord'] in (ex['a'], ex['b'])]
     wts = [0.5, 0.3, 0.2]
     L = sum(w * l['strength'] for w, l in zip(wts, lords))
     md = lords[0] if lords else None
@@ -477,6 +483,14 @@ def evaluate(chart, jd, params=None, when_label='', tz_label=''):
         o['with'] = [x['planet'] for x in out if x is not o and x['sign_idx'] == o['sign_idx']]
         if o['with']:
             o['notes'].append({'t': 'with', 'text': 'with ' + ', '.join(o['with'])})
+    tr_hl = {o['planet']: o['house_lagna'] for o in out}
+    tr_hm = {o['planet']: o['house_moon'] for o in out}
+    tr_ex = PV.exchanges({o['planet']: o['sign_idx'] for o in out})
+    for o in out:      # sign exchange between transiting planets: wording only
+        o['pv'] = [PV.transit_para(ex, tr_hl, tr_hm) for ex in tr_ex if o['planet'] in (ex['a'], ex['b'])]
+        for ex in tr_ex:
+            if o['planet'] in (ex['a'], ex['b']):
+                o['notes'].append({'t': 'with', 'text': 'Parivartana with ' + (ex['b'] if ex['a'] == o['planet'] else ex['a'])})
     for o in out:
         o['detail'] = GT.planet_detail(o, lagna_name, L, None)
     sat_o = next(o for o in out if o['planet'] == 'Saturn'); jup_o = next(o for o in out if o['planet'] == 'Jupiter')
